@@ -1,0 +1,8 @@
+{
+  "name": "learn-dsh-bundle-exercise",
+  "private": true,
+  "type": "module",
+  "dsh": {
+    "bundle": "./cordis.patch.yml"
+  }
+}

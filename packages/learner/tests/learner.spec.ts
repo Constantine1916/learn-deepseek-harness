@@ -144,23 +144,71 @@ describe('F-010 learner events and pure projection', () => {
       evidenceId: EvidenceId('evidence-2'), kind: 'machine', summary: 'Lifecycle check passed', unitId,
       attemptId: ExerciseAttemptId('attempt-1'),
     }))
+    await ctx.learner.append(scope, input('learning/misconception-resolved', {
+      misconceptionId: MisconceptionId('misconception-1'),
+      evidenceIds: [EvidenceId('evidence-1'), EvidenceId('evidence-2')],
+      reason: 'authored-and-machine-evidence-resolved-unit-gap',
+    }))
     await ctx.learner.append(scope, input('learning/mastery-changed', {
       unitId, level: 'mastered', evidenceIds: [EvidenceId('evidence-1'), EvidenceId('evidence-2')], reason: 'machine-and-source-evidence',
     }))
     const completionEvidence = [EvidenceId('evidence-1'), EvidenceId('evidence-2')]
     await ctx.learner.append(scope, input('learning/unit-completed', { unitId, evidenceIds: completionEvidence }))
+
+    for (const [index, unit] of ctx.curriculum.course().units.slice(1).entries()) {
+      const attemptId = ExerciseAttemptId(`attempt-followup-${String(index + 1)}`)
+      const authoredId = EvidenceId(`evidence-followup-authored-${String(index + 1)}`)
+      const machineId = EvidenceId(`evidence-followup-machine-${String(index + 1)}`)
+      const checkpoint = unit.checkpoints[0]!
+      const exercise = unit.exercises[0]!
+      await ctx.learner.append(scope, input('learning/unit-started', { unitId: unit.id }))
+      await ctx.learner.append(scope, input('learning/activity-advanced', {
+        unitId: unit.id, from: 'explain', to: 'checkpoint', reason: 'followup-explanation', checkpointId: checkpoint.id,
+      }))
+      await ctx.learner.append(scope, input('learning/evidence-recorded', {
+        evidenceId: authoredId, kind: 'authored', summary: `Authored evidence for ${unit.id}`, unitId: unit.id,
+      }))
+      await ctx.learner.append(scope, input('learning/exercise-created', { attemptId, exerciseId: exercise.id, unitId: unit.id }))
+      await ctx.learner.append(scope, input('learning/checks-completed', {
+        attemptId,
+        checks: [{
+          checkId: exercise.checks[0]!.id,
+          status: 'passed',
+          category: exercise.checks[0]!.category,
+          summary: `${exercise.id} passed`,
+          details: ['deterministic followup check passed'],
+          artifacts: ['artifact'],
+        }],
+      }))
+      await ctx.learner.append(scope, input('learning/activity-advanced', {
+        unitId: unit.id, from: 'exercise', to: 'feedback', reason: 'followup-checks', attemptId,
+      }))
+      await ctx.learner.append(scope, input('learning/evidence-recorded', {
+        evidenceId: machineId, kind: 'machine', summary: `Machine evidence for ${unit.id}`, unitId: unit.id, attemptId,
+      }))
+      await ctx.learner.append(scope, input('learning/mastery-changed', {
+        unitId: unit.id, level: 'mastered', evidenceIds: [authoredId, machineId], reason: 'followup-evidence',
+      }))
+      await ctx.learner.append(scope, input('learning/unit-completed', { unitId: unit.id, evidenceIds: [authoredId, machineId] }))
+      completionEvidence.push(authoredId, machineId)
+    }
     const result = await ctx.learner.append(scope, input('learning/course-completed', { courseId, evidenceIds: completionEvidence }))
 
     expect(result.state).toMatchObject({
       goal: 'Build a DSH plugin',
       courseCompleted: true,
-      unitProgress: { [unitId]: 'completed' },
+      unitProgress: {
+        [unitId]: 'completed',
+        'capability-seam': 'completed',
+        'model-callable-tool': 'completed',
+        'bundle-profile-composition': 'completed',
+      },
       mastery: { [unitId]: { level: 'mastered' } },
       nextRecommendation: { unitId: null, reason: 'course-complete' },
     })
     expect(result.state.activePlan?.revision).toBe(2)
     expect(result.state.attempts['attempt-1']).toMatchObject({ hintLevels: [1], checks: [{ status: 'passed' }] })
-    expect(result.state.misconceptions['misconception-1']?.resolved).toBe(false)
+    expect(result.state.misconceptions['misconception-1']?.resolved).toBe(true)
     expect(Object.isFrozen(result.state)).toBe(true)
     expect(Object.isFrozen(result.state.attempts)).toBe(true)
   }))

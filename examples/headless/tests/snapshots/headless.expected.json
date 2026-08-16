@@ -9,7 +9,9 @@
     "tools": [
       "learning_adjust_plan",
       "learning_complete_activity",
+      "learning_get_report",
       "learning_get_state",
+      "learning_request_hint",
       "learning_start_diagnostic",
       "learning_start_unit",
       "learning_submit_diagnostic",
@@ -20,7 +22,9 @@
       "tools": [
         "learning_adjust_plan",
         "learning_complete_activity",
+        "learning_get_report",
         "learning_get_state",
+        "learning_request_hint",
         "learning_start_diagnostic",
         "learning_start_unit",
         "learning_submit_diagnostic",
@@ -31,7 +35,9 @@
     "lessonResponse": "Objective: explain how Plugin, Context, Service, typed events, and Effect disposal compose. Completion requires your own lifecycle trace plus a passed machine check. At DSH 0.1.0-rc.5 / 0cf6f648c80d, docs/architecture.md establishes the Cordis plugin tree, vendor/cordis/src/context.ts defines the scoped Context, and vendor/cordis/src/service.ts defines replaceable Service capabilities. A plugin receives its Context, registers services or typed-event coordination through that scope, and binds cleanup to its fiber with Effects/disposers.",
     "checkpointResponse": "Checkpoint: in your own words, trace plugin fiber → Context → Service or typed-event registration → Effect/disposer, and explain what disappears when the fiber is disposed.",
     "failureResponse": "Machine check failed in the implementation category: answer.json is incomplete. Revise the missing lifecycle fields and source citations in this same attempt; no mastery or completion has been granted.",
-    "successResponse": "Machine check passed: answer.json now contains every required lifecycle field and at least two valid curriculum source citations. This machine evidence can now support mastery together with your authored checkpoint."
+    "successResponse": "Machine check passed: answer.json now contains every required lifecycle field and at least two valid curriculum source citations. This machine evidence can now support mastery together with your authored checkpoint.",
+    "blockedResponse": "The Provider check is blocked by an environment timeout, not failed for implementation. No mastery was reduced; restore the checker and retry the same attempt.",
+    "reportResponse": "Learning report: all eight outcomes are verified. Four units were exercise-completed, the bundle unit has comprehensive validation, no unit was represented as both waived and completed, and remaining misconceptions are listed from committed state."
   },
   "curriculum": {
     "id": "dsh-foundations",
@@ -57,6 +63,69 @@
         "anchorKind": "export",
         "anchor": "Service",
         "version": "0cf6f648c80de1b0572057cd746a20863e39d606"
+      },
+      {
+        "unitId": "capability-seam",
+        "path": "docs/architecture.md",
+        "anchorKind": "heading",
+        "anchor": "Capability seams",
+        "version": "0cf6f648c80de1b0572057cd746a20863e39d606"
+      },
+      {
+        "unitId": "capability-seam",
+        "path": "packages/subprocess/subprocess/src/index.ts",
+        "anchorKind": "export",
+        "anchor": "SubprocessRuntime",
+        "version": "0cf6f648c80de1b0572057cd746a20863e39d606"
+      },
+      {
+        "unitId": "capability-seam",
+        "path": "packages/subprocess/subprocess-local/src/index.ts",
+        "anchorKind": "export",
+        "anchor": "LocalSubprocessRuntime",
+        "version": "0cf6f648c80de1b0572057cd746a20863e39d606"
+      },
+      {
+        "unitId": "model-callable-tool",
+        "path": "docs/cordis-tutorial/07-into-the-harness.md",
+        "anchorKind": "heading",
+        "anchor": "A tool plugin",
+        "version": "0cf6f648c80de1b0572057cd746a20863e39d606"
+      },
+      {
+        "unitId": "model-callable-tool",
+        "path": "packages/core/tools/src/schema.ts",
+        "anchorKind": "export",
+        "anchor": "defineTool",
+        "version": "0cf6f648c80de1b0572057cd746a20863e39d606"
+      },
+      {
+        "unitId": "model-callable-tool",
+        "path": "docs/architecture.md",
+        "anchorKind": "heading",
+        "anchor": "Turn flow",
+        "version": "0cf6f648c80de1b0572057cd746a20863e39d606"
+      },
+      {
+        "unitId": "bundle-profile-composition",
+        "path": "docs/architecture.md",
+        "anchorKind": "heading",
+        "anchor": "Profiles and bundles",
+        "version": "0cf6f648c80de1b0572057cd746a20863e39d606"
+      },
+      {
+        "unitId": "bundle-profile-composition",
+        "path": "packages/bundle/base/cordis.patch.yml",
+        "anchorKind": "text",
+        "anchor": "ONE insert over the empty profile root",
+        "version": "0cf6f648c80de1b0572057cd746a20863e39d606"
+      },
+      {
+        "unitId": "bundle-profile-composition",
+        "path": "docs/architecture.md",
+        "anchorKind": "heading",
+        "anchor": "Session log",
+        "version": "0cf6f648c80de1b0572057cd746a20863e39d606"
       }
     ]
   },
@@ -66,6 +135,7 @@
       "activity": null,
       "completedUnits": [],
       "checks": [],
+      "hints": [],
       "exactSnapshotInSessionLog": true
     },
     {
@@ -73,6 +143,7 @@
       "activity": null,
       "completedUnits": [],
       "checks": [],
+      "hints": [],
       "exactSnapshotInSessionLog": true
     },
     {
@@ -80,6 +151,7 @@
       "activity": null,
       "completedUnits": [],
       "checks": [],
+      "hints": [],
       "exactSnapshotInSessionLog": true
     },
     {
@@ -89,6 +161,7 @@
       },
       "completedUnits": [],
       "checks": [],
+      "hints": [],
       "exactSnapshotInSessionLog": true
     },
     {
@@ -96,6 +169,7 @@
       "activity": null,
       "completedUnits": [],
       "checks": [],
+      "hints": [],
       "exactSnapshotInSessionLog": true
     },
     {
@@ -106,6 +180,7 @@
       },
       "completedUnits": [],
       "checks": [],
+      "hints": [],
       "exactSnapshotInSessionLog": true
     },
     {
@@ -116,6 +191,7 @@
       },
       "completedUnits": [],
       "checks": [],
+      "hints": [],
       "exactSnapshotInSessionLog": true
     },
     {
@@ -126,6 +202,57 @@
       },
       "completedUnits": [],
       "checks": [],
+      "hints": [],
+      "exactSnapshotInSessionLog": true
+    },
+    {
+      "label": "hint-level-1",
+      "activity": {
+        "kind": "exercise",
+        "unitId": "plugin-context-service-effect",
+        "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74"
+      },
+      "completedUnits": [],
+      "checks": [],
+      "hints": [],
+      "exactSnapshotInSessionLog": true
+    },
+    {
+      "label": "hint-level-2",
+      "activity": {
+        "kind": "exercise",
+        "unitId": "plugin-context-service-effect",
+        "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74"
+      },
+      "completedUnits": [],
+      "checks": [],
+      "hints": [
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 1
+        }
+      ],
+      "exactSnapshotInSessionLog": true
+    },
+    {
+      "label": "hint-level-3",
+      "activity": {
+        "kind": "exercise",
+        "unitId": "plugin-context-service-effect",
+        "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74"
+      },
+      "completedUnits": [],
+      "checks": [],
+      "hints": [
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 1
+        },
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 2
+        }
+      ],
       "exactSnapshotInSessionLog": true
     },
     {
@@ -137,6 +264,20 @@
       },
       "completedUnits": [],
       "checks": [],
+      "hints": [
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 1
+        },
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 2
+        },
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 3
+        }
+      ],
       "exactSnapshotInSessionLog": true
     },
     {
@@ -152,6 +293,20 @@
           "checkId": "trace-artifact",
           "status": "failed",
           "category": "implementation"
+        }
+      ],
+      "hints": [
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 1
+        },
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 2
+        },
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 3
         }
       ],
       "exactSnapshotInSessionLog": true
@@ -171,6 +326,20 @@
           "category": "implementation"
         }
       ],
+      "hints": [
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 1
+        },
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 2
+        },
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 3
+        }
+      ],
       "exactSnapshotInSessionLog": true
     },
     {
@@ -186,6 +355,20 @@
           "checkId": "trace-artifact",
           "status": "failed",
           "category": "implementation"
+        }
+      ],
+      "hints": [
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 1
+        },
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 2
+        },
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 3
         }
       ],
       "exactSnapshotInSessionLog": true
@@ -205,6 +388,20 @@
           "category": "implementation"
         }
       ],
+      "hints": [
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 1
+        },
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 2
+        },
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 3
+        }
+      ],
       "exactSnapshotInSessionLog": true
     },
     {
@@ -218,6 +415,20 @@
           "checkId": "trace-artifact",
           "status": "passed",
           "category": "implementation"
+        }
+      ],
+      "hints": [
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 1
+        },
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 2
+        },
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 3
         }
       ],
       "exactSnapshotInSessionLog": true
@@ -235,6 +446,20 @@
           "category": "implementation"
         }
       ],
+      "hints": [
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 1
+        },
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 2
+        },
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 3
+        }
+      ],
       "exactSnapshotInSessionLog": true
     },
     {
@@ -250,6 +475,20 @@
           "category": "implementation"
         }
       ],
+      "hints": [
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 1
+        },
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 2
+        },
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 3
+        }
+      ],
       "exactSnapshotInSessionLog": true
     },
     {
@@ -257,6 +496,7 @@
       "activity": null,
       "completedUnits": [],
       "checks": [],
+      "hints": [],
       "exactSnapshotInSessionLog": true
     },
     {
@@ -266,6 +506,7 @@
       },
       "completedUnits": [],
       "checks": [],
+      "hints": [],
       "exactSnapshotInSessionLog": true
     },
     {
@@ -273,6 +514,7 @@
       "activity": null,
       "completedUnits": [],
       "checks": [],
+      "hints": [],
       "exactSnapshotInSessionLog": true
     },
     {
@@ -280,19 +522,1117 @@
       "activity": null,
       "completedUnits": [],
       "checks": [],
+      "hints": [],
+      "exactSnapshotInSessionLog": true
+    },
+    {
+      "label": "capability-start",
+      "activity": null,
+      "completedUnits": [
+        "plugin-context-service-effect"
+      ],
+      "checks": [
+        {
+          "checkId": "trace-artifact",
+          "status": "passed",
+          "category": "implementation"
+        }
+      ],
+      "hints": [
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 1
+        },
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 2
+        },
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 3
+        }
+      ],
+      "exactSnapshotInSessionLog": true
+    },
+    {
+      "label": "capability-explain",
+      "activity": {
+        "kind": "explain",
+        "unitId": "capability-seam"
+      },
+      "completedUnits": [
+        "plugin-context-service-effect"
+      ],
+      "checks": [
+        {
+          "checkId": "trace-artifact",
+          "status": "passed",
+          "category": "implementation"
+        }
+      ],
+      "hints": [
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 1
+        },
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 2
+        },
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 3
+        }
+      ],
+      "exactSnapshotInSessionLog": true
+    },
+    {
+      "label": "capability-checkpoint-prompt",
+      "activity": {
+        "kind": "checkpoint",
+        "unitId": "capability-seam"
+      },
+      "completedUnits": [
+        "plugin-context-service-effect"
+      ],
+      "checks": [
+        {
+          "checkId": "trace-artifact",
+          "status": "passed",
+          "category": "implementation"
+        }
+      ],
+      "hints": [
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 1
+        },
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 2
+        },
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 3
+        }
+      ],
+      "exactSnapshotInSessionLog": true
+    },
+    {
+      "label": "capability-checkpoint-answer",
+      "activity": {
+        "kind": "checkpoint",
+        "unitId": "capability-seam"
+      },
+      "completedUnits": [
+        "plugin-context-service-effect"
+      ],
+      "checks": [
+        {
+          "checkId": "trace-artifact",
+          "status": "passed",
+          "category": "implementation"
+        }
+      ],
+      "hints": [
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 1
+        },
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 2
+        },
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 3
+        }
+      ],
+      "exactSnapshotInSessionLog": true
+    },
+    {
+      "label": "capability-exercise-ready",
+      "activity": {
+        "kind": "exercise",
+        "unitId": "capability-seam",
+        "attemptId": "attempt-8ca4a8b3196d8f6186e431785530a6b2"
+      },
+      "completedUnits": [
+        "plugin-context-service-effect"
+      ],
+      "checks": [
+        {
+          "checkId": "trace-artifact",
+          "status": "passed",
+          "category": "implementation"
+        }
+      ],
+      "hints": [
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 1
+        },
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 2
+        },
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 3
+        }
+      ],
+      "exactSnapshotInSessionLog": true
+    },
+    {
+      "label": "capability-blocked-check",
+      "activity": {
+        "kind": "exercise",
+        "unitId": "capability-seam",
+        "attemptId": "attempt-8ca4a8b3196d8f6186e431785530a6b2"
+      },
+      "completedUnits": [
+        "plugin-context-service-effect"
+      ],
+      "checks": [
+        {
+          "checkId": "trace-artifact",
+          "status": "passed",
+          "category": "implementation"
+        }
+      ],
+      "hints": [
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 1
+        },
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 2
+        },
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 3
+        }
+      ],
+      "exactSnapshotInSessionLog": true
+    },
+    {
+      "label": "capability-blocked-feedback",
+      "activity": {
+        "kind": "feedback",
+        "unitId": "capability-seam",
+        "attemptId": "attempt-8ca4a8b3196d8f6186e431785530a6b2"
+      },
+      "completedUnits": [
+        "plugin-context-service-effect"
+      ],
+      "checks": [
+        {
+          "checkId": "trace-artifact",
+          "status": "passed",
+          "category": "implementation"
+        },
+        {
+          "checkId": "provider-contract",
+          "status": "blocked",
+          "category": "environment"
+        }
+      ],
+      "hints": [
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 1
+        },
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 2
+        },
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 3
+        }
+      ],
+      "exactSnapshotInSessionLog": true
+    },
+    {
+      "label": "capability-retry-ready",
+      "activity": {
+        "kind": "exercise",
+        "unitId": "capability-seam",
+        "attemptId": "attempt-8ca4a8b3196d8f6186e431785530a6b2"
+      },
+      "completedUnits": [
+        "plugin-context-service-effect"
+      ],
+      "checks": [
+        {
+          "checkId": "trace-artifact",
+          "status": "passed",
+          "category": "implementation"
+        },
+        {
+          "checkId": "provider-contract",
+          "status": "blocked",
+          "category": "environment"
+        }
+      ],
+      "hints": [
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 1
+        },
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 2
+        },
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 3
+        }
+      ],
+      "exactSnapshotInSessionLog": true
+    },
+    {
+      "label": "capability-pass-check",
+      "activity": {
+        "kind": "exercise",
+        "unitId": "capability-seam",
+        "attemptId": "attempt-8ca4a8b3196d8f6186e431785530a6b2"
+      },
+      "completedUnits": [
+        "plugin-context-service-effect"
+      ],
+      "checks": [
+        {
+          "checkId": "trace-artifact",
+          "status": "passed",
+          "category": "implementation"
+        },
+        {
+          "checkId": "provider-contract",
+          "status": "blocked",
+          "category": "environment"
+        }
+      ],
+      "hints": [
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 1
+        },
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 2
+        },
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 3
+        }
+      ],
+      "exactSnapshotInSessionLog": true
+    },
+    {
+      "label": "capability-pass-feedback",
+      "activity": {
+        "kind": "feedback",
+        "unitId": "capability-seam",
+        "attemptId": "attempt-8ca4a8b3196d8f6186e431785530a6b2"
+      },
+      "completedUnits": [
+        "plugin-context-service-effect"
+      ],
+      "checks": [
+        {
+          "checkId": "trace-artifact",
+          "status": "passed",
+          "category": "implementation"
+        },
+        {
+          "checkId": "provider-contract",
+          "status": "passed",
+          "category": "implementation"
+        }
+      ],
+      "hints": [
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 1
+        },
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 2
+        },
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 3
+        }
+      ],
+      "exactSnapshotInSessionLog": true
+    },
+    {
+      "label": "capability-completed",
+      "activity": null,
+      "completedUnits": [
+        "plugin-context-service-effect",
+        "capability-seam"
+      ],
+      "checks": [
+        {
+          "checkId": "trace-artifact",
+          "status": "passed",
+          "category": "implementation"
+        },
+        {
+          "checkId": "provider-contract",
+          "status": "passed",
+          "category": "implementation"
+        }
+      ],
+      "hints": [
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 1
+        },
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 2
+        },
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 3
+        }
+      ],
+      "exactSnapshotInSessionLog": true
+    },
+    {
+      "label": "tool-start",
+      "activity": null,
+      "completedUnits": [
+        "plugin-context-service-effect",
+        "capability-seam"
+      ],
+      "checks": [
+        {
+          "checkId": "trace-artifact",
+          "status": "passed",
+          "category": "implementation"
+        },
+        {
+          "checkId": "provider-contract",
+          "status": "passed",
+          "category": "implementation"
+        }
+      ],
+      "hints": [
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 1
+        },
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 2
+        },
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 3
+        }
+      ],
+      "exactSnapshotInSessionLog": true
+    },
+    {
+      "label": "tool-explain",
+      "activity": {
+        "kind": "explain",
+        "unitId": "model-callable-tool"
+      },
+      "completedUnits": [
+        "plugin-context-service-effect",
+        "capability-seam"
+      ],
+      "checks": [
+        {
+          "checkId": "trace-artifact",
+          "status": "passed",
+          "category": "implementation"
+        },
+        {
+          "checkId": "provider-contract",
+          "status": "passed",
+          "category": "implementation"
+        }
+      ],
+      "hints": [
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 1
+        },
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 2
+        },
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 3
+        }
+      ],
+      "exactSnapshotInSessionLog": true
+    },
+    {
+      "label": "tool-checkpoint-prompt",
+      "activity": {
+        "kind": "checkpoint",
+        "unitId": "model-callable-tool"
+      },
+      "completedUnits": [
+        "plugin-context-service-effect",
+        "capability-seam"
+      ],
+      "checks": [
+        {
+          "checkId": "trace-artifact",
+          "status": "passed",
+          "category": "implementation"
+        },
+        {
+          "checkId": "provider-contract",
+          "status": "passed",
+          "category": "implementation"
+        }
+      ],
+      "hints": [
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 1
+        },
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 2
+        },
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 3
+        }
+      ],
+      "exactSnapshotInSessionLog": true
+    },
+    {
+      "label": "tool-checkpoint-answer",
+      "activity": {
+        "kind": "checkpoint",
+        "unitId": "model-callable-tool"
+      },
+      "completedUnits": [
+        "plugin-context-service-effect",
+        "capability-seam"
+      ],
+      "checks": [
+        {
+          "checkId": "trace-artifact",
+          "status": "passed",
+          "category": "implementation"
+        },
+        {
+          "checkId": "provider-contract",
+          "status": "passed",
+          "category": "implementation"
+        }
+      ],
+      "hints": [
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 1
+        },
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 2
+        },
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 3
+        }
+      ],
+      "exactSnapshotInSessionLog": true
+    },
+    {
+      "label": "tool-exercise-ready",
+      "activity": {
+        "kind": "exercise",
+        "unitId": "model-callable-tool",
+        "attemptId": "attempt-5fefd33472db5ddf42e118eff5e88bbb"
+      },
+      "completedUnits": [
+        "plugin-context-service-effect",
+        "capability-seam"
+      ],
+      "checks": [
+        {
+          "checkId": "trace-artifact",
+          "status": "passed",
+          "category": "implementation"
+        },
+        {
+          "checkId": "provider-contract",
+          "status": "passed",
+          "category": "implementation"
+        }
+      ],
+      "hints": [
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 1
+        },
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 2
+        },
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 3
+        }
+      ],
+      "exactSnapshotInSessionLog": true
+    },
+    {
+      "label": "tool-pass-check",
+      "activity": {
+        "kind": "exercise",
+        "unitId": "model-callable-tool",
+        "attemptId": "attempt-5fefd33472db5ddf42e118eff5e88bbb"
+      },
+      "completedUnits": [
+        "plugin-context-service-effect",
+        "capability-seam"
+      ],
+      "checks": [
+        {
+          "checkId": "trace-artifact",
+          "status": "passed",
+          "category": "implementation"
+        },
+        {
+          "checkId": "provider-contract",
+          "status": "passed",
+          "category": "implementation"
+        }
+      ],
+      "hints": [
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 1
+        },
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 2
+        },
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 3
+        }
+      ],
+      "exactSnapshotInSessionLog": true
+    },
+    {
+      "label": "tool-pass-feedback",
+      "activity": {
+        "kind": "feedback",
+        "unitId": "model-callable-tool",
+        "attemptId": "attempt-5fefd33472db5ddf42e118eff5e88bbb"
+      },
+      "completedUnits": [
+        "plugin-context-service-effect",
+        "capability-seam"
+      ],
+      "checks": [
+        {
+          "checkId": "trace-artifact",
+          "status": "passed",
+          "category": "implementation"
+        },
+        {
+          "checkId": "provider-contract",
+          "status": "passed",
+          "category": "implementation"
+        },
+        {
+          "checkId": "tool-contract",
+          "status": "passed",
+          "category": "implementation"
+        }
+      ],
+      "hints": [
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 1
+        },
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 2
+        },
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 3
+        }
+      ],
+      "exactSnapshotInSessionLog": true
+    },
+    {
+      "label": "tool-completed",
+      "activity": null,
+      "completedUnits": [
+        "plugin-context-service-effect",
+        "capability-seam",
+        "model-callable-tool"
+      ],
+      "checks": [
+        {
+          "checkId": "trace-artifact",
+          "status": "passed",
+          "category": "implementation"
+        },
+        {
+          "checkId": "provider-contract",
+          "status": "passed",
+          "category": "implementation"
+        },
+        {
+          "checkId": "tool-contract",
+          "status": "passed",
+          "category": "implementation"
+        }
+      ],
+      "hints": [
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 1
+        },
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 2
+        },
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 3
+        }
+      ],
+      "exactSnapshotInSessionLog": true
+    },
+    {
+      "label": "bundle-start",
+      "activity": null,
+      "completedUnits": [
+        "plugin-context-service-effect",
+        "capability-seam",
+        "model-callable-tool"
+      ],
+      "checks": [
+        {
+          "checkId": "trace-artifact",
+          "status": "passed",
+          "category": "implementation"
+        },
+        {
+          "checkId": "provider-contract",
+          "status": "passed",
+          "category": "implementation"
+        },
+        {
+          "checkId": "tool-contract",
+          "status": "passed",
+          "category": "implementation"
+        }
+      ],
+      "hints": [
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 1
+        },
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 2
+        },
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 3
+        }
+      ],
+      "exactSnapshotInSessionLog": true
+    },
+    {
+      "label": "bundle-explain",
+      "activity": {
+        "kind": "explain",
+        "unitId": "bundle-profile-composition"
+      },
+      "completedUnits": [
+        "plugin-context-service-effect",
+        "capability-seam",
+        "model-callable-tool"
+      ],
+      "checks": [
+        {
+          "checkId": "trace-artifact",
+          "status": "passed",
+          "category": "implementation"
+        },
+        {
+          "checkId": "provider-contract",
+          "status": "passed",
+          "category": "implementation"
+        },
+        {
+          "checkId": "tool-contract",
+          "status": "passed",
+          "category": "implementation"
+        }
+      ],
+      "hints": [
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 1
+        },
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 2
+        },
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 3
+        }
+      ],
+      "exactSnapshotInSessionLog": true
+    },
+    {
+      "label": "bundle-checkpoint-prompt",
+      "activity": {
+        "kind": "checkpoint",
+        "unitId": "bundle-profile-composition"
+      },
+      "completedUnits": [
+        "plugin-context-service-effect",
+        "capability-seam",
+        "model-callable-tool"
+      ],
+      "checks": [
+        {
+          "checkId": "trace-artifact",
+          "status": "passed",
+          "category": "implementation"
+        },
+        {
+          "checkId": "provider-contract",
+          "status": "passed",
+          "category": "implementation"
+        },
+        {
+          "checkId": "tool-contract",
+          "status": "passed",
+          "category": "implementation"
+        }
+      ],
+      "hints": [
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 1
+        },
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 2
+        },
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 3
+        }
+      ],
+      "exactSnapshotInSessionLog": true
+    },
+    {
+      "label": "bundle-checkpoint-answer",
+      "activity": {
+        "kind": "checkpoint",
+        "unitId": "bundle-profile-composition"
+      },
+      "completedUnits": [
+        "plugin-context-service-effect",
+        "capability-seam",
+        "model-callable-tool"
+      ],
+      "checks": [
+        {
+          "checkId": "trace-artifact",
+          "status": "passed",
+          "category": "implementation"
+        },
+        {
+          "checkId": "provider-contract",
+          "status": "passed",
+          "category": "implementation"
+        },
+        {
+          "checkId": "tool-contract",
+          "status": "passed",
+          "category": "implementation"
+        }
+      ],
+      "hints": [
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 1
+        },
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 2
+        },
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 3
+        }
+      ],
+      "exactSnapshotInSessionLog": true
+    },
+    {
+      "label": "bundle-exercise-ready",
+      "activity": {
+        "kind": "exercise",
+        "unitId": "bundle-profile-composition",
+        "attemptId": "attempt-28c146b2286fe3546065f3e7e0ae694b"
+      },
+      "completedUnits": [
+        "plugin-context-service-effect",
+        "capability-seam",
+        "model-callable-tool"
+      ],
+      "checks": [
+        {
+          "checkId": "trace-artifact",
+          "status": "passed",
+          "category": "implementation"
+        },
+        {
+          "checkId": "provider-contract",
+          "status": "passed",
+          "category": "implementation"
+        },
+        {
+          "checkId": "tool-contract",
+          "status": "passed",
+          "category": "implementation"
+        }
+      ],
+      "hints": [
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 1
+        },
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 2
+        },
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 3
+        }
+      ],
+      "exactSnapshotInSessionLog": true
+    },
+    {
+      "label": "bundle-pass-check",
+      "activity": {
+        "kind": "exercise",
+        "unitId": "bundle-profile-composition",
+        "attemptId": "attempt-28c146b2286fe3546065f3e7e0ae694b"
+      },
+      "completedUnits": [
+        "plugin-context-service-effect",
+        "capability-seam",
+        "model-callable-tool"
+      ],
+      "checks": [
+        {
+          "checkId": "trace-artifact",
+          "status": "passed",
+          "category": "implementation"
+        },
+        {
+          "checkId": "provider-contract",
+          "status": "passed",
+          "category": "implementation"
+        },
+        {
+          "checkId": "tool-contract",
+          "status": "passed",
+          "category": "implementation"
+        }
+      ],
+      "hints": [
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 1
+        },
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 2
+        },
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 3
+        }
+      ],
+      "exactSnapshotInSessionLog": true
+    },
+    {
+      "label": "bundle-pass-feedback",
+      "activity": {
+        "kind": "feedback",
+        "unitId": "bundle-profile-composition",
+        "attemptId": "attempt-28c146b2286fe3546065f3e7e0ae694b"
+      },
+      "completedUnits": [
+        "plugin-context-service-effect",
+        "capability-seam",
+        "model-callable-tool"
+      ],
+      "checks": [
+        {
+          "checkId": "trace-artifact",
+          "status": "passed",
+          "category": "implementation"
+        },
+        {
+          "checkId": "provider-contract",
+          "status": "passed",
+          "category": "implementation"
+        },
+        {
+          "checkId": "tool-contract",
+          "status": "passed",
+          "category": "implementation"
+        },
+        {
+          "checkId": "bundle-contract",
+          "status": "passed",
+          "category": "configuration"
+        }
+      ],
+      "hints": [
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 1
+        },
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 2
+        },
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 3
+        }
+      ],
+      "exactSnapshotInSessionLog": true
+    },
+    {
+      "label": "learning-report",
+      "activity": null,
+      "completedUnits": [
+        "plugin-context-service-effect",
+        "capability-seam",
+        "model-callable-tool",
+        "bundle-profile-composition"
+      ],
+      "checks": [
+        {
+          "checkId": "trace-artifact",
+          "status": "passed",
+          "category": "implementation"
+        },
+        {
+          "checkId": "provider-contract",
+          "status": "passed",
+          "category": "implementation"
+        },
+        {
+          "checkId": "tool-contract",
+          "status": "passed",
+          "category": "implementation"
+        },
+        {
+          "checkId": "bundle-contract",
+          "status": "passed",
+          "category": "configuration"
+        }
+      ],
+      "hints": [
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 1
+        },
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 2
+        },
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 3
+        }
+      ],
+      "exactSnapshotInSessionLog": true
+    },
+    {
+      "label": "course-completed",
+      "activity": null,
+      "completedUnits": [
+        "plugin-context-service-effect",
+        "capability-seam",
+        "model-callable-tool",
+        "bundle-profile-composition"
+      ],
+      "checks": [
+        {
+          "checkId": "trace-artifact",
+          "status": "passed",
+          "category": "implementation"
+        },
+        {
+          "checkId": "provider-contract",
+          "status": "passed",
+          "category": "implementation"
+        },
+        {
+          "checkId": "tool-contract",
+          "status": "passed",
+          "category": "implementation"
+        },
+        {
+          "checkId": "bundle-contract",
+          "status": "passed",
+          "category": "configuration"
+        }
+      ],
+      "hints": [
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 1
+        },
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 2
+        },
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "level": 3
+        }
+      ],
       "exactSnapshotInSessionLog": true
     }
   ],
   "sessionLog": {
     "originalSessionId": "phase-2-original-session",
-    "originalRuntimeSnapshotCount": 10,
+    "originalRuntimeSnapshotCount": 13,
     "continuedSessionId": "phase-2-continued-session",
-    "continuedRuntimeSnapshotCount": 1,
+    "continuedRuntimeSnapshotCount": 18,
     "experiencedSessionId": "phase-3-experienced-session",
     "experiencedRuntimeSnapshotCount": 4
   },
   "learnerMemory": {
-    "eventCount": 20,
+    "eventCount": 68,
     "finalState": {
       "learnerId": "local-learner",
       "enrollmentId": "dsh-foundations-local",
@@ -302,11 +1642,24 @@
         "diagnosticId": "diagnostic-b4f0997c9c1810edde86aec89c60bc9e",
         "background": "TypeScript developer new to DSH and Cordis",
         "targetOutcomeIds": [
-          "plugin-context-service-effect"
+          "plugin-context-service-effect",
+          "profile-bundle-preset-plugin",
+          "service-provider-consumer",
+          "prompt-tool-loop-session",
+          "minimal-plugin-lifecycle",
+          "callable-tool-tested",
+          "replace-minimal-provider",
+          "compose-bundle-profile"
         ],
         "candidateIds": [
           "diagnostic-plugin-context-service-effect-names-roles",
-          "diagnostic-plugin-context-service-effect-traces-disposal"
+          "diagnostic-plugin-context-service-effect-traces-disposal",
+          "diagnostic-capability-seam-explains-seam-roles",
+          "diagnostic-capability-seam-implements-provider",
+          "diagnostic-model-callable-tool-traces-tool-loop",
+          "diagnostic-model-callable-tool-implements-callable-tool",
+          "diagnostic-bundle-profile-composition-distinguishes-composition-units",
+          "diagnostic-bundle-profile-composition-validates-bundle"
         ],
         "assessments": {
           "diagnostic-plugin-context-service-effect-names-roles": {
@@ -320,8 +1673,51 @@
             "candidateId": "diagnostic-plugin-context-service-effect-traces-disposal",
             "unitId": "plugin-context-service-effect",
             "rubricId": "traces-disposal",
+            "status": "meets",
+            "summary": "The learner located Context ownership in the locked DSH source but still needs the full role model.",
+            "evidenceId": "evidence-574313a5e606b27f953b0295175e81e11153986bcf5485437ce93f0efcce8cc2"
+          },
+          "diagnostic-capability-seam-explains-seam-roles": {
+            "candidateId": "diagnostic-capability-seam-explains-seam-roles",
+            "unitId": "capability-seam",
+            "rubricId": "explains-seam-roles",
+            "status": "gap",
+            "summary": "The learner does not yet distinguish Definition, Provider, and Consumer."
+          },
+          "diagnostic-capability-seam-implements-provider": {
+            "candidateId": "diagnostic-capability-seam-implements-provider",
+            "unitId": "capability-seam",
+            "rubricId": "implements-provider",
             "status": "uncertain",
-            "summary": "The learner has not yet traced plugin disposal in the locked DSH source."
+            "summary": "The learner has not implemented a replaceable Provider."
+          },
+          "diagnostic-model-callable-tool-traces-tool-loop": {
+            "candidateId": "diagnostic-model-callable-tool-traces-tool-loop",
+            "unitId": "model-callable-tool",
+            "rubricId": "traces-tool-loop",
+            "status": "gap",
+            "summary": "The learner cannot yet trace Tool Schema through Agent Loop and Session Log."
+          },
+          "diagnostic-model-callable-tool-implements-callable-tool": {
+            "candidateId": "diagnostic-model-callable-tool-implements-callable-tool",
+            "unitId": "model-callable-tool",
+            "rubricId": "implements-callable-tool",
+            "status": "uncertain",
+            "summary": "The learner has not built a model-callable DSH Tool."
+          },
+          "diagnostic-bundle-profile-composition-distinguishes-composition-units": {
+            "candidateId": "diagnostic-bundle-profile-composition-distinguishes-composition-units",
+            "unitId": "bundle-profile-composition",
+            "rubricId": "distinguishes-composition-units",
+            "status": "gap",
+            "summary": "The learner confuses Profile, Bundle, Preset, and Plugin ownership."
+          },
+          "diagnostic-bundle-profile-composition-validates-bundle": {
+            "candidateId": "diagnostic-bundle-profile-composition-validates-bundle",
+            "unitId": "bundle-profile-composition",
+            "rubricId": "validates-bundle",
+            "status": "uncertain",
+            "summary": "The learner has not composed and validated a DSH bundle."
           }
         },
         "completed": true,
@@ -330,15 +1726,23 @@
       },
       "activePlan": {
         "unitIds": [
-          "plugin-context-service-effect"
+          "plugin-context-service-effect",
+          "capability-seam",
+          "model-callable-tool",
+          "bundle-profile-composition"
         ],
         "reason": "diagnostic-target-path-with-misconception-priority",
-        "evidenceIds": [],
+        "evidenceIds": [
+          "evidence-574313a5e606b27f953b0295175e81e11153986bcf5485437ce93f0efcce8cc2"
+        ],
         "revision": 1
       },
       "currentActivity": null,
       "unitProgress": {
-        "plugin-context-service-effect": "completed"
+        "plugin-context-service-effect": "completed",
+        "capability-seam": "completed",
+        "model-callable-tool": "completed",
+        "bundle-profile-composition": "completed"
       },
       "attempts": [
         {
@@ -358,10 +1762,100 @@
                 "answer.json"
               ]
             }
+          ],
+          "hintLevels": [
+            1,
+            2,
+            3
           ]
+        },
+        {
+          "attemptId": "attempt-8ca4a8b3196d8f6186e431785530a6b2",
+          "exerciseId": "implement-minimal-provider",
+          "unitId": "capability-seam",
+          "checks": [
+            {
+              "checkId": "provider-contract",
+              "status": "passed",
+              "category": "implementation",
+              "summary": "The Clock capability seam satisfies the deterministic contract",
+              "details": [
+                "Context augmentation present",
+                "Clock Service Definition present",
+                "Definition method present",
+                "Local Provider present",
+                "Service registration present",
+                "Provider implementation present",
+                "Definition-only Consumer present"
+              ],
+              "artifacts": [
+                "provider.ts"
+              ]
+            }
+          ],
+          "hintLevels": []
+        },
+        {
+          "attemptId": "attempt-5fefd33472db5ddf42e118eff5e88bbb",
+          "exerciseId": "implement-minimal-tool",
+          "unitId": "model-callable-tool",
+          "checks": [
+            {
+              "checkId": "tool-contract",
+              "status": "passed",
+              "category": "implementation",
+              "summary": "The greet Tool satisfies the deterministic contract",
+              "details": [
+                "Pure greeting function present",
+                "Tool definition present",
+                "Stable tool name present",
+                "Required string parameter present",
+                "Structured output schema present",
+                "Pure function execution present",
+                "Native renderer present",
+                "Cordis registration present"
+              ],
+              "artifacts": [
+                "tool.ts"
+              ]
+            }
+          ],
+          "hintLevels": []
+        },
+        {
+          "attemptId": "attempt-28c146b2286fe3546065f3e7e0ae694b",
+          "exerciseId": "compose-teaching-bundle",
+          "unitId": "bundle-profile-composition",
+          "checks": [
+            {
+              "checkId": "bundle-contract",
+              "status": "passed",
+              "category": "configuration",
+              "summary": "The Provider and Tool compose into a valid bundle fixture",
+              "details": [
+                "Bundle metadata present",
+                "Provider patch row present",
+                "Tool patch row present",
+                "Clock Provider source present",
+                "Greet Tool source present"
+              ],
+              "artifacts": [
+                "package.json",
+                "cordis.patch.yml",
+                "provider.ts",
+                "tool.ts"
+              ]
+            }
+          ],
+          "hintLevels": []
         }
       ],
       "evidence": [
+        {
+          "kind": "observed",
+          "summary": "The learner located Context ownership in the locked DSH source but still needs the full role model.",
+          "unitId": "plugin-context-service-effect"
+        },
         {
           "kind": "authored",
           "summary": "The learner traced Context ownership, Service registration, typed events, and Effect disposal.",
@@ -372,27 +1866,188 @@
           "summary": "trace-artifact: The lifecycle trace artifact passed deterministic checks",
           "unitId": "plugin-context-service-effect",
           "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74"
+        },
+        {
+          "kind": "authored",
+          "summary": "The learner traced the Definition, local Provider, and Definition-only Consumer.",
+          "unitId": "capability-seam"
+        },
+        {
+          "kind": "machine",
+          "summary": "provider-contract: The Clock capability seam satisfies the deterministic contract",
+          "unitId": "capability-seam",
+          "attemptId": "attempt-8ca4a8b3196d8f6186e431785530a6b2"
+        },
+        {
+          "kind": "authored",
+          "summary": "The learner traced schema, execution, rendering, and persistence.",
+          "unitId": "model-callable-tool"
+        },
+        {
+          "kind": "machine",
+          "summary": "tool-contract: The greet Tool satisfies the deterministic contract",
+          "unitId": "model-callable-tool",
+          "attemptId": "attempt-5fefd33472db5ddf42e118eff5e88bbb"
+        },
+        {
+          "kind": "authored",
+          "summary": "The learner distinguished Plugin, Bundle, Profile, and Preset ownership.",
+          "unitId": "bundle-profile-composition"
+        },
+        {
+          "kind": "machine",
+          "summary": "bundle-contract: The Provider and Tool compose into a valid bundle fixture",
+          "unitId": "bundle-profile-composition",
+          "attemptId": "attempt-28c146b2286fe3546065f3e7e0ae694b"
         }
       ],
       "mastery": {
         "plugin-context-service-effect": {
           "level": "mastered",
           "evidenceIds": [
+            "evidence-574313a5e606b27f953b0295175e81e11153986bcf5485437ce93f0efcce8cc2",
             "evidence-6a0128ab44165153fffae525c8dfea10688e9f44ecc2314b01ffe55d43ecb160",
             "evidence-03581dc6dd844070ebd3358d501eda4da989e84117343559220970c0f27caade"
           ],
           "reason": "The authored explanation and machine evidence jointly support unit completion."
+        },
+        "capability-seam": {
+          "level": "mastered",
+          "evidenceIds": [
+            "evidence-2e2ef3e75450a3f5506d4c30b10b282f4e91a71bd2723cd4efd835e7ea9d964d",
+            "evidence-59e447fea5be1d8e174edbfe2c8710f82aa6f9712be340e1b3d30a1c27bf62bb"
+          ],
+          "reason": "The Provider contract and authored seam explanation satisfy completion."
+        },
+        "model-callable-tool": {
+          "level": "mastered",
+          "evidenceIds": [
+            "evidence-eb7fd9fa719b94648ec3cee28a1d8d7f9b159893921270e210defb42e17f9545",
+            "evidence-b9347a3ae30ef8db6c7b064d745837668c580cc61a0c259820e9c7430fd520f1"
+          ],
+          "reason": "The Tool flow explanation and machine contract satisfy completion."
+        },
+        "bundle-profile-composition": {
+          "level": "mastered",
+          "evidenceIds": [
+            "evidence-068ff0f588abe72e926c72d8921401054b850d6b42b7c22333739c24223ddfe8",
+            "evidence-e920939074fc006a9bce2b245e2d9b286a11b804bbb7d12519e3bc830fdb0ac3"
+          ],
+          "reason": "The bundle metadata, patch rows, Provider, Tool, and authored explanation satisfy comprehensive validation."
         }
       },
       "nextRecommendation": {
         "unitId": null,
-        "reason": "plan-complete"
+        "reason": "course-complete"
       },
-      "courseCompleted": false,
+      "courseCompleted": true,
       "sourceSessionIds": [
-        "phase-2-original-session"
+        "phase-2-original-session",
+        "phase-2-continued-session"
       ],
-      "lastSeq": 19
+      "lastSeq": 67
+    },
+    "learningReport": {
+      "courseId": "dsh-foundations",
+      "goal": "Understand DSH plugin composition through real source and machine evidence",
+      "readUnitIds": [
+        "plugin-context-service-effect",
+        "capability-seam",
+        "model-callable-tool",
+        "bundle-profile-composition"
+      ],
+      "exerciseCompletedUnitIds": [
+        "plugin-context-service-effect",
+        "capability-seam",
+        "model-callable-tool",
+        "bundle-profile-composition"
+      ],
+      "diagnosticWaivedUnitIds": [],
+      "comprehensiveValidatedUnitIds": [
+        "bundle-profile-composition"
+      ],
+      "verifiedCapabilities": [
+        {
+          "outcomeId": "plugin-context-service-effect",
+          "unitId": "plugin-context-service-effect",
+          "verification": "exercise",
+          "evidenceIds": [
+            "evidence-574313a5e606b27f953b0295175e81e11153986bcf5485437ce93f0efcce8cc2",
+            "evidence-6a0128ab44165153fffae525c8dfea10688e9f44ecc2314b01ffe55d43ecb160",
+            "evidence-03581dc6dd844070ebd3358d501eda4da989e84117343559220970c0f27caade"
+          ]
+        },
+        {
+          "outcomeId": "minimal-plugin-lifecycle",
+          "unitId": "plugin-context-service-effect",
+          "verification": "exercise",
+          "evidenceIds": [
+            "evidence-574313a5e606b27f953b0295175e81e11153986bcf5485437ce93f0efcce8cc2",
+            "evidence-6a0128ab44165153fffae525c8dfea10688e9f44ecc2314b01ffe55d43ecb160",
+            "evidence-03581dc6dd844070ebd3358d501eda4da989e84117343559220970c0f27caade"
+          ]
+        },
+        {
+          "outcomeId": "service-provider-consumer",
+          "unitId": "capability-seam",
+          "verification": "exercise",
+          "evidenceIds": [
+            "evidence-2e2ef3e75450a3f5506d4c30b10b282f4e91a71bd2723cd4efd835e7ea9d964d",
+            "evidence-59e447fea5be1d8e174edbfe2c8710f82aa6f9712be340e1b3d30a1c27bf62bb"
+          ]
+        },
+        {
+          "outcomeId": "replace-minimal-provider",
+          "unitId": "capability-seam",
+          "verification": "exercise",
+          "evidenceIds": [
+            "evidence-2e2ef3e75450a3f5506d4c30b10b282f4e91a71bd2723cd4efd835e7ea9d964d",
+            "evidence-59e447fea5be1d8e174edbfe2c8710f82aa6f9712be340e1b3d30a1c27bf62bb"
+          ]
+        },
+        {
+          "outcomeId": "prompt-tool-loop-session",
+          "unitId": "model-callable-tool",
+          "verification": "exercise",
+          "evidenceIds": [
+            "evidence-eb7fd9fa719b94648ec3cee28a1d8d7f9b159893921270e210defb42e17f9545",
+            "evidence-b9347a3ae30ef8db6c7b064d745837668c580cc61a0c259820e9c7430fd520f1"
+          ]
+        },
+        {
+          "outcomeId": "callable-tool-tested",
+          "unitId": "model-callable-tool",
+          "verification": "exercise",
+          "evidenceIds": [
+            "evidence-eb7fd9fa719b94648ec3cee28a1d8d7f9b159893921270e210defb42e17f9545",
+            "evidence-b9347a3ae30ef8db6c7b064d745837668c580cc61a0c259820e9c7430fd520f1"
+          ]
+        },
+        {
+          "outcomeId": "profile-bundle-preset-plugin",
+          "unitId": "bundle-profile-composition",
+          "verification": "comprehensive",
+          "evidenceIds": [
+            "evidence-068ff0f588abe72e926c72d8921401054b850d6b42b7c22333739c24223ddfe8",
+            "evidence-e920939074fc006a9bce2b245e2d9b286a11b804bbb7d12519e3bc830fdb0ac3"
+          ]
+        },
+        {
+          "outcomeId": "compose-bundle-profile",
+          "unitId": "bundle-profile-composition",
+          "verification": "comprehensive",
+          "evidenceIds": [
+            "evidence-068ff0f588abe72e926c72d8921401054b850d6b42b7c22333739c24223ddfe8",
+            "evidence-e920939074fc006a9bce2b245e2d9b286a11b804bbb7d12519e3bc830fdb0ac3"
+          ]
+        }
+      ],
+      "unresolvedMisconceptions": [],
+      "nextRecommendation": {
+        "unitId": null,
+        "reason": "course-complete"
+      },
+      "courseCompleted": true
     },
     "experiencedState": {
       "learnerId": "experienced-learner",
@@ -403,11 +2058,24 @@
         "diagnosticId": "diagnostic-6fabc813ac4c698b6323927fe81110af",
         "background": "Experienced Cordis plugin developer who has shipped scoped services",
         "targetOutcomeIds": [
-          "plugin-context-service-effect"
+          "plugin-context-service-effect",
+          "profile-bundle-preset-plugin",
+          "service-provider-consumer",
+          "prompt-tool-loop-session",
+          "minimal-plugin-lifecycle",
+          "callable-tool-tested",
+          "replace-minimal-provider",
+          "compose-bundle-profile"
         ],
         "candidateIds": [
           "diagnostic-plugin-context-service-effect-names-roles",
-          "diagnostic-plugin-context-service-effect-traces-disposal"
+          "diagnostic-plugin-context-service-effect-traces-disposal",
+          "diagnostic-capability-seam-explains-seam-roles",
+          "diagnostic-capability-seam-implements-provider",
+          "diagnostic-model-callable-tool-traces-tool-loop",
+          "diagnostic-model-callable-tool-implements-callable-tool",
+          "diagnostic-bundle-profile-composition-distinguishes-composition-units",
+          "diagnostic-bundle-profile-composition-validates-bundle"
         ],
         "assessments": {
           "diagnostic-plugin-context-service-effect-names-roles": {
@@ -425,15 +2093,60 @@
             "status": "meets",
             "summary": "The learner traced Context registration and fiber-owned disposal in the locked source.",
             "evidenceId": "evidence-d0b28bb345e436dea0612235a573a2bea267b7424b589c34e9319f1bf91dd42c"
+          },
+          "diagnostic-capability-seam-explains-seam-roles": {
+            "candidateId": "diagnostic-capability-seam-explains-seam-roles",
+            "unitId": "capability-seam",
+            "rubricId": "explains-seam-roles",
+            "status": "gap",
+            "summary": "The learner has not yet demonstrated DSH capability-seam terminology."
+          },
+          "diagnostic-capability-seam-implements-provider": {
+            "candidateId": "diagnostic-capability-seam-implements-provider",
+            "unitId": "capability-seam",
+            "rubricId": "implements-provider",
+            "status": "uncertain",
+            "summary": "Provider implementation evidence is not yet available."
+          },
+          "diagnostic-model-callable-tool-traces-tool-loop": {
+            "candidateId": "diagnostic-model-callable-tool-traces-tool-loop",
+            "unitId": "model-callable-tool",
+            "rubricId": "traces-tool-loop",
+            "status": "gap",
+            "summary": "The learner has not traced DSH ToolRuntime and Session Log behavior."
+          },
+          "diagnostic-model-callable-tool-implements-callable-tool": {
+            "candidateId": "diagnostic-model-callable-tool-implements-callable-tool",
+            "unitId": "model-callable-tool",
+            "rubricId": "implements-callable-tool",
+            "status": "uncertain",
+            "summary": "No DSH Tool implementation evidence is available."
+          },
+          "diagnostic-bundle-profile-composition-distinguishes-composition-units": {
+            "candidateId": "diagnostic-bundle-profile-composition-distinguishes-composition-units",
+            "unitId": "bundle-profile-composition",
+            "rubricId": "distinguishes-composition-units",
+            "status": "gap",
+            "summary": "The learner has not demonstrated DSH-specific Profile and Bundle ownership."
+          },
+          "diagnostic-bundle-profile-composition-validates-bundle": {
+            "candidateId": "diagnostic-bundle-profile-composition-validates-bundle",
+            "unitId": "bundle-profile-composition",
+            "rubricId": "validates-bundle",
+            "status": "uncertain",
+            "summary": "No bundle composition evidence is available."
           }
         },
         "completed": true,
-        "recommendedUnitId": null,
-        "reason": "all-target-units-eligible-for-user-requested-waiver"
+        "recommendedUnitId": "capability-seam",
+        "reason": "first-evidence-gap:capability-seam"
       },
       "activePlan": {
         "unitIds": [
-          "plugin-context-service-effect"
+          "plugin-context-service-effect",
+          "capability-seam",
+          "model-callable-tool",
+          "bundle-profile-composition"
         ],
         "reason": "diagnostic-target-path-with-misconception-priority",
         "evidenceIds": [
@@ -444,7 +2157,10 @@
       },
       "currentActivity": null,
       "unitProgress": {
-        "plugin-context-service-effect": "waived"
+        "plugin-context-service-effect": "waived",
+        "capability-seam": "not-started",
+        "model-callable-tool": "not-started",
+        "bundle-profile-composition": "not-started"
       },
       "attempts": [],
       "evidence": [
@@ -461,14 +2177,14 @@
       ],
       "mastery": {},
       "nextRecommendation": {
-        "unitId": null,
-        "reason": "plan-complete-after-waiver"
+        "unitId": "capability-seam",
+        "reason": "next-plan-unit-after-waiver"
       },
       "courseCompleted": false,
       "sourceSessionIds": [
         "phase-3-experienced-session"
       ],
-      "lastSeq": 9
+      "lastSeq": 18
     }
   }
 }

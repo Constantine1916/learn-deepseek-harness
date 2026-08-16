@@ -373,6 +373,12 @@ function validateSemantics(raw: RawCourseManifest): void {
     if (levels[0] !== 1 || levels[1] !== 2 || levels[2] !== 3) {
       throw new CurriculumValidationError(`unit "${unit.id}" hints must contain levels 1, 2, and 3 in order`)
     }
+    for (const hint of unit.hints.slice(0, 2)) {
+      if (hint.text.length > 280) throw new CurriculumValidationError(`unit "${unit.id}" hint level ${String(hint.level)} exceeds the progressive-disclosure budget`)
+      if (hint.text.includes('```') || /(?:完整|complete|reference)\s*(?:参考)?\s*(?:实现|solution|implementation)/iu.test(hint.text)) {
+        throw new CurriculumValidationError(`unit "${unit.id}" hint level ${String(hint.level)} must not reveal a complete implementation`)
+      }
+    }
   }
   validateGraph(raw.units)
 }

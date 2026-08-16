@@ -84,6 +84,30 @@ export interface DiagnosticCommandResult {
   readonly waiverEligibility: readonly WaiverEligibility[]
 }
 
+export interface HintCommandResult {
+  readonly level: 1 | 2 | 3
+  readonly text: string
+  readonly state: LearnerState
+}
+
+export interface LearningReport {
+  readonly courseId: string | null
+  readonly goal: string | null
+  readonly readUnitIds: readonly UnitId[]
+  readonly exerciseCompletedUnitIds: readonly UnitId[]
+  readonly diagnosticWaivedUnitIds: readonly UnitId[]
+  readonly comprehensiveValidatedUnitIds: readonly UnitId[]
+  readonly verifiedCapabilities: readonly Readonly<{
+    outcomeId: string
+    unitId: UnitId
+    verification: 'exercise' | 'diagnostic-waiver' | 'comprehensive'
+    evidenceIds: readonly EvidenceId[]
+  }>[]
+  readonly unresolvedMisconceptions: readonly Readonly<{ misconceptionId: string, summary: string, unitId?: UnitId }>[]
+  readonly nextRecommendation: LearnerState['nextRecommendation']
+  readonly courseCompleted: boolean
+}
+
 export interface TeachingCommandResult {
   readonly outcome: TeachingOutcome
   readonly state: LearnerState
@@ -332,6 +356,98 @@ export class TeachingService extends Service {
     return result.state
   }
 
+  private async completeCourseIfReady(
+    scope: LearnerScope,
+    sourceSessionId: SessionId,
+    rootCommandId: string,
+    state: LearnerState,
+    course: CourseManifest,
+  ): Promise<LearnerState> {
+    if (state.courseCompleted) return state
+    const ready = course.units.every(unit => state.unitProgress[unit.id] === 'completed' || state.unitProgress[unit.id] === 'waived')
+    if (!ready) return state
+    const evidenceIds = Object.values(state.evidence).map(evidence => evidence.evidenceId)
+    if (evidenceIds.length === 0) throw new TeachingError('invalid-state', 'course completion requires committed evidence')
+    return this.append(scope, sourceSessionId, rootCommandId, 'course-completed', 'learning/course-completed', {
+      courseId: course.id,
+      evidenceIds,
+    })
+  }
+
+  async requestHint(sessionId: SessionId, rootCommandId: string): Promise<HintCommandResult> {
+    nonEmpty(rootCommandId, 'command_id')
+    const scope = this.scopeFor(sessionId)
+    const course = this.ctx.curriculum.course()
+    let state = await this.refresh(scope)
+    const activity = state.currentActivity
+    if (activity === null || activity.kind === 'diagnostic' || (activity.kind !== 'exercise' && activity.kind !== 'feedback') || activity.attemptId === undefined) {
+      throw new TeachingError('invalid-state', 'hints require an active exercise attempt')
+    }
+    const unit = this.unit(course, activity.unitId)
+    const attempt = state.attempts[activity.attemptId]
+    if (attempt === undefined) throw new TeachingError('invalid-state', `active attempt "${activity.attemptId}" is missing`)
+    const priorLevel = ([1, 2, 3] as const).find(level =>
+      state.appliedEventIds.includes(identity(rootCommandId, `hint-${String(level)}`).eventId))
+    const nextLevel = priorLevel ?? (attempt.hintLevels.length + 1)
+    if (nextLevel < 1 || nextLevel > 3) throw new TeachingError('planner-rejected', 'all three hint levels have already been used')
+    const level = nextLevel as 1 | 2 | 3
+    const hint = unit.hints.find(candidate => candidate.level === level)
+    if (hint === undefined) throw new TeachingError('invalid-state', `unit "${unit.id}" has no hint level ${String(level)}`)
+    if (priorLevel === undefined) {
+      state = await this.append(scope, sessionId, rootCommandId, `hint-${String(level)}`, 'learning/hint-used', {
+        attemptId: activity.attemptId,
+        level,
+      })
+    }
+    return Object.freeze({ level, text: hint.text, state })
+  }
+
+  async getReport(sessionId: SessionId): Promise<LearningReport> {
+    const state = await this.refresh(this.scopeFor(sessionId))
+    const course = this.ctx.curriculum.course()
+    const readUnitIds = course.units.filter(unit => state.unitProgress[unit.id] === 'in-progress' || state.unitProgress[unit.id] === 'completed').map(unit => unit.id)
+    const exerciseCompletedUnitIds = course.units.filter(unit => state.unitProgress[unit.id] === 'completed').map(unit => unit.id)
+    const diagnosticWaivedUnitIds = course.units.filter(unit => state.unitProgress[unit.id] === 'waived').map(unit => unit.id)
+    const comprehensiveValidatedUnitIds = course.units.filter(unit =>
+      state.unitProgress[unit.id] === 'completed' && unit.exercises.some(exercise => exercise.kind === 'integration')).map(unit => unit.id)
+    const verifiedCapabilities = course.units.flatMap(unit => {
+      const progress = state.unitProgress[unit.id]
+      if (progress !== 'completed' && progress !== 'waived') return []
+      const verification = progress === 'waived'
+        ? 'diagnostic-waiver' as const
+        : unit.exercises.some(exercise => exercise.kind === 'integration') ? 'comprehensive' as const : 'exercise' as const
+      const evidenceIds = progress === 'waived'
+        ? Object.values(state.diagnostic?.assessments ?? {}).flatMap(assessment =>
+          assessment.unitId === unit.id && assessment.evidenceId !== undefined ? [assessment.evidenceId] : [])
+        : [...(state.mastery[unit.id]?.evidenceIds ?? [])]
+      return unit.outcomeIds.map(outcomeId => Object.freeze({
+        outcomeId: outcomeId as string,
+        unitId: unit.id,
+        verification,
+        evidenceIds: Object.freeze(evidenceIds),
+      }))
+    })
+    const unresolvedMisconceptions = Object.values(state.misconceptions)
+      .filter(item => !item.resolved)
+      .map(item => Object.freeze({
+        misconceptionId: item.misconceptionId as string,
+        summary: item.summary,
+        ...(item.unitId === undefined ? {} : { unitId: item.unitId }),
+      }))
+    return Object.freeze({
+      courseId: state.courseId,
+      goal: state.goal,
+      readUnitIds: Object.freeze(readUnitIds),
+      exerciseCompletedUnitIds: Object.freeze(exerciseCompletedUnitIds),
+      diagnosticWaivedUnitIds: Object.freeze(diagnosticWaivedUnitIds),
+      comprehensiveValidatedUnitIds: Object.freeze(comprehensiveValidatedUnitIds),
+      verifiedCapabilities: Object.freeze(verifiedCapabilities),
+      unresolvedMisconceptions: Object.freeze(unresolvedMisconceptions),
+      nextRecommendation: state.nextRecommendation,
+      courseCompleted: state.courseCompleted,
+    })
+  }
+
   async startDiagnostic(
     sessionId: SessionId,
     rootCommandId: string,
@@ -521,6 +637,7 @@ export class TeachingService extends Service {
       evidenceIds: [...selected.evidenceIds],
       reason: `learner-requested:${nonEmpty(reason, 'reason')}`,
     })
+    state = await this.completeCourseIfReady(scope, sessionId, rootCommandId, state, course)
     return Object.freeze({ state, candidates, waiverEligibility: this.waiverEligibilityFor(state, candidates) })
   }
 
@@ -611,6 +728,10 @@ export class TeachingService extends Service {
     const scope = this.scopeFor(sessionId)
     const course = this.ctx.curriculum.course()
     let state = await this.refresh(scope)
+    if (state.appliedEventIds.includes(identity(rootCommandId, 'unit-completed').eventId)) {
+      state = await this.completeCourseIfReady(scope, sessionId, rootCommandId, state, course)
+      return Object.freeze({ outcome: 'unit-completed', state })
+    }
     const prior = this.resultFromPrior(state, rootCommandId)
     if (prior !== undefined) return prior
     const activity = state.currentActivity
@@ -696,6 +817,20 @@ export class TeachingService extends Service {
         const machine = Object.values(state.evidence).find(evidence => evidence.kind === 'machine' && evidence.unitId === unit.id && evidence.attemptId === attemptId)
         if (attempt.checks.every(check => check.status === 'passed') && machine !== undefined) {
           const evidenceIds = Object.values(state.evidence).filter(evidence => evidence.unitId === unit.id).map(evidence => evidence.evidenceId)
+          for (const misconception of Object.values(state.misconceptions).filter(item => item.unitId === unit.id && !item.resolved)) {
+            state = await this.append(
+              scope,
+              sessionId,
+              rootCommandId,
+              `misconception-resolved-${misconception.misconceptionId}`,
+              'learning/misconception-resolved',
+              {
+                misconceptionId: misconception.misconceptionId,
+                evidenceIds,
+                reason: 'authored-and-machine-evidence-resolved-unit-gap',
+              },
+            )
+          }
           state = await this.append(scope, sessionId, rootCommandId, 'mastery', 'learning/mastery-changed', {
             unitId: unit.id,
             level: 'mastered',
@@ -703,6 +838,7 @@ export class TeachingService extends Service {
             reason: nonEmpty(summary, 'summary'),
           })
           state = await this.append(scope, sessionId, rootCommandId, 'unit-completed', 'learning/unit-completed', { unitId: unit.id, evidenceIds })
+          state = await this.completeCourseIfReady(scope, sessionId, rootCommandId, state, course)
           return Object.freeze({ outcome: 'unit-completed', state, checks: attempt.checks })
         }
         state = await this.append(scope, sessionId, rootCommandId, 'feedback-retry', 'learning/activity-advanced', {

@@ -93,4 +93,52 @@ describe('F-007 F-008 local lab workspace and checks', () => {
       await rm(cwd, { recursive: true, force: true })
     }
   })
+
+  it('classifies implementation failure and configuration, environment, and safety blocks', async () => {
+    const cwd = await mkdtemp(resolve(tmpdir(), 'learn-dsh-lab-categories-'))
+    const ctx = await setup(cwd)
+    try {
+      const unit = ctx.curriculum.unit(UnitId('plugin-context-service-effect'))
+      const exercise = unit.exercises[0]!
+      const request = {
+        session: session(cwd),
+        scope: { learnerId: LearnerId('learner-categories'), enrollmentId: EnrollmentId('enrollment-categories') },
+        unit,
+        exercise,
+        attemptId: ExerciseAttemptId('attempt-categories'),
+      }
+      const attempt = await ctx.lab.createAttempt(request)
+      expect((await ctx.lab.runChecks(request))[0]).toMatchObject({ status: 'failed', category: 'implementation' })
+
+      const baseCheck = exercise.checks[0]!
+      const configuration = await ctx.lab.runChecks({
+        ...request,
+        exercise: { ...exercise, checks: [{ ...baseCheck, entry: 'missing-check.mjs' }] },
+      })
+      expect(configuration[0]).toMatchObject({ status: 'blocked', category: 'configuration' })
+
+      const hanging = await ctx.fs.resolve('hanging-check.mjs', { cwd: attempt.workspacePath })
+      await ctx.fs.writeText(
+        hanging,
+        'while (true) {}\n',
+        undefined,
+        undefined,
+        ctx.sandboxPolicy.resolve({ session: request.session }),
+      )
+      const environment = await ctx.lab.runChecks({
+        ...request,
+        exercise: { ...exercise, checks: [{ ...baseCheck, entry: 'hanging-check.mjs', timeoutMs: 20 }] },
+      })
+      expect(environment[0]).toMatchObject({ status: 'blocked', category: 'environment' })
+
+      const safety = await ctx.lab.runChecks({
+        ...request,
+        exercise: { ...exercise, checks: [{ ...baseCheck, entry: '../outside-check.mjs' }] },
+      })
+      expect(safety[0]).toMatchObject({ status: 'blocked', category: 'safety' })
+    } finally {
+      await ctx.fiber.dispose()
+      await rm(cwd, { recursive: true, force: true })
+    }
+  })
 })

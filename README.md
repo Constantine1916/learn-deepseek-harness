@@ -2,7 +2,7 @@
 
 一个基于 DeepSeek Harness 插件生态构建的自适应教学 Agent，帮助开发者通过讲解、源码探索、实践任务和反馈循环，系统掌握 DSH。
 
-> 项目状态：Phase 0–3 已实现。当前版本已经具备版本化 foundations 单元、独立追加式 Learner Event Store、课程派生诊断、证据驱动计划、用户显式跳课、确定性教学状态机、sandboxed 练习与机器检查、精确 Session Log 状态快照，以及真实 Agent Loop keyless 教学闭环；三级提示执行、完整课程和交互式 UI 尚未实现。
+> 项目状态：Phase 0–4 已实现。当前版本已经具备覆盖八项成果的四个连续 foundations 单元、独立追加式 Learner Event Store、课程派生诊断、证据驱动计划、用户显式跳课、三级提示、Provider/Tool/Bundle 实践、四类检查结果、学习报告、精确 Session Log 状态快照，以及真实 Agent Loop keyless 教学闭环；registry 发布和交互式 UI 尚未完成。
 
 ## 项目定位
 
@@ -64,7 +64,7 @@ MVP 覆盖以下学习路径：
 | lab | 通过 DSH sandboxed FS/Shell 创建、重置练习并运行确定性检查 |
 | learn-dsh-bundle | 将教学插件和 DSH 基础能力组合成 profile patch layer |
 
-三级提示执行和学习报告属于后续 Phase；诊断、自适应计划和显式跳课已经通过现有 teaching/learner/tool seam 提供。
+诊断、自适应计划、显式跳课、三级提示和学习报告均通过现有 teaching/learner/tool seam 提供，不需要修改 DSH Agent Loop。
 
 插件边界和事件模型在 [技术设计](specs/001-learning-agent-foundation/design.md) 中定义。
 
@@ -105,7 +105,7 @@ pnpm build
 pnpm example:headless
 ~~~
 
-输出固定真实 Loader/Agent Loop 看到的教师 prompt 和学习工具，并覆盖初学者诊断、有经验开发者诊断与显式跳课、单元开始、讲解、检查点、隔离练习、失败检查、同 attempt 重试、成功 machine evidence、单元完成、原 Session 恢复和同 Enrollment 新 Session 延续。场景会逐次断言模型收到的 LearnerState 与对应 DSH Session Log 快照完全一致。
+输出固定真实 Loader/Agent Loop 看到的教师 prompt 和学习工具，并覆盖初学者诊断、有经验开发者诊断与显式跳课、四个连续单元、三级提示、implementation 失败、environment blocked 同 attempt 重试、Provider/Tool/Bundle machine evidence、综合验证、学习报告、原 Session 恢复和同 Enrollment 新 Session 延续。场景会逐次断言模型收到的 LearnerState 与对应 DSH Session Log 快照完全一致。
 
 验证标准外部 profile 安装、`dump-config` 和移除，不会写入真实 `~/.dsh`：
 
@@ -173,9 +173,9 @@ pnpm check
 ## 当前已知限制
 
 - DSH `0.1.0-rc.5` 依赖通过相邻 checkout 的本地 `link:` 解析；当前不能从 npm 完成同版本干净安装。
-- 课程目前只有第一个 foundations 单元；完整八项学习成果和连续课程在 Phase 4 完成。
+- foundations 课程当前包含四个线性单元并覆盖八项 MVP 学习成果；更多课程、多语言和非线性路径不在 0.1.0 范围。
 - 当前诊断由课程 objectives 和 required rubric 派生；跳课要求用户显式请求、全部 rubric 匹配证据以及至少一条 observed 或 machine 证据。更细粒度的难度适配不属于 Phase 3 MVP。
-- 课程 manifest 已包含三级提示，但提示调用、提示使用事件和前两级泄露门禁在 Phase 4 完成。
+- 三级提示按 attempt 顺序持久化；前两级通过课程加载门禁限制 fenced code、完整答案措辞和长度。该门禁不能替代课程作者人工教学复核。
 - `examples/headless` 使用脚本 LLM adapter 提供稳定 keyless 证据；可交互 CLI、真实模型 adapter 配置和 agent preset 尚未发布。
 - bundle patch 只挂载 Learn DSH 插件，要求 host profile 提供 Agent/System Prompt/Tools、sandboxed FS/Shell 和 Session 能力；当前 profile gate 验证安装、配置和移除，不代表完整交互部署。
 - 长期学习状态由独立 learner-memory 保存，不依赖树外 DSH Session event；DSH Session Log 只保存单次会话以及模型实际收到的精确 LearnerState 快照。

@@ -150,7 +150,7 @@ export function apply(ctx: Context): void {
   ctx.systemPrompt.section({
     name: 'learn-dsh:learning-tools',
     order: 115,
-    text: 'Use learning_get_state before changing the lesson. For a new Enrollment, collect the goal and background with learning_start_diagnostic, assess every returned curriculum-derived candidate, then submit them together. A waiver is only a displayed eligibility until the learner explicitly requests learning_waive_unit. Use learning_start_unit only for the deterministic recommended unit. Advance activities only through learning_complete_activity. Supply a stable command_id for every write and reuse it only when retrying the exact same operation. Never claim an exercise passed unless the returned checks are passed.',
+    text: 'Use learning_get_state before changing the lesson. For a new Enrollment, collect the goal and background with learning_start_diagnostic, assess every returned curriculum-derived candidate, then submit them together. A waiver is only a displayed eligibility until the learner explicitly requests learning_waive_unit. Use learning_start_unit only for the deterministic recommended unit. Advance activities only through learning_complete_activity. During an exercise, learning_request_hint returns only the next persisted hint level; do not reveal later levels early. Use learning_get_report for the final evidence-based summary. Supply a stable command_id for every write and reuse it only when retrying the exact same operation. Never claim an exercise passed unless the returned checks are passed.',
   })
 
   ctx.tools.register(defineTool({
@@ -261,6 +261,51 @@ export function apply(ctx: Context): void {
     async execute(args, exec) {
       const agent = requireAgent(exec)
       return { state_snapshot: JSON.stringify(await ctx.teaching.adjustPlan(agent.id, args.command_id, args.unit_ids, args.reason)) }
+    },
+  }))
+
+  ctx.tools.register(defineTool({
+    name: 'learning_request_hint',
+    description: 'Persist and return the next progressive hint for the active exercise attempt. Levels are strictly sequential; the first two contain guidance only, and level three may disclose the complete structure.',
+    parameters: {
+      command_id: { type: 'string', required: true, description: 'Stable idempotency key for this exact hint request.' },
+    },
+    output: {
+      schema: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          level: { type: 'number', required: true, enum: [1, 2, 3] },
+          text: { type: 'string', required: true },
+          state_snapshot: { type: 'string', required: true },
+        },
+      },
+      render: (_args, value) => [{ type: 'text', text: JSON.stringify(value) }],
+    },
+    async execute(args, exec) {
+      const agent = requireAgent(exec)
+      const result = await ctx.teaching.requestHint(agent.id, args.command_id)
+      return { level: result.level, text: result.text, state_snapshot: JSON.stringify(result.state) }
+    },
+  }))
+
+  ctx.tools.register(defineTool({
+    name: 'learning_get_report',
+    description: 'Return the deterministic learning report from committed state. It distinguishes read or started units, exercise completion, diagnostic waiver, and comprehensive integration validation.',
+    parameters: {},
+    output: {
+      schema: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          report_json: { type: 'string', required: true },
+        },
+      },
+      render: (_args, value) => [{ type: 'text', text: JSON.stringify(value) }],
+    },
+    async execute(_args, exec) {
+      const agent = requireAgent(exec)
+      return { report_json: JSON.stringify(await ctx.teaching.getReport(agent.id)) }
     },
   }))
 

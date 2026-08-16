@@ -75,8 +75,15 @@ describe('F-003 versioned curriculum schema and graph', () => {
       version: '0.1.0',
       dshVersionRange: '0.1.0-rc.5',
     })
-    expect(course.units.map(unit => unit.id)).toEqual(['plugin-context-service-effect'])
-    expect(course.units[0]?.hints.map(hint => hint.level)).toEqual([1, 2, 3])
+    expect(course.units.map(unit => unit.id)).toEqual([
+      'plugin-context-service-effect',
+      'capability-seam',
+      'model-callable-tool',
+      'bundle-profile-composition',
+    ])
+    expect(new Set(course.units.flatMap(unit => unit.outcomeIds))).toEqual(new Set(course.learningOutcomes.map(outcome => outcome.id)))
+    expect(course.units.every(unit => unit.hints.map(hint => hint.level).join(',') === '1,2,3')).toBe(true)
+    expect(course.units.map(unit => unit.exercises[0]?.kind)).toEqual(['source-inspection', 'code', 'code', 'integration'])
     expect(Object.isFrozen(course)).toBe(true)
     expect(Object.isFrozen(course.units[0])).toBe(true)
   })
@@ -141,17 +148,26 @@ describe('F-003 versioned curriculum schema and graph', () => {
     const hints = fixture()
     hints.units[0]!.hints[1]!.level = 1
     expect(() => parseCourseManifest(hints)).toThrow(/levels 1, 2, and 3 in order/)
+
+    const leakingHint = fixture()
+    const firstHint = leakingHint.units[0]!.hints[0] as { level: number, text?: string }
+    firstHint.text = '```ts\ncomplete solution\n```'
+    expect(() => parseCourseManifest(leakingHint)).toThrow(/must not reveal a complete implementation/)
   })
 })
 
 describe('F-012 source anchor resolution', () => {
   it('resolves every packaged source anchor against the locked upstream checkout', () => {
     const verified = verifyCourseSources(validCourse(), dshRoot)
-    expect(verified).toEqual([
+    expect(verified).toEqual(expect.arrayContaining([
       expect.objectContaining({ path: 'docs/architecture.md', anchorKind: 'heading', anchor: 'Cordis' }),
       expect.objectContaining({ path: 'vendor/cordis/src/context.ts', anchorKind: 'export', anchor: 'Context' }),
       expect.objectContaining({ path: 'vendor/cordis/src/service.ts', anchorKind: 'export', anchor: 'Service' }),
-    ])
+      expect.objectContaining({ path: 'packages/subprocess/subprocess/src/index.ts', anchorKind: 'export', anchor: 'SubprocessRuntime' }),
+      expect.objectContaining({ path: 'packages/core/tools/src/schema.ts', anchorKind: 'export', anchor: 'defineTool' }),
+      expect.objectContaining({ path: 'packages/bundle/base/cordis.patch.yml', anchorKind: 'text', anchor: 'ONE insert over the empty profile root' }),
+    ]))
+    expect(verified).toHaveLength(12)
     expect(Object.isFrozen(verified)).toBe(true)
   })
 
@@ -160,6 +176,7 @@ describe('F-012 source anchor resolution', () => {
     try {
       await writeFile(resolve(root, 'sample.ts'), '# Runtime\nexport class Demo {}\ndescribe("lifecycle", () => {})\nexact marker\n')
       const raw = fixture()
+      raw.units = [raw.units[0]!]
       const base = raw.units[0]!.sources[0]!
       raw.units[0]!.sources = [
         { ...base, path: 'sample.ts', anchor: { kind: 'heading', value: 'Runtime' } },
@@ -187,6 +204,7 @@ describe('F-012 source anchor resolution', () => {
       await writeFile(outside, 'outside marker\n')
       await symlink(outside, resolve(root, 'escape.ts'))
       const escaped = fixture()
+      escaped.units = [escaped.units[0]!]
       escaped.units[0]!.sources = [{
         ...escaped.units[0]!.sources[0]!,
         path: 'escape.ts',
@@ -208,7 +226,7 @@ describe('F-003 Q-001 curriculum service lifecycle', () => {
 
     expect(ctx.curriculum.course().id).toBe('dsh-foundations')
     expect(ctx.curriculum.unit(UnitId('plugin-context-service-effect')).title).toContain('Plugin')
-    expect(ctx.curriculum.sourceVerification).toHaveLength(3)
+    expect(ctx.curriculum.sourceVerification).toHaveLength(12)
     expect(() => ctx.curriculum.course(CourseId('missing-course'))).toThrow(CurriculumValidationError)
     expect(() => ctx.curriculum.unit(UnitId('missing-unit'))).toThrow(CurriculumValidationError)
     expect(() => UnitId('Invalid Unit')).toThrow(/invalid id/)

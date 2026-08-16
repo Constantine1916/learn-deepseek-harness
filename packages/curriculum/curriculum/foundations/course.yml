@@ -7,11 +7,24 @@ dshVersionRange: 0.1.0-rc.5
 learningOutcomes:
   - id: plugin-context-service-effect
     description: 解释 Plugin、Context、Service、Effect 和 typed event 的关系。
+  - id: profile-bundle-preset-plugin
+    description: 区分 Profile、Bundle、Preset 和普通 Plugin。
+  - id: service-provider-consumer
+    description: 解释 Service Definition、Provider 和 Consumer。
+  - id: prompt-tool-loop-session
+    description: 说明 System Prompt、Tool Schema、Agent Loop 和 Session Log 如何协作。
+  - id: minimal-plugin-lifecycle
+    description: 创建并卸载一个最小插件。
+  - id: callable-tool-tested
+    description: 创建一个模型可调用 Tool，并用测试验证行为。
+  - id: replace-minimal-provider
+    description: 实现或替换一个最小 Provider。
+  - id: compose-bundle-profile
+    description: 将插件组合进 Bundle/Profile 并成功运行。
 units:
   - id: plugin-context-service-effect
     title: Plugin、Context、Service、Effect 与 typed event
-    outcomeIds:
-      - plugin-context-service-effect
+    outcomeIds: [plugin-context-service-effect, minimal-plugin-lifecycle]
     objectives:
       - 从插件树说明 Context 如何提供组合边界。
       - 区分 Service 能力注册与 typed event 协作。
@@ -23,42 +36,28 @@ units:
       - repository: deepseek-harness
         version: 0cf6f648c80de1b0572057cd746a20863e39d606
         path: docs/architecture.md
-        anchor:
-          kind: heading
-          value: Cordis
+        anchor: { kind: heading, value: Cordis }
         purpose: 建立 DSH 以 Cordis 插件树组合能力的整体模型。
       - repository: deepseek-harness
         version: 0cf6f648c80de1b0572057cd746a20863e39d606
         path: vendor/cordis/src/context.ts
-        anchor:
-          kind: export
-          value: Context
+        anchor: { kind: export, value: Context }
         purpose: 观察插件获得的组合与作用域入口。
       - repository: deepseek-harness
         version: 0cf6f648c80de1b0572057cd746a20863e39d606
         path: vendor/cordis/src/service.ts
-        anchor:
-          kind: export
-          value: Service
+        anchor: { kind: export, value: Service }
         purpose: 观察能力如何以 Service Definition 挂到 Context。
     checkpoints:
-      - id: explain-lifecycle
-        title: 解释注册与卸载链路
-        evidenceKind: authored
-      - id: inspect-context-service
-        title: 在真实源码中定位 Context 与 Service
-        evidenceKind: observed
+      - { id: explain-lifecycle, title: 解释注册与卸载链路, evidenceKind: authored }
+      - { id: inspect-context-service, title: 在真实源码中定位 Context 与 Service, evidenceKind: observed }
     exercises:
       - id: trace-minimal-plugin
         title: 追踪一个最小插件的注册与 dispose
         kind: source-inspection
         fixture: trace-minimal-plugin
         checks:
-          - id: trace-artifact
-            runner: node
-            entry: check.mjs
-            timeoutMs: 10000
-            category: implementation
+          - { id: trace-artifact, runner: node, entry: check.mjs, timeoutMs: 10000, category: implementation }
     hints:
       - level: 1
         text: 先找插件接收的 ctx，再列出它通过 ctx 注册了什么。
@@ -77,3 +76,168 @@ units:
       requiredCheckpointIds: [explain-lifecycle, inspect-context-service]
       requiredExerciseIds: [trace-minimal-plugin]
       requiredRubricIds: [names-roles, traces-disposal]
+
+  - id: capability-seam
+    title: Capability Seam：Service Definition、Provider 与 Consumer
+    outcomeIds: [service-provider-consumer, replace-minimal-provider]
+    objectives:
+      - 用完整 capability seam 解释 Definition、Provider 和 Consumer 的依赖方向。
+      - 识别 Consumer 只依赖 Service Definition 的原因。
+      - 实现一个可替换的最小 Provider 并证明生命周期正确。
+    prerequisites: [plugin-context-service-effect]
+    dshVersionRange: 0.1.0-rc.5
+    contentEntry: lessons/capability-seam.md
+    sources:
+      - repository: deepseek-harness
+        version: 0cf6f648c80de1b0572057cd746a20863e39d606
+        path: docs/architecture.md
+        anchor: { kind: heading, value: Capability seams }
+        purpose: 建立 capability seam 的三角色定义和依赖方向。
+      - repository: deepseek-harness
+        version: 0cf6f648c80de1b0572057cd746a20863e39d606
+        path: packages/subprocess/subprocess/src/index.ts
+        anchor: { kind: export, value: SubprocessRuntime }
+        purpose: 观察 Service Definition 如何声明抽象能力。
+      - repository: deepseek-harness
+        version: 0cf6f648c80de1b0572057cd746a20863e39d606
+        path: packages/subprocess/subprocess-local/src/index.ts
+        anchor: { kind: export, value: LocalSubprocessRuntime }
+        purpose: 观察本地 Service Provider 如何实现 Definition。
+    checkpoints:
+      - { id: explain-seam-roles, title: 解释三角色和依赖方向, evidenceKind: authored }
+      - { id: inspect-subprocess-seam, title: 在真实源码中定位 Definition 与 Provider, evidenceKind: observed }
+    exercises:
+      - id: implement-minimal-provider
+        title: 实现一个最小 Clock Provider
+        kind: code
+        fixture: minimal-provider
+        checks:
+          - { id: provider-contract, runner: node, entry: check.mjs, timeoutMs: 10000, category: implementation }
+    hints:
+      - level: 1
+        text: 先只画三列：Definition 声明什么、Provider 实现什么、Consumer 注入什么。
+      - level: 2
+        text: 检查 declare module、抽象 Service、Provider extends 和 super(ctx, serviceName) 四个连接点。
+      - level: 3
+        text: "Clock Definition 应声明 now()；LocalClock extends Clock，在构造器调用 super(ctx, 'clock') 并实现 now；Consumer 只通过 ctx.clock 调用。"
+    rubric:
+      - id: explains-seam-roles
+        criterion: 准确说明 Definition、Provider、Consumer 三种角色以及 Consumer 不依赖具体 Provider。
+        evidenceKinds: [authored]
+      - id: implements-provider
+        criterion: Provider 实现 Definition、注册正确 service name，并能随 plugin fiber 卸载。
+        evidenceKinds: [machine, observed]
+    completion:
+      requiredCheckpointIds: [explain-seam-roles, inspect-subprocess-seam]
+      requiredExerciseIds: [implement-minimal-provider]
+      requiredRubricIds: [explains-seam-roles, implements-provider]
+
+  - id: model-callable-tool
+    title: System Prompt、Tool Schema、Agent Loop 与 Session Log
+    outcomeIds: [prompt-tool-loop-session, callable-tool-tested]
+    objectives:
+      - 说明 Tool Schema 如何进入模型请求并由 Agent Loop 执行。
+      - 区分工具规范值、Native render 和 Session Log 中的持久结果。
+      - 创建一个参数受 schema 验证且可测试的模型工具。
+    prerequisites: [capability-seam]
+    dshVersionRange: 0.1.0-rc.5
+    contentEntry: lessons/model-callable-tool.md
+    sources:
+      - repository: deepseek-harness
+        version: 0cf6f648c80de1b0572057cd746a20863e39d606
+        path: docs/cordis-tutorial/07-into-the-harness.md
+        anchor: { kind: heading, value: A tool plugin }
+        purpose: 阅读真实 DSH Tool 插件的最小注册模式。
+      - repository: deepseek-harness
+        version: 0cf6f648c80de1b0572057cd746a20863e39d606
+        path: packages/core/tools/src/schema.ts
+        anchor: { kind: export, value: defineTool }
+        purpose: 观察 Tool schema 到运行时规范的公共入口。
+      - repository: deepseek-harness
+        version: 0cf6f648c80de1b0572057cd746a20863e39d606
+        path: docs/architecture.md
+        anchor: { kind: heading, value: Turn flow }
+        purpose: 跟踪模型请求、tool call、执行和持久结果的 Agent Loop 路径。
+    checkpoints:
+      - { id: explain-tool-flow, title: 解释 schema 到 Session Log 的完整工具链路, evidenceKind: authored }
+      - { id: inspect-define-tool, title: 在真实源码中定位 defineTool 和执行管线, evidenceKind: observed }
+    exercises:
+      - id: implement-minimal-tool
+        title: 实现一个模型可调用的 greet 工具
+        kind: code
+        fixture: minimal-tool
+        checks:
+          - { id: tool-contract, runner: node, entry: check.mjs, timeoutMs: 10000, category: implementation }
+    hints:
+      - level: 1
+        text: 先写清工具 name、description、parameters、output 和 execute 五个边界。
+      - level: 2
+        text: 让 execute 调用一个可独立测试的纯函数，并确认 apply 只负责 ctx.tools.register。
+      - level: 3
+        text: 使用 defineTool 声明必填 name 字符串，execute 返回 greeting 规范对象，output.render 再把该对象渲染为文本，apply 中注册工具。
+    rubric:
+      - id: traces-tool-loop
+        criterion: 能解释 prompt schema、tool call、guarded execute、tool result 和 Session Log 的顺序。
+        evidenceKinds: [authored, observed]
+      - id: implements-callable-tool
+        criterion: 工具参数和输出都有 schema，execute 行为可由确定性检查验证。
+        evidenceKinds: [machine]
+    completion:
+      requiredCheckpointIds: [explain-tool-flow, inspect-define-tool]
+      requiredExerciseIds: [implement-minimal-tool]
+      requiredRubricIds: [traces-tool-loop, implements-callable-tool]
+
+  - id: bundle-profile-composition
+    title: Profile、Bundle、Preset 与综合组合
+    outcomeIds: [profile-bundle-preset-plugin, compose-bundle-profile]
+    objectives:
+      - 区分 Profile、Bundle、agent Preset 和普通 Plugin 的所有权。
+      - 解释 patch layer 的顺序和可覆盖性。
+      - 把前述 Provider 与 Tool 组合成可安装、可卸载的 Bundle patch。
+    prerequisites: [model-callable-tool]
+    dshVersionRange: 0.1.0-rc.5
+    contentEntry: lessons/bundle-profile-composition.md
+    sources:
+      - repository: deepseek-harness
+        version: 0cf6f648c80de1b0572057cd746a20863e39d606
+        path: docs/architecture.md
+        anchor: { kind: heading, value: Profiles and bundles }
+        purpose: 理解 profile、bundle 和 patch layer 的组合关系。
+      - repository: deepseek-harness
+        version: 0cf6f648c80de1b0572057cd746a20863e39d606
+        path: packages/bundle/base/cordis.patch.yml
+        anchor: { kind: text, value: ONE insert over the empty profile root }
+        purpose: 观察真实 bundle 如何提供可被上层覆盖的配置行。
+      - repository: deepseek-harness
+        version: 0cf6f648c80de1b0572057cd746a20863e39d606
+        path: docs/architecture.md
+        anchor: { kind: heading, value: Session log }
+        purpose: 确认综合 Tool 的模型可见输入和结果仍由 Session Log 审计。
+    checkpoints:
+      - { id: explain-composition-layers, title: 解释四种组合单位和 layer 顺序, evidenceKind: authored }
+      - { id: inspect-base-bundle, title: 在真实 base bundle 中定位 patch rows, evidenceKind: observed }
+    exercises:
+      - id: compose-teaching-bundle
+        title: 组合 Provider、Tool 与 Bundle patch
+        kind: integration
+        fixture: bundle-integration
+        checks:
+          - { id: bundle-contract, runner: node, entry: check.mjs, timeoutMs: 10000, category: configuration }
+    hints:
+      - level: 1
+        text: 先列出 bundle 必须插入的 Provider 和 Tool 两行，再检查依赖顺序是否由 Service 注入表达。
+      - level: 2
+        text: 对照 package.json 的 dsh.bundle 与 cordis.patch.yml，确认 patch 只做组合，业务逻辑留在插件源码。
+      - level: 3
+        text: package.json 的 dsh.bundle 指向 cordis.patch.yml；patch 依次插入 clock-provider 和 greet-tool，两个插件源码分别拥有 Provider 与 Tool 逻辑。
+    rubric:
+      - id: distinguishes-composition-units
+        criterion: 准确区分 Profile、Bundle、Preset、Plugin，并说明 patch layer 覆盖顺序。
+        evidenceKinds: [authored, observed]
+      - id: validates-bundle
+        criterion: 综合 fixture 同时包含合法 bundle metadata、Provider row、Tool row 和可解析插件入口。
+        evidenceKinds: [machine]
+    completion:
+      requiredCheckpointIds: [explain-composition-layers, inspect-base-bundle]
+      requiredExerciseIds: [compose-teaching-bundle]
+      requiredRubricIds: [distinguishes-composition-units, validates-bundle]

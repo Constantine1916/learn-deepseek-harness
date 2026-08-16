@@ -131,6 +131,10 @@ function summarizeRequest(request: CapturedRequest, sessionSnapshots: readonly s
     status: check.status,
     category: check.category,
   })))
+  const hints = Object.values(state.attempts).flatMap(attempt => attempt.hintLevels.map(level => ({
+    attemptId: attempt.attemptId,
+    level,
+  })))
   return {
     label: request.label,
     activity: state.currentActivity === null ? null : {
@@ -144,6 +148,7 @@ function summarizeRequest(request: CapturedRequest, sessionSnapshots: readonly s
       .filter(([, progress]) => progress === 'completed')
       .map(([unitId]) => unitId),
     checks,
+    hints,
     exactSnapshotInSessionLog: sessionSnapshots.includes(request.learnerSnapshot),
   }
 }
@@ -163,6 +168,7 @@ function summarizeState(state: LearnerState) {
       exerciseId: attempt.exerciseId,
       unitId: attempt.unitId,
       checks: attempt.checks,
+      hintLevels: attempt.hintLevels,
     })),
     evidence: Object.values(state.evidence).map(evidence => ({
       kind: evidence.kind,
@@ -198,7 +204,16 @@ const script: ScriptEntry[] = [
       command_id: 'phase-3-novice-diagnostic-start',
       goal: 'Understand DSH plugin composition through real source and machine evidence',
       background: 'TypeScript developer new to DSH and Cordis',
-      target_outcome_ids: ['plugin-context-service-effect'],
+      target_outcome_ids: [
+        'plugin-context-service-effect',
+        'profile-bundle-preset-plugin',
+        'service-provider-consumer',
+        'prompt-tool-loop-session',
+        'minimal-plugin-lifecycle',
+        'callable-tool-tested',
+        'replace-minimal-provider',
+        'compose-bundle-profile',
+      ],
     }),
   },
   {
@@ -213,8 +228,42 @@ const script: ScriptEntry[] = [
         },
         {
           candidate_id: 'diagnostic-plugin-context-service-effect-traces-disposal',
+          status: 'meets',
+          summary: 'The learner located Context ownership in the locked DSH source but still needs the full role model.',
+          evidence_kind: 'observed',
+          source_path: 'vendor/cordis/src/context.ts',
+          source_anchor_kind: 'export',
+          source_anchor: 'Context',
+        },
+        {
+          candidate_id: 'diagnostic-capability-seam-explains-seam-roles',
+          status: 'gap',
+          summary: 'The learner does not yet distinguish Definition, Provider, and Consumer.',
+        },
+        {
+          candidate_id: 'diagnostic-capability-seam-implements-provider',
           status: 'uncertain',
-          summary: 'The learner has not yet traced plugin disposal in the locked DSH source.',
+          summary: 'The learner has not implemented a replaceable Provider.',
+        },
+        {
+          candidate_id: 'diagnostic-model-callable-tool-traces-tool-loop',
+          status: 'gap',
+          summary: 'The learner cannot yet trace Tool Schema through Agent Loop and Session Log.',
+        },
+        {
+          candidate_id: 'diagnostic-model-callable-tool-implements-callable-tool',
+          status: 'uncertain',
+          summary: 'The learner has not built a model-callable DSH Tool.',
+        },
+        {
+          candidate_id: 'diagnostic-bundle-profile-composition-distinguishes-composition-units',
+          status: 'gap',
+          summary: 'The learner confuses Profile, Bundle, Preset, and Plugin ownership.',
+        },
+        {
+          candidate_id: 'diagnostic-bundle-profile-composition-validates-bundle',
+          status: 'uncertain',
+          summary: 'The learner has not composed and validated a DSH bundle.',
         },
       ],
     }),
@@ -245,6 +294,9 @@ const script: ScriptEntry[] = [
       summary: 'The learner traced Context ownership, Service registration, typed events, and Effect disposal.',
     }),
   },
+  { label: 'hint-level-1', chunks: toolCallResponse('hint-1', 'learning_request_hint', { command_id: 'phase-4-hint-level-1' }) },
+  { label: 'hint-level-2', chunks: toolCallResponse('hint-2', 'learning_request_hint', { command_id: 'phase-4-hint-level-2' }) },
+  { label: 'hint-level-3', chunks: toolCallResponse('hint-3', 'learning_request_hint', { command_id: 'phase-4-hint-level-3' }) },
   {
     label: 'exercise-before-failure',
     chunks: toolCallResponse('check-fail-1', 'learning_complete_activity', {
@@ -283,7 +335,16 @@ const script: ScriptEntry[] = [
       command_id: 'phase-3-experienced-diagnostic-start',
       goal: 'Contribute a DSH bundle while skipping concepts already demonstrated',
       background: 'Experienced Cordis plugin developer who has shipped scoped services',
-      target_outcome_ids: ['plugin-context-service-effect'],
+      target_outcome_ids: [
+        'plugin-context-service-effect',
+        'profile-bundle-preset-plugin',
+        'service-provider-consumer',
+        'prompt-tool-loop-session',
+        'minimal-plugin-lifecycle',
+        'callable-tool-tested',
+        'replace-minimal-provider',
+        'compose-bundle-profile',
+      ],
     }),
   },
   {
@@ -306,6 +367,36 @@ const script: ScriptEntry[] = [
           source_anchor_kind: 'export',
           source_anchor: 'Context',
         },
+        {
+          candidate_id: 'diagnostic-capability-seam-explains-seam-roles',
+          status: 'gap',
+          summary: 'The learner has not yet demonstrated DSH capability-seam terminology.',
+        },
+        {
+          candidate_id: 'diagnostic-capability-seam-implements-provider',
+          status: 'uncertain',
+          summary: 'Provider implementation evidence is not yet available.',
+        },
+        {
+          candidate_id: 'diagnostic-model-callable-tool-traces-tool-loop',
+          status: 'gap',
+          summary: 'The learner has not traced DSH ToolRuntime and Session Log behavior.',
+        },
+        {
+          candidate_id: 'diagnostic-model-callable-tool-implements-callable-tool',
+          status: 'uncertain',
+          summary: 'No DSH Tool implementation evidence is available.',
+        },
+        {
+          candidate_id: 'diagnostic-bundle-profile-composition-distinguishes-composition-units',
+          status: 'gap',
+          summary: 'The learner has not demonstrated DSH-specific Profile and Bundle ownership.',
+        },
+        {
+          candidate_id: 'diagnostic-bundle-profile-composition-validates-bundle',
+          status: 'uncertain',
+          summary: 'No bundle composition evidence is available.',
+        },
       ],
     }),
   },
@@ -321,6 +412,125 @@ const script: ScriptEntry[] = [
     label: 'experienced-recommendation',
     chunks: textResponse('Your authored role explanation and verified source trace satisfy every required rubric. At your explicit request, the foundation unit is recorded as waived rather than exercise-completed; no unverified completion was granted.'),
   },
+  {
+    label: 'capability-start',
+    chunks: toolCallResponse('capability-start-1', 'learning_start_unit', {
+      command_id: 'phase-4-capability-start', unit_id: 'capability-seam',
+    }),
+  },
+  {
+    label: 'capability-explain',
+    chunks: toolCallResponse('capability-explain-1', 'learning_complete_activity', {
+      command_id: 'phase-4-capability-explain',
+      summary: 'Explained Service Definition, Provider, Consumer, and their dependency direction from locked sources.',
+    }, 'Capability seam objective: separate the stable Service Definition, replaceable Provider, and Definition-only Consumer. Completion requires an authored dependency trace and a checked Provider implementation.'),
+  },
+  { label: 'capability-checkpoint-prompt', chunks: textResponse('Checkpoint: trace SubprocessRuntime → LocalSubprocessRuntime → a Consumer, then explain why the Consumer must not import the local Provider.') },
+  {
+    label: 'capability-checkpoint-answer',
+    chunks: toolCallResponse('capability-checkpoint-1', 'learning_complete_activity', {
+      command_id: 'phase-4-capability-checkpoint',
+      summary: 'The learner traced the Definition, local Provider, and Definition-only Consumer.',
+    }),
+  },
+  { label: 'capability-exercise-ready', chunks: textResponse('The isolated Clock Provider exercise is ready.') },
+  {
+    label: 'capability-blocked-check',
+    chunks: toolCallResponse('capability-blocked-check-1', 'learning_complete_activity', {
+      command_id: 'phase-4-capability-blocked-check',
+      summary: 'Run the Provider check while its checker process is unavailable.',
+    }),
+  },
+  {
+    label: 'capability-blocked-feedback',
+    chunks: toolCallResponse('capability-blocked-feedback-1', 'learning_complete_activity', {
+      command_id: 'phase-4-capability-blocked-feedback',
+      summary: 'Treat the environment timeout as blocked and retain the same attempt without lowering mastery.',
+    }, 'The Provider check is blocked by an environment timeout, not failed for implementation. No mastery was reduced; restore the checker and retry the same attempt.'),
+  },
+  { label: 'capability-retry-ready', chunks: textResponse('The same Provider attempt is ready after environment recovery.') },
+  {
+    label: 'capability-pass-check',
+    chunks: toolCallResponse('capability-pass-check-1', 'learning_complete_activity', {
+      command_id: 'phase-4-capability-pass-check', summary: 'Run the restored Provider contract check.',
+    }),
+  },
+  {
+    label: 'capability-pass-feedback',
+    chunks: toolCallResponse('capability-pass-feedback-1', 'learning_complete_activity', {
+      command_id: 'phase-4-capability-pass-feedback', summary: 'The Provider contract and authored seam explanation satisfy completion.',
+    }, 'The Clock Provider check passed with committed machine evidence.'),
+  },
+  { label: 'capability-completed', chunks: textResponse('The capability-seam unit is complete.') },
+  {
+    label: 'tool-start',
+    chunks: toolCallResponse('tool-start-1', 'learning_start_unit', {
+      command_id: 'phase-4-tool-start', unit_id: 'model-callable-tool',
+    }),
+  },
+  {
+    label: 'tool-explain',
+    chunks: toolCallResponse('tool-explain-1', 'learning_complete_activity', {
+      command_id: 'phase-4-tool-explain',
+      summary: 'Explained Tool Schema, guarded execution, Native rendering, Agent Loop, and Session Log.',
+    }, 'Tool objective: connect model-visible schema, guarded ToolRuntime execution, canonical output rendering, and durable Session Log evidence.'),
+  },
+  { label: 'tool-checkpoint-prompt', chunks: textResponse('Checkpoint: trace one tool call from request schema through execute and tool/result persistence.') },
+  {
+    label: 'tool-checkpoint-answer',
+    chunks: toolCallResponse('tool-checkpoint-1', 'learning_complete_activity', {
+      command_id: 'phase-4-tool-checkpoint', summary: 'The learner traced schema, execution, rendering, and persistence.',
+    }),
+  },
+  { label: 'tool-exercise-ready', chunks: textResponse('The isolated greet Tool exercise is ready.') },
+  {
+    label: 'tool-pass-check',
+    chunks: toolCallResponse('tool-pass-check-1', 'learning_complete_activity', {
+      command_id: 'phase-4-tool-pass-check', summary: 'Run the deterministic greet Tool contract check.',
+    }),
+  },
+  {
+    label: 'tool-pass-feedback',
+    chunks: toolCallResponse('tool-pass-feedback-1', 'learning_complete_activity', {
+      command_id: 'phase-4-tool-pass-feedback', summary: 'The Tool flow explanation and machine contract satisfy completion.',
+    }, 'The greet Tool contract passed with schema, execute, render, and registration evidence.'),
+  },
+  { label: 'tool-completed', chunks: textResponse('The model-callable-tool unit is complete.') },
+  {
+    label: 'bundle-start',
+    chunks: toolCallResponse('bundle-start-1', 'learning_start_unit', {
+      command_id: 'phase-4-bundle-start', unit_id: 'bundle-profile-composition',
+    }),
+  },
+  {
+    label: 'bundle-explain',
+    chunks: toolCallResponse('bundle-explain-1', 'learning_complete_activity', {
+      command_id: 'phase-4-bundle-explain',
+      summary: 'Explained Profile, Bundle, Preset, Plugin ownership and patch layer ordering.',
+    }, 'Bundle objective: keep behavior in plugins, use the bundle for patchable composition, and distinguish process-level Profile layers from per-agent Presets.'),
+  },
+  { label: 'bundle-checkpoint-prompt', chunks: textResponse('Checkpoint: explain which artifact owns behavior, which distributes rows, which names a deployment, and which scopes one Agent.') },
+  {
+    label: 'bundle-checkpoint-answer',
+    chunks: toolCallResponse('bundle-checkpoint-1', 'learning_complete_activity', {
+      command_id: 'phase-4-bundle-checkpoint', summary: 'The learner distinguished Plugin, Bundle, Profile, and Preset ownership.',
+    }),
+  },
+  { label: 'bundle-exercise-ready', chunks: textResponse('The comprehensive Provider + Tool bundle exercise is ready.') },
+  {
+    label: 'bundle-pass-check',
+    chunks: toolCallResponse('bundle-pass-check-1', 'learning_complete_activity', {
+      command_id: 'phase-4-bundle-pass-check', summary: 'Run the comprehensive bundle contract check.',
+    }),
+  },
+  {
+    label: 'bundle-pass-feedback',
+    chunks: toolCallResponse('bundle-pass-feedback-1', 'learning_complete_activity', {
+      command_id: 'phase-4-bundle-pass-feedback', summary: 'The bundle metadata, patch rows, Provider, Tool, and authored explanation satisfy comprehensive validation.',
+    }, 'The comprehensive bundle check passed and the course now has machine-backed evidence across all four units.'),
+  },
+  { label: 'learning-report', chunks: toolCallResponse('learning-report-1', 'learning_get_report', {}) },
+  { label: 'course-completed', chunks: textResponse('Learning report: all eight outcomes are verified. Four units were exercise-completed, the bundle unit has comprehensive validation, no unit was represented as both waived and completed, and remaining misconceptions are listed from committed state.') },
 ]
 
 const directory = resolve(dirname(fileURLToPath(import.meta.url)), '..')
@@ -351,6 +561,65 @@ let original: AgentHandle | undefined
 let resumed: AgentHandle | undefined
 let continued: AgentHandle | undefined
 let experienced: AgentHandle | undefined
+
+async function activeAttemptWorkspace(handle: AgentHandle): Promise<string> {
+  const state = await ctx.teaching.stateFor(handle.agent.id)
+  const activity = state.currentActivity
+  if (activity === null || activity.kind === 'diagnostic' || activity.attemptId === undefined) {
+    throw new Error('expected an active exercise attempt')
+  }
+  const rootTarget = await ctx.fs.resolve('.learn-dsh/attempts', { cwd: workspace })
+  for (const entry of await ctx.fs.listDir(rootTarget)) {
+    if (entry.type !== 'directory') continue
+    const candidate = ctx.fs.processPath(entry.target)
+    const markerTarget = await ctx.fs.resolve('.learn-dsh-attempt.json', { cwd: candidate })
+    const marker = JSON.parse(await ctx.fs.readText(markerTarget)) as { attemptId?: string }
+    if (marker.attemptId === activity.attemptId) return candidate
+  }
+  throw new Error(`could not resolve workspace for attempt ${activity.attemptId}`)
+}
+
+async function writeAttemptFile(handle: AgentHandle, workspacePath: string, path: string, text: string): Promise<void> {
+  const target = await ctx.fs.resolve(path, { cwd: workspacePath })
+  await ctx.fs.writeText(target, text, undefined, undefined, ctx.sandboxPolicy.resolve({ session: handle.agent.session }))
+}
+
+const providerSolution = `import { Context, Service } from '@deepseek-ai/cordis'
+
+declare module '@deepseek-ai/cordis' {
+  interface Context { clock: Clock }
+}
+
+export abstract class Clock extends Service {
+  abstract now(): number
+}
+
+export class LocalClock extends Clock {
+  constructor(ctx: Context) { super(ctx, 'clock') }
+  override now(): number { return Date.now() }
+}
+
+export function readClock(ctx: Context): number { return ctx.clock.now() }
+`
+
+const toolSolution = `import type { Context } from '@deepseek-ai/cordis'
+import { defineTool } from '@deepseek-ai/dsh-tools'
+
+export function greet(name: string): string { return \`Hello, \${name}!\` }
+
+const greetTool = defineTool({
+  name: 'greet',
+  description: 'Greet one learner.',
+  parameters: { name: { type: 'string', required: true } },
+  output: {
+    schema: { type: 'object', additionalProperties: false, properties: { greeting: { type: 'string', required: true } } },
+    render: (_args, value) => [{ type: 'text', text: value.greeting }],
+  },
+  execute(args) { return Promise.resolve({ greeting: greet(args.name) }) },
+})
+
+export function apply(ctx: Context): void { ctx.tools.register(greetTool) }
+`
 
 try {
   original = await ctx.agents.create({
@@ -408,6 +677,43 @@ try {
   await experienced.dispose()
   experienced = undefined
 
+  continued = await ctx.agents.resume({
+    resumeSessionId: continuedSessionId,
+    agentOptions: { provider: 'snapshot', model: 'phase-4-script' },
+  })
+  await followup(continued, 'Continue with the capability seam unit and show its objectives and source-backed checkpoint.')
+  await followup(continued, 'SubprocessRuntime is the Service Definition, LocalSubprocessRuntime is one Provider, and Consumers depend only on ctx.subprocess so replacement does not change them.')
+
+  const capabilityWorkspace = await activeAttemptWorkspace(continued)
+  const capabilityCheckTarget = await ctx.fs.resolve('check.mjs', { cwd: capabilityWorkspace })
+  const capabilityCheck = await ctx.fs.readText(capabilityCheckTarget)
+  await writeAttemptFile(continued, capabilityWorkspace, 'check.mjs', "process.kill(process.pid, 'SIGTERM')\n")
+  await followup(continued, 'Run the Provider check. If infrastructure blocks it, classify it without treating it as a learning failure.')
+  await writeAttemptFile(continued, capabilityWorkspace, 'check.mjs', capabilityCheck)
+  await writeAttemptFile(continued, capabilityWorkspace, 'provider.ts', providerSolution)
+  await followup(continued, 'The checker is restored and provider.ts is complete. Retry the same attempt and finish only if machine evidence passes.')
+
+  await followup(continued, 'Start the model-callable Tool unit and guide me to its checkpoint.')
+  await followup(continued, 'The schema enters the model request, ToolRuntime validates and executes the call, Native rendering produces content, and tool/result persists the outcome in the Session Log.')
+  const toolWorkspace = await activeAttemptWorkspace(continued)
+  await writeAttemptFile(continued, toolWorkspace, 'tool.ts', toolSolution)
+  await followup(continued, 'I implemented the greet Tool. Run its deterministic contract and finish the unit if it passes.')
+
+  await followup(continued, 'Start the Bundle/Profile composition unit and guide me to the comprehensive exercise.')
+  await followup(continued, 'A Plugin owns behavior, a Bundle distributes patchable rows, a Profile stacks deployment layers, and a Preset scopes one Agent composition.')
+  const bundleWorkspace = await activeAttemptWorkspace(continued)
+  await writeAttemptFile(continued, bundleWorkspace, 'provider.ts', providerSolution)
+  await writeAttemptFile(continued, bundleWorkspace, 'tool.ts', toolSolution)
+  await writeAttemptFile(continued, bundleWorkspace, 'cordis.patch.yml', `- insert:
+    - id: clock-provider
+      name: './provider.ts'
+    - id: greet-tool
+      name: './tool.ts'
+`)
+  await followup(continued, 'The Provider, Tool, metadata, and patch rows are complete. Run the comprehensive check, finish the course if evidence permits, and return the learning report.')
+  await continued.dispose()
+  continued = undefined
+
   if (adapter.requests.length !== script.length) {
     throw new Error(`expected ${script.length} scripted model requests, received ${adapter.requests.length}`)
   }
@@ -422,7 +728,14 @@ try {
     request,
     request.label.startsWith('experienced-')
       ? experiencedSnapshots
-      : request.label === 'new-session-continuity' ? continuedSnapshots : originalSnapshots,
+      : request.label === 'new-session-continuity'
+        || request.label.startsWith('capability-')
+        || request.label.startsWith('tool-')
+        || request.label.startsWith('bundle-')
+        || request.label === 'learning-report'
+        || request.label === 'course-completed'
+        ? continuedSnapshots
+        : originalSnapshots,
   ))
   if (journey.some(entry => !entry.exactSnapshotInSessionLog)) {
     throw new Error('a model-visible LearnerState snapshot was not found exactly in its Session Log')
@@ -441,7 +754,15 @@ try {
     || failureResponse === undefined || successResponse === undefined) {
     throw new Error('original Session Log is missing a Phase 2 teaching response')
   }
+  const continuedResponses = continuedLog.events.flatMap(event =>
+    event.type === 'assistant/message' ? [messageText(event.data.message)] : [])
+  const blockedResponse = continuedResponses.find(text => text.startsWith('The Provider check is blocked'))
+  const reportResponse = continuedResponses.find(text => text.startsWith('Learning report:'))
+  if (blockedResponse === undefined || reportResponse === undefined) {
+    throw new Error('continued Session Log is missing a Phase 4 blocked or report response')
+  }
   const finalState = await ctx.teaching.stateFor(continuedSessionId)
+  const learningReport = await ctx.teaching.getReport(continuedSessionId)
   const experiencedState = await ctx.learner.getState(experiencedScope)
   const memoryEvents = await ctx.learnerMemory.read(ctx.teaching.scopeFor(continuedSessionId))
   const assembly = await ctx.systemPrompt.assemble()
@@ -459,6 +780,8 @@ try {
       checkpointResponse,
       failureResponse,
       successResponse,
+      blockedResponse,
+      reportResponse,
     },
     curriculum: {
       id: ctx.curriculum.course().id,
@@ -477,6 +800,7 @@ try {
     learnerMemory: {
       eventCount: memoryEvents.length,
       finalState: summarizeState(finalState),
+      learningReport,
       experiencedState: summarizeState(experiencedState),
     },
   }, undefined, 2)}\n`)

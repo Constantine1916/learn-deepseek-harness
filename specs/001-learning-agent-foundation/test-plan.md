@@ -208,3 +208,11 @@ Phase 0 的可复现入口：
 - `pnpm test:unit`：验证跳过必须由学习者显式命令触发，写入引用 EvidenceId 的 `learning/unit-waived`，且 waived 与 completed 保持可区分。
 - `pnpm test:unit`：验证 gap/uncertain 阻止跳过、误区优先补课、计划遵守先修关系，以及每次计划变化保存原因和 evidence 引用。
 - `pnpm test:snapshot`：通过真实 Loader、Agent Loop 和 Session persistence 固定初学者与有经验开发者的不同诊断结果、计划、显式跳过和推荐起点。
+
+## 11. Phase 4 完整基础课程证据
+
+- `pnpm test:unit`：验证四个连续单元覆盖八项 learning outcomes，线性先修关系可达，且包含最小 Provider、最小 Tool 和综合 Bundle 实践。
+- `pnpm test:unit`：验证每个练习三级提示按顺序发放，提示事件先持久化再返回，重复命令幂等，前两级拒绝 fenced code、完整实现声明和超出预算的内容。
+- `pnpm test:unit`：通过真实 Lab Provider 固定 implementation failed，以及 configuration、environment、safety blocked 分类；blocked 恢复后同 attempt 可以重试且不降低 mastery。
+- `pnpm test:unit`：验证最终单元完成后幂等追加 course-completed，并生成区分 started/read、exercise-completed、diagnostic-waived 和 comprehensive-validated 的学习报告。
+- `pnpm test:snapshot`：通过真实 Agent Loop 固定三级提示、blocked 重试、四个连续单元的关键状态以及最终学习报告。

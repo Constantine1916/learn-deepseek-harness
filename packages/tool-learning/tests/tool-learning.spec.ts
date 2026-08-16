@@ -77,6 +77,43 @@ describe('F-005 F-010 P2-03 learning tools', () => {
       if (advanced.isError) throw new Error(advanced.error.message)
       expect((advanced.value as { outcome: string }).outcome).toBe('checkpoint-ready')
 
+      const exercise = await ctx.tools.execute({
+        signal,
+        callId: CallId('checkpoint-1'),
+        name: 'learning_complete_activity',
+        arguments: { command_id: 'checkpoint-command', summary: 'Submitted the authored checkpoint evidence' },
+        agent: owner,
+      })
+      expect(exercise.isError).toBe(false)
+      if (exercise.isError) throw new Error(exercise.error.message)
+      expect((exercise.value as { outcome: string }).outcome).toBe('exercise-ready')
+
+      const hint = await ctx.tools.execute({
+        signal,
+        callId: CallId('hint-1'),
+        name: 'learning_request_hint',
+        arguments: { command_id: 'hint-command' },
+        agent: owner,
+      })
+      expect(hint.isError).toBe(false)
+      if (hint.isError) throw new Error(hint.error.message)
+      expect(hint.value).toMatchObject({ level: 1, text: expect.any(String) })
+
+      const report = await ctx.tools.execute({
+        signal,
+        callId: CallId('report-1'),
+        name: 'learning_get_report',
+        arguments: {},
+        agent: owner,
+      })
+      expect(report.isError).toBe(false)
+      if (report.isError) throw new Error(report.error.message)
+      expect(JSON.parse((report.value as { report_json: string }).report_json)).toMatchObject({
+        readUnitIds: ['plugin-context-service-effect'],
+        exerciseCompletedUnitIds: [],
+        diagnosticWaivedUnitIds: [],
+      })
+
       const noOwner = await ctx.tools.execute({ signal, callId: CallId('get-no-owner'), name: 'learning_get_state', arguments: {} })
       expect(noOwner.isError).toBe(true)
     } finally {

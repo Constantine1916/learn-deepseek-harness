@@ -291,6 +291,13 @@ describe('F-004 F-005 Phase 3 diagnostic and explicit waiver planning', () => {
       )
       expect(waived.state.unitProgress['plugin-context-service-effect']).toBe('waived')
       expect(waived.state.nextRecommendation).toEqual({ unitId: null, reason: 'plan-complete-after-waiver' })
+      const report = await ctx.teaching.getReport(activeSession.id)
+      expect(report.readUnitIds).toEqual([])
+      expect(report.exerciseCompletedUnitIds).toEqual([])
+      expect(report.diagnosticWaivedUnitIds).toEqual([UnitId('plugin-context-service-effect')])
+      expect(report.verifiedCapabilities).toEqual(expect.arrayContaining([
+        expect.objectContaining({ unitId: UnitId('plugin-context-service-effect'), verification: 'diagnostic-waiver' }),
+      ]))
       const waiverEvent = (await ctx.learnerMemory.read(ctx.teaching.scopeFor(activeSession.id)))
         .find(event => event.type === 'learning/unit-waived')
       expect(waiverEvent).toBeDefined()
@@ -299,6 +306,121 @@ describe('F-004 F-005 Phase 3 diagnostic and explicit waiver planning', () => {
         reason: 'learner-requested:Use the verified diagnostic evidence and continue',
       })
       expect((waiverEvent!.data as { evidenceIds?: string[] }).evidenceIds).toHaveLength(2)
+    } finally {
+      await ctx.fiber.dispose()
+      await rm(root, { recursive: true, force: true })
+    }
+  })
+})
+
+describe('F-009 F-013 Phase 4 hints, continuous course, and learning report', () => {
+  it('persists three sequential hints, completes four units, and separates report evidence classes', async () => {
+    const root = await mkdtemp(resolve(tmpdir(), 'learn-dsh-phase-4-course-'))
+    const { ctx, lab } = await setup(root)
+    const activeSession = session('phase-4-course')
+    lab.results = [{
+      checkId: 'deterministic-check',
+      status: 'passed',
+      category: 'implementation',
+      summary: 'fixture passed',
+      details: ['all required contracts present'],
+      artifacts: ['artifact'],
+    }]
+    try {
+      const unitIds = ctx.curriculum.course().units.map(unit => unit.id)
+      for (const [index, unitId] of unitIds.entries()) {
+        await ctx.teaching.startUnit(
+          activeSession.id,
+          `phase-4-start-${String(index)}`,
+          index === 0 ? 'Complete the DSH foundations course' : undefined,
+          unitId,
+        )
+        await ctx.teaching.completeActivity(activeSession, `phase-4-explain-${String(index)}`, `Explained objectives and evidence for ${unitId}`)
+        await ctx.teaching.completeActivity(activeSession, `phase-4-checkpoint-${String(index)}`, `Authored and source evidence for ${unitId}`)
+
+        if (index === 0) {
+          const first = await ctx.teaching.requestHint(activeSession.id, 'phase-4-hint-1')
+          expect(first).toMatchObject({ level: 1 })
+          expect(first.text).not.toContain('完整实现')
+          const replay = await ctx.teaching.requestHint(activeSession.id, 'phase-4-hint-1')
+          expect(replay).toMatchObject({ level: 1, text: first.text })
+          expect(Object.values(replay.state.attempts)[0]?.hintLevels).toEqual([1])
+          const second = await ctx.teaching.requestHint(activeSession.id, 'phase-4-hint-2')
+          const third = await ctx.teaching.requestHint(activeSession.id, 'phase-4-hint-3')
+          expect([second.level, third.level]).toEqual([2, 3])
+          expect(second.text).not.toContain('完整实现')
+          await expect(ctx.teaching.requestHint(activeSession.id, 'phase-4-hint-4')).rejects.toMatchObject({ code: 'planner-rejected' })
+        }
+
+        await ctx.teaching.completeActivity(activeSession, `phase-4-checks-${String(index)}`, `Run checks for ${unitId}`)
+        const completed = await ctx.teaching.completeActivity(activeSession, `phase-4-feedback-${String(index)}`, `Machine and authored evidence complete ${unitId}`)
+        expect(completed.outcome).toBe('unit-completed')
+      }
+
+      const state = await ctx.teaching.stateFor(activeSession.id)
+      expect(state.courseCompleted).toBe(true)
+      const report = await ctx.teaching.getReport(activeSession.id)
+      expect(report.readUnitIds).toEqual(unitIds)
+      expect(report.exerciseCompletedUnitIds).toEqual(unitIds)
+      expect(report.diagnosticWaivedUnitIds).toEqual([])
+      expect(report.comprehensiveValidatedUnitIds).toEqual([UnitId('bundle-profile-composition')])
+      expect(new Set(report.verifiedCapabilities.map(item => item.outcomeId))).toEqual(
+        new Set(ctx.curriculum.course().learningOutcomes.map(outcome => outcome.id)),
+      )
+      expect(report.verifiedCapabilities.filter(item => item.verification === 'comprehensive')).toHaveLength(2)
+      expect(report.unresolvedMisconceptions).toEqual([])
+      expect(report.courseCompleted).toBe(true)
+
+      const courseCompletedEvents = (await ctx.learnerMemory.read(ctx.teaching.scopeFor(activeSession.id)))
+        .filter(event => event.type === 'learning/course-completed')
+      expect(courseCompletedEvents).toHaveLength(1)
+      await ctx.teaching.completeActivity(activeSession, 'phase-4-feedback-3', 'idempotent retry')
+      expect((await ctx.learnerMemory.read(ctx.teaching.scopeFor(activeSession.id)))
+        .filter(event => event.type === 'learning/course-completed')).toHaveLength(1)
+    } finally {
+      await ctx.fiber.dispose()
+      await rm(root, { recursive: true, force: true })
+    }
+  })
+
+  it('retries a blocked check on the same attempt without lowering mastery', async () => {
+    const root = await mkdtemp(resolve(tmpdir(), 'learn-dsh-phase-4-blocked-'))
+    const { ctx, lab } = await setup(root)
+    const activeSession = session('phase-4-blocked')
+    try {
+      await ctx.teaching.startUnit(activeSession.id, 'blocked-start', 'Recover from environment blocks')
+      await ctx.teaching.completeActivity(activeSession, 'blocked-explain', 'Explain the current unit')
+      await ctx.teaching.completeActivity(activeSession, 'blocked-checkpoint', 'Submit the checkpoint')
+      const attemptId = (await ctx.teaching.stateFor(activeSession.id)).currentActivity
+      expect(attemptId).toMatchObject({ kind: 'exercise' })
+
+      lab.results = [{
+        checkId: 'trace-artifact',
+        status: 'blocked',
+        category: 'environment',
+        summary: 'Node runtime unavailable',
+        details: ['retry when the environment is restored'],
+        artifacts: [],
+      }]
+      const blocked = await ctx.teaching.completeActivity(activeSession, 'blocked-checks', 'Run checks in the unavailable environment')
+      expect(blocked.checks?.[0]).toMatchObject({ status: 'blocked', category: 'environment' })
+      expect(blocked.state.mastery['plugin-context-service-effect']).toBeUndefined()
+      const retry = await ctx.teaching.completeActivity(activeSession, 'blocked-feedback', 'The environment block is not a learning failure')
+      expect(retry.outcome).toBe('retry-exercise')
+      expect(retry.state.currentActivity).toMatchObject({ kind: 'exercise', attemptId: expect.any(String) })
+
+      lab.results = [{
+        checkId: 'trace-artifact',
+        status: 'passed',
+        category: 'implementation',
+        summary: 'artifact passed after environment recovery',
+        details: ['all fields present'],
+        artifacts: ['answer.json'],
+      }]
+      await ctx.teaching.completeActivity(activeSession, 'blocked-retry-checks', 'Retry after environment recovery')
+      const completed = await ctx.teaching.completeActivity(activeSession, 'blocked-retry-feedback', 'Recovered check and authored evidence satisfy completion')
+      expect(completed.outcome).toBe('unit-completed')
+      expect(completed.state.mastery['plugin-context-service-effect']?.level).toBe('mastered')
     } finally {
       await ctx.fiber.dispose()
       await rm(root, { recursive: true, force: true })

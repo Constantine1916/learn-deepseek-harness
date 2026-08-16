@@ -87,11 +87,11 @@
 
 任务：
 
-- P4-01：完成 Plugin/Context/Effect、Capability Seam、Tool/Bundle 三组课程。关联 F-003。
-- P4-02：提供最小 Tool 和最小 Provider 练习。关联 F-007、F-008。
-- P4-03：实现三级提示和提示使用事件。关联 F-009。
-- P4-04：实现失败类别和 blocked 重试。关联 F-008。
-- P4-05：实现综合 bundle 练习和学习报告。关联 F-013。
+- P4-01（完成）：完成 Plugin/Context/Effect、Capability Seam、Tool/Bundle 三组课程。关联 F-003。
+- P4-02（完成）：提供最小 Tool 和最小 Provider 练习。关联 F-007、F-008。
+- P4-03（完成）：实现三级提示和提示使用事件。关联 F-009。
+- P4-04（完成）：实现失败类别和 blocked 重试。关联 F-008。
+- P4-05（完成）：实现综合 bundle 练习和学习报告。关联 F-013。
 
 出口：
 

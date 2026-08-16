@@ -209,6 +209,7 @@ Source
 - learning/checks-completed
 - learning/hint-used
 - learning/misconception-recorded
+- learning/misconception-resolved
 - learning/mastery-changed
 - learning/unit-completed
 - learning/course-completed
@@ -328,6 +329,8 @@ Prompt 约束：
 - 完整答案只有在学习者明确请求或活动进入讲解复盘时提供。
 - 计划和掌握变化通过工具提交，不能只写在自然语言回复中。
 
+Phase 4 的提示由 `teaching` 按当前 attempt 顺序发放。学习者每次只能取得下一个未使用级别，重复命令按 EventId 幂等；`learning/hint-used` 在返回提示文本前持久化。课程加载器拒绝前两级中的 fenced code、完整实现声明或超出方向性提示预算的内容，第三级才允许给出完整结构或参考实现。
+
 工具可见性按活动限制。例如讲解阶段隐藏重置和提交工具，练习阶段开放 lab 工具；restriction 必须同时约束展示、查找和执行。
 
 ## 9. 实践环境与安全
@@ -341,6 +344,10 @@ Prompt 约束：
 - 课程文件视为持久输入边界，加载时执行 schema 和路径验证。
 - learner-memory 根目录来自验证后的配置，不能解析到 DSH checkout、HOME 根或未授权目录；事件 payload、版本、序号和身份字段在持久读取边界验证。
 - Session 中的 LearnerId、EnrollmentId 只用于选择已配置且受信任的本地记录，不触发自动安装插件、下载代码或连接未配置后端。
+
+Phase 4 基础课程使用四个线性单元覆盖三组主题：Plugin/Context/Effect、Capability Seam、Tool、Bundle/Profile。后两组拆成最小 Provider、最小 Tool 和综合 Bundle 三项实践，从而保留两个独立代码练习和一个综合练习。检查仍只执行课程声明的固定 node runner；implementation 失败与 configuration、environment、safety blocked 结果保持结构化区分。
+
+学习报告由已提交 LearnerState 和版本化课程确定性生成，分别列出 started/read 单元、exercise-completed 单元、diagnostic-waived 单元和通过 integration exercise 的 comprehensive-validated 单元，并引用 mastery evidence、未解决误区和下一推荐。报告是查询结果，不作为新的状态真源。
 
 ## 10. Bundle 与 Preset
 

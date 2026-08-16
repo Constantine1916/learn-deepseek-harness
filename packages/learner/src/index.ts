@@ -249,6 +249,11 @@ const eventDataSchemas = {
     summary: nonEmpty,
     unitId: unitIdSchema.optional(),
   }).strict(),
+  'learning/misconception-resolved': z.object({
+    misconceptionId: id.transform(MisconceptionId),
+    evidenceIds: z.array(evidenceIdSchema).min(1),
+    reason: nonEmpty,
+  }).strict(),
   'learning/mastery-changed': z.object({
     unitId: unitIdSchema,
     level: z.enum(['introduced', 'practicing', 'mastered']),
@@ -636,7 +641,14 @@ function applyEvent(state: MutableState, raw: LearnerEventEnvelope, course: Cour
       const attemptId = data.attemptId as ExerciseAttemptId
       const attempt = state.attempts[attemptId]
       if (attempt === undefined) throw new LearnerProjectionError('illegal-transition', `hint references missing attempt "${attemptId}"`)
-      state.attempts[attemptId] = Object.freeze({ ...attempt, hintLevels: Object.freeze([...attempt.hintLevels, data.level as 1 | 2 | 3]) })
+      const activity = state.currentActivity
+      if (activity === null || activity.kind === 'diagnostic' || (activity.kind !== 'exercise' && activity.kind !== 'feedback') || activity.attemptId !== attemptId) {
+        throw new LearnerProjectionError('illegal-transition', `hint requires active attempt "${attemptId}"`)
+      }
+      const level = data.level as 1 | 2 | 3
+      const expected = attempt.hintLevels.length + 1
+      if (level !== expected || expected > 3) throw new LearnerProjectionError('illegal-transition', `hint level ${String(level)} is not the next allowed level ${String(expected)}`)
+      state.attempts[attemptId] = Object.freeze({ ...attempt, hintLevels: Object.freeze([...attempt.hintLevels, level]) })
       break
     }
     case 'learning/misconception-recorded': {
@@ -650,6 +662,15 @@ function applyEvent(state: MutableState, raw: LearnerEventEnvelope, course: Cour
         ...(unitId === undefined ? {} : { unitId }),
         resolved: false,
       })
+      break
+    }
+    case 'learning/misconception-resolved': {
+      const misconceptionId = data.misconceptionId as MisconceptionId
+      const misconception = state.misconceptions[misconceptionId]
+      if (misconception === undefined) throw new LearnerProjectionError('illegal-transition', `resolution references missing misconception "${misconceptionId}"`)
+      if (misconception.resolved) throw new LearnerProjectionError('illegal-transition', `misconception "${misconceptionId}" is already resolved`)
+      assertEvidence(state, data.evidenceIds as EvidenceId[], 'misconception resolution evidenceIds')
+      state.misconceptions[misconceptionId] = Object.freeze({ ...misconception, resolved: true })
       break
     }
     case 'learning/mastery-changed': {

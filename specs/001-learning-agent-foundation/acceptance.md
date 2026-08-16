@@ -137,3 +137,16 @@ Phase 3 已完成课程派生诊断、证据类型校验、误区优先计划、
 | F-005、B-003、C-005、P3-03、P3-04 | `pnpm test:unit` 验证 gap/uncertain 阻止跳课、误区优先、先修顺序、计划 adjustment reason 和 evidenceIds |
 | F-005、Q-004、P3-04 | `pnpm test:unit` 和真实 ToolRuntime 验证诊断资格不自动改变状态，只有学习者显式 `learning_waive_unit` 才追加引用证据的 `learning/unit-waived` |
 | Q-006、F-AC-003、P3-05 | `pnpm test:snapshot` 通过真实 Loader、Agent Loop 和 Session persistence 固定初学者保留基础单元、有经验开发者提交 authored + locked-source observed 证据后显式 waived 的不同路径 |
+
+## Phase 4 完整课程、提示与报告证据
+
+Phase 4 已完成覆盖八项成果的四个连续单元、两个代码练习、一个综合练习、三级提示、blocked 恢复、course completion 和学习报告。
+
+| 需求或验收项 | 当前证据入口 |
+|---|---|
+| F-003、D-001、D-002、D-005、P4-01 | `pnpm test:unit` 验证四单元线性课程覆盖全部八项 outcomes、每单元完整 schema 和 12 个锁定来源 anchor；真实 keyless journey 连续完成全部单元 |
+| F-007、F-008、D-006、P4-02、P4-05 | 三个新增 fixture 和真实 Lab 测试验证最小 Provider、最小 Tool、综合 Bundle；最终报告包含 comprehensive validation |
+| F-009、B-007、P4-03 | `pnpm test:unit` 验证提示顺序、持久化与幂等，并拒绝前两级 fenced code、完整实现声明和超出预算内容；snapshot 固定三级提示事件 |
+| F-008、B-006、P4-04 | `pnpm test:unit` 固定 implementation failed 与 configuration/environment/safety blocked；真实 Agent Loop 固定 environment blocked 后同 attempt 恢复并通过 |
+| F-013、B-008、P4-05 | `pnpm test:unit` 和 `learning_get_report` snapshot 区分 read/started、exercise-completed、diagnostic-waived 和 comprehensive-validated，并列出证据与未解决误区 |
+| Q-006、F-AC-003 | `pnpm test:snapshot` 逐请求验证模型 LearnerState 与 Session Log 快照一致，并固定四单元、三级提示、blocked 重试、course-completed 和最终报告 |
