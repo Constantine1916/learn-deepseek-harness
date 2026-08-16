@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "supportedDsh": {
+    "version": "0.1.0-rc.5",
+    "nodeRange": "^22.19.0 || >=24.0.0",
+    "developmentCheckout": {
+      "relativePath": "../deepseek-harness",
+      "commit": "0cf6f648c80de1b0572057cd746a20863e39d606"
+    }
+  }
+}

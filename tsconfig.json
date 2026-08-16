@@ -1,0 +1,8 @@
+{
+  "files": [],
+  "references": [
+    { "path": "./packages/teacher" },
+    { "path": "./packages/bundle" },
+    { "path": "./examples/headless" }
+  ]
+}

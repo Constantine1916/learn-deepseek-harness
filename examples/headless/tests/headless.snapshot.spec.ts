@@ -1,0 +1,28 @@
+import { readFileSync } from 'node:fs'
+import { mkdtemp, rm } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { dirname, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { spawnSync } from 'node:child_process'
+import { describe, expect, it } from 'vitest'
+
+const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
+
+describe('Q-006 keyless real Loader prompt snapshot', () => {
+  it('assembles the Learn DSH teacher prompt', async () => {
+    const home = await mkdtemp(resolve(tmpdir(), 'learn-dsh-headless-'))
+    try {
+      const result = spawnSync(process.execPath, ['--import', import.meta.resolve('tsx'), resolve(root, 'src/bin.ts')], {
+        cwd: root,
+        encoding: 'utf8',
+        env: { ...process.env, DSH_HOME: home },
+      })
+
+      expect(result.status, result.stderr).toBe(0)
+      expect(result.stderr).toBe('')
+      expect(result.stdout).toBe(readFileSync(resolve(root, 'tests/snapshots/headless.expected.json'), 'utf8'))
+    } finally {
+      await rm(home, { recursive: true, force: true })
+    }
+  })
+})

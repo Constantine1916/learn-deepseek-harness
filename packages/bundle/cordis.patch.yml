@@ -1,0 +1,4 @@
+- insert:
+    - id: learn-dsh-teacher
+      name: '@learn-dsh/teacher'
+      inject: [systemPrompt]

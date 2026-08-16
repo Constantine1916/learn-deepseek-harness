@@ -1,0 +1,14 @@
+{
+  "name": "@learn-dsh/example-headless",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "tsx src/bin.ts"
+  },
+  "dependencies": {
+    "@deepseek-ai/dsh-app-boot": "link:../../../deepseek-harness/packages/boot/app-boot",
+    "@deepseek-ai/dsh-system-prompt": "link:../../../deepseek-harness/packages/core/system-prompt",
+    "@learn-dsh/teacher": "workspace:*"
+  }
+}

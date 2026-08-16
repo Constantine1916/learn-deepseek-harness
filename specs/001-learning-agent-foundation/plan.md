@@ -13,11 +13,11 @@
 
 任务：
 
-- P0-01：建立 pnpm workspace、TypeScript strict 配置和包命名规范。关联 Q-001、Q-005。
-- P0-02：锁定首个支持的 DSH 版本和依赖获取方式。关联 F-001、Q-005。
-- P0-03：创建最小 bundle 和 headless example，证明外部安装。关联 F-001。
-- P0-04：建立 lint、typecheck、unit、snapshot、build 和 docs 门禁。关联 Q-006。
-- P0-05：建立版本兼容矩阵和升级检查入口。关联 F-012、Q-005。
+- P0-01（完成）：建立 pnpm workspace、TypeScript strict 配置和包命名规范。关联 Q-001、Q-005。
+- P0-02（完成）：锁定首个支持的 DSH 版本和依赖获取方式。关联 F-001、Q-005。
+- P0-03（完成）：创建最小 bundle 和 headless example，证明外部安装。关联 F-001。
+- P0-04（完成）：建立 lint、typecheck、unit、snapshot、build 和 docs 门禁。关联 Q-006。
+- P0-05（完成）：建立版本兼容矩阵和升级检查入口。关联 F-012、Q-005。
 
 出口：
 

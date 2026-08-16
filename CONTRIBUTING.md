@@ -31,8 +31,11 @@ Learn DeepSeek Harness 采用规格驱动开发：
 
 ## 提交前
 
-首个代码里程碑建立后，本节将列出精确的格式化、类型检查、单元测试、快照、端到端和构建命令。在此之前，至少运行：
+使用 [兼容矩阵](docs/compatibility.md) 中的 Node 和 DSH checkout，安装依赖后运行：
 
 ~~~sh
+pnpm check
 git diff --check
 ~~~
+
+根据改动表面也可以单独运行 `pnpm lint`、`pnpm typecheck`、`pnpm test:unit`、`pnpm test:snapshot`、`pnpm build`、`pnpm docs:check`、`pnpm compat` 或 `pnpm test:profile`。只报告实际执行过的命令。

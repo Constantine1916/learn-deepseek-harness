@@ -157,3 +157,16 @@ Q-003 rejects reset outside the resolved attempt directory
 ~~~
 
 验收证据汇总到 [acceptance.md](acceptance.md)，不在多个文档复制测试结果。
+
+## 7. Phase 0 门禁
+
+Phase 0 的可复现入口：
+
+- `pnpm lint`：检查 packages、examples、scripts 和测试配置。
+- `pnpm typecheck`：strict 检查可发布源码、example、测试和 Vitest 配置。
+- `pnpm test:unit`：验证 bundle patch 组合和教师插件 dispose。
+- `pnpm test:snapshot`：通过真实 DSH app boot 与 Cordis Loader 固定教师 prompt。
+- `pnpm build`：构建两个公开包和 headless example。
+- `pnpm docs:check`：检查仓库 Markdown 相对链接。
+- `pnpm compat`：检查 DSH 版本、checkout commit、Node 范围和 peer 声明。
+- `pnpm test:profile`：在临时 `DSH_HOME` 中安装 bundle、检查 `dump-config`，再移除并检查无残留配置行。

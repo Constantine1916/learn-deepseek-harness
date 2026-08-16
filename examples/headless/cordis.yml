@@ -1,0 +1,6 @@
+- id: system-prompt
+  name: '@deepseek-ai/dsh-system-prompt'
+
+- id: learn-dsh-teacher
+  name: '@learn-dsh/teacher'
+  inject: [systemPrompt]

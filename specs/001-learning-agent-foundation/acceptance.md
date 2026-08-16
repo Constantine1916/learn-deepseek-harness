@@ -86,3 +86,15 @@
 3. 没有未解决的高风险安全问题。
 4. 已知限制、支持版本和升级方式已经发布。
 5. 所有证据链接在发布 commit 上可复现。
+
+## Phase 0 证据
+
+Phase 0 不代表规格 001 整体验收完成。当前纵向切片提供以下可复现证据：
+
+| 需求或验收项 | Phase 0 证据入口 |
+|---|---|
+| F-001、A-002、A-003、A-004 | `pnpm test:profile` 在隔离 profile 中安装、dump、移除，并保持上游 checkout 不变 |
+| F-002、Q-001、A-005 | `pnpm test:unit` 验证教师 section 内容及 plugin fiber dispose 后撤销 |
+| Q-005、F-AC-004 | `pnpm compat` 验证精确 DSH 版本、commit、Node 范围和 peer 声明 |
+| Q-006、F-AC-003 | `pnpm test:snapshot` 通过真实 Loader 组装 keyless 教师 prompt |
+| F-AC-001、F-AC-006 | `pnpm check` 汇总 lint、strict typecheck、unit、snapshot、build、docs、compatibility 和 profile checks |

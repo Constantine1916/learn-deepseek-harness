@@ -21,6 +21,20 @@ DSH host composition
 
 ## 2. 仓库布局
 
+Phase 0 的实际布局：
+
+~~~text
+packages/
+  teacher/          最小教师 system-prompt 插件
+  bundle/           可安装 profile patch layer
+examples/
+  headless/         真实 Loader prompt 组装与 keyless snapshot
+scripts/            兼容性、文档和 profile 安装检查
+docs/               开发约定和兼容矩阵
+~~~
+
+后续阶段按出现的稳定职责扩展为：
+
 ~~~text
 packages/
   curriculum/       课程 Service、验证和文件系统 Provider
@@ -228,6 +242,8 @@ bundle 依赖 DSH 基础能力并挂载 Learn DSH 插件。开发安装：
 dsh plugin --profile learn-dsh add ./packages/bundle
 ~~~
 
+Phase 0 的自定义 `learn-dsh` profile 由 DSH 标准插件命令初始化为 base layer，再追加 Learn DSH bundle。它用于验证外部安装和配置组合；完整 headless surface 与 agent preset 在后续阶段加入。Phase 0 的 `examples/headless` 通过 DSH app boot 和真实 Cordis Loader 组装 prompt，不手工模拟 Loader。
+
 发布后安装：
 
 ~~~sh
@@ -244,6 +260,8 @@ preset 只携带单 Agent 的 Persona、课程上下文和教学工具限制；�
 - DSH 仍为预发布时，不使用宽泛的无上限兼容范围。
 - CI 验证支持范围内的最低和最高版本。
 - 不兼容升级通过新规格记录接口、课程和迁移变化。
+- Phase 0 精确支持 DSH `0.1.0-rc.5` 与 checkout commit `0cf6f648c80de1b0572057cd746a20863e39d606`。
+- 由于该版本未发布完整 npm 包集，开发依赖使用相邻 `../deepseek-harness` checkout 的 `link:`；发布前必须改为同一受测版本的已发布包或先更新规格与兼容矩阵。
 
 ## 12. 配置
 

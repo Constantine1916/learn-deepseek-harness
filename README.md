@@ -2,7 +2,7 @@
 
 一个基于 DeepSeek Harness 插件生态构建的自适应教学 Agent，帮助开发者通过讲解、源码探索、实践任务和反馈循环，系统掌握 DSH。
 
-> 项目状态：规格设计阶段。当前仓库定义产品范围、技术方案、实施计划、测试策略和验收标准；尚未发布可运行版本。
+> 项目状态：Phase 0 工程与兼容性基线已实现。当前版本提供最小教师插件、可安装 bundle、真实 Loader headless example 和基础门禁；课程、诊断、学习状态、练习与 Web UI 尚未实现。
 
 ## 项目定位
 
@@ -78,29 +78,77 @@ MVP 覆盖以下学习路径：
 
 根目录的 [SPEC.md](SPEC.md) 是规格索引和变更规则。
 
-## 预计使用方式
+## Phase 0 快速开始
 
-首个可运行里程碑完成后，用户将能够把 bundle 安装到独立 profile：
+Phase 0 精确支持 DSH `0.1.0-rc.5` 和 Node.js `^22.19.0 || >=24.0.0`。由于该 DSH 版本的包未发布到 npm，开发环境要求两个仓库相邻：
 
-~~~sh
-dsh plugin --profile learn-dsh add @learn-dsh/bundle
-dsh --profile learn-dsh
+~~~text
+code/
+├── deepseek-harness/
+└── learn-deepseek-harness/
 ~~~
 
-命令属于目标接口，在首个可运行里程碑完成前不会生效。
+准备并验证：
+
+~~~sh
+nvm use
+pnpm install
+pnpm compat
+pnpm build
+~~~
+
+运行不需要 API key 的真实 Loader prompt example：
+
+~~~sh
+pnpm example:headless
+~~~
+
+输出包含 DSH harness identity、`learn-dsh:teacher` section 和最终组装后的教师 prompt。
+
+验证标准外部 profile 安装、`dump-config` 和移除，不会写入真实 `~/.dsh`：
+
+~~~sh
+pnpm test:profile
+~~~
+
+如需手动安装到自己的 profile，在上游 DSH checkout 中运行：
+
+~~~sh
+pnpm dsh plugin --profile learn-dsh add /absolute/path/to/learn-deepseek-harness/packages/bundle
+pnpm dsh --profile learn-dsh --dump-config
+pnpm dsh plugin --profile learn-dsh remove @learn-dsh/bundle
+~~~
+
+当前 `learn-dsh` profile 只证明外部 bundle 组合；可交互的完整教学 Agent 会在后续阶段加入。
 
 ## 仓库结构
 
 ~~~text
-packages/      DSH 教学插件与 bundle
-curriculum/    版本化课程、源码锚点和练习定义
-exercises/     隔离练习模板与确定性检查
-presets/       面向不同学习阶段的 agent preset
-specs/         产品规格、设计、计划、测试和验收标准
-docs/          用户与贡献者文档
+packages/teacher/   最小教师 system-prompt 插件
+packages/bundle/    可安装的 DSH profile patch layer
+examples/headless/  真实 Loader keyless runnable example
+scripts/            兼容性、文档和 profile 安装检查
+specs/              产品规格、设计、计划、测试和验收标准
+docs/               开发约定和兼容矩阵
 ~~~
 
-实现阶段将按照规格逐步创建目录，避免在接口尚未确定时生成空壳 package。
+包命名和边界见 [开发约定](docs/development.md)。后续阶段需要的目录不会在 Phase 0 预建空壳。
+
+## 开发门禁
+
+~~~sh
+pnpm lint
+pnpm typecheck
+pnpm test:unit
+pnpm test:snapshot
+pnpm build
+pnpm docs:check
+pnpm compat
+pnpm test:profile
+pnpm check
+~~~
+
+`pnpm check` 依次运行以上全部门禁。测试和 example 均不使用模型 key，也不硬编码模型输出。
 
 ## 非目标
 
@@ -112,7 +160,13 @@ docs/          用户与贡献者文档
 
 ## 上游关系
 
-本项目基于 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) 的公开插件接口构建，初始设计基线为 0.1.0-rc.5。DSH 处于预发布阶段，因此每次上游升级都需要运行兼容性测试，并更新课程源码锚点。
+本项目基于 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) 的公开插件接口构建。精确版本、Node 范围、开发 checkout commit 和依赖方式见 [兼容矩阵](docs/compatibility.md)。DSH 处于预发布阶段，因此扩大版本范围前必须先更新规格并运行兼容性检查。
+
+## Phase 0 已知限制
+
+- DSH `0.1.0-rc.5` 依赖通过相邻 checkout 的本地 `link:` 解析；当前不能从 npm 完成同版本干净安装。
+- 教师插件只注册稳定 Persona section；没有课程图、诊断、learner state、教学工具或练习执行。
+- `learn-dsh` profile 尚不是完整 headless Agent surface；真实 prompt 组装由 `examples/headless` 证明。
 
 本项目是独立社区项目，不代表 DeepSeek 官方产品。
 

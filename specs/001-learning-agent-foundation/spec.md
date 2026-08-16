@@ -1,10 +1,12 @@
 # 001 — Learning Agent Foundation
 
-状态：Draft
+状态：Implementing
 
 目标版本：0.1.0
 
 DSH 设计基线：0.1.0-rc.5
+
+Phase 0 支持基线由仓库根目录的 [`compatibility.json`](../../compatibility.json) 锁定：DSH `0.1.0-rc.5`、commit `0cf6f648c80de1b0572057cd746a20863e39d606`、Node.js `^22.19.0 || >=24.0.0`。该 DSH 版本尚未发布完整 npm 包集，因此 Phase 0 开发通过相邻上游 checkout 的本地链接获取依赖；这不修改或 fork 上游 Runtime。
 
 ## 1. 问题
 
