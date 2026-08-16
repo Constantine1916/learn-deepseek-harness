@@ -380,6 +380,10 @@ preset 只携带单 Agent 的 Persona、课程上下文和教学工具限制；�
 - Phase 0 精确支持 DSH `0.1.0-rc.5` 与 checkout commit `0cf6f648c80de1b0572057cd746a20863e39d606`。
 - 由于该版本未发布完整 npm 包集，开发依赖使用相邻 `../deepseek-harness` checkout 的 `link:`；发布前必须改为同一受测版本的已发布包或先更新规格与兼容矩阵。
 
+Phase 5 在 registry 条件满足前先生成本地 release candidate。八个公开 package 分别通过 `pnpm pack` 生成 tarball，门禁检查发布元数据、runtime dependency protocol、export 目标、文件白名单和凭据模式，再在临时 consumer 中只通过 tarball 安装 Learn DSH packages。DSH peer dependency 仍来自锁定 checkout，因此该门禁证明 Learn DSH 打包闭包，不声称纯 registry 部署已经成立。
+
+安装生命周期从临时 consumer 中的已安装 bundle 路径执行 add、dump-config、remove、reinstall 和第二次 remove。真实 registry publish、tag 和 release 创建属于外部发布动作，必须在 DSH package closure、coverage、人工 rubric 和验收证据满足后显式授权。
+
 ## 12. 配置
 
 部署可调值必须进入经验证的 Config：

@@ -150,3 +150,24 @@ Phase 4 已完成覆盖八项成果的四个连续单元、两个代码练习、
 | F-008、B-006、P4-04 | `pnpm test:unit` 固定 implementation failed 与 configuration/environment/safety blocked；真实 Agent Loop 固定 environment blocked 后同 attempt 恢复并通过 |
 | F-013、B-008、P4-05 | `pnpm test:unit` 和 `learning_get_report` snapshot 区分 read/started、user-skipped、exercise-completed 和 comprehensive-validated；skipped 不进入 verified capabilities，并继续列出证据与未解决误区 |
 | Q-006、F-AC-003 | `pnpm test:snapshot` 逐请求验证模型 LearnerState 与 Session Log 快照一致，并固定四单元、三级提示、blocked 重试、course-completed 和最终报告 |
+
+## Phase 5 本地发布候选证据
+
+Phase 5 当前形成可复现的本地 release candidate，但不代表规格已 Accepted。纯 registry 发布、交互式安装后启动、coverage closure、远程 matrix 结果和人工教学 rubric 仍是开放项。
+
+| 需求或验收项 | 当前证据入口 |
+|---|---|
+| F-001、A-001、A-002、A-004 | `pnpm release:check` 对八个公开 tarball 做临时 consumer 安装和公开入口导入，并从安装后的 bundle 执行 profile add、dump、remove、reinstall 和第二次 remove；由于 DSH peer 来自锁定 checkout，A-001 只获得本地候选证据，不计纯 registry 通过 |
+| A-003、A-005 | `pnpm test:snapshot` 通过未修改的锁定 DSH checkout 启动真实 Agent Loop；`pnpm test:unit` 验证插件 dispose；`pnpm test:profile` 证明 profile 安装生命周期无残留 |
+| E-005 | `pnpm security:check` 扫描 Git 跟踪文件；`pnpm release:check` 扫描 tarball 并拒绝凭据、环境文件、Session、attempt、learner-memory 和 coverage 产物 |
+| F-AC-001、F-AC-004、F-AC-006 | `pnpm check` 汇总本地工程、文档、兼容性、安全、profile 和 release candidate 门禁；`.github/workflows/ci.yml` 定义 Linux Node 22.19、Linux Node 24 与 macOS Node 22.19 matrix，首次远程通过链接待提交后补入 |
+| F-AC-002 | `pnpm test:coverage` 已生成报告；当前总体为 84.48% statements、72.47% branches、90.56% functions、90.58% lines，尚未达到每文件 100% 目标，因此本项未通过 |
+| F-AC-005 | README 已提供相邻 DSH checkout、安装、兼容性验证和 keyless 首个教学 Session 命令；仍需新用户计时演练，且当前不是 registry/交互式 CLI 启动 |
+| P5-05 | README、`docs/course-authoring.md`、`docs/troubleshooting.md`、`docs/release.md` 和 `docs/compatibility.md` 覆盖快速开始、课程作者、故障排查、发布边界与已知限制 |
+
+当前发布阻塞：
+
+- DSH `0.1.0-rc.5` 完整 npm package closure 未发布。
+- F-AC-002 coverage 目标未达到。
+- P5-04 真实模型和人工教学 rubric 未执行。
+- 可交互 CLI/preset 尚未形成安装后教学 Session 入口。

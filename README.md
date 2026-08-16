@@ -2,7 +2,7 @@
 
 一个基于 DeepSeek Harness 插件生态构建的自适应教学 Agent，帮助开发者通过讲解、源码探索、实践任务和反馈循环，系统掌握 DSH。
 
-> 项目状态：Phase 0–4 已实现。当前版本已经具备覆盖八项成果的四个连续 foundations 单元、独立追加式 Learner Event Store、课程派生诊断、用户控制的显式跳课、三级提示、Provider/Tool/Bundle 实践、四类检查结果、学习报告、精确 Session Log 状态快照，以及真实 Agent Loop keyless 教学闭环；registry 发布和交互式 UI 尚未完成。
+> 项目状态：Phase 0–4 已实现，Phase 5 本地发布准备进行中。当前版本已经具备覆盖八项成果的四个连续 foundations 单元、独立追加式 Learner Event Store、课程派生诊断、用户控制的显式跳课、三级提示、Provider/Tool/Bundle 实践、四类检查结果、学习报告、精确 Session Log 状态快照，以及真实 Agent Loop keyless 教学闭环；registry 发布、真实模型人工验收和交互式 UI 尚未完成。
 
 ## 项目定位
 
@@ -90,11 +90,20 @@ code/
 └── learn-deepseek-harness/
 ~~~
 
-准备并验证：
+首次准备时，先在相邻的 DSH checkout 安装依赖并构建 host packages：
 
 ~~~sh
-nvm use
-pnpm install
+cd ../deepseek-harness
+git checkout 0cf6f648c80de1b0572057cd746a20863e39d606
+pnpm install --frozen-lockfile
+pnpm build:lib:host
+~~~
+
+然后在本仓库安装并验证：
+
+~~~sh
+cd ../learn-deepseek-harness
+pnpm install --frozen-lockfile
 pnpm compat
 pnpm build
 ~~~
@@ -121,7 +130,9 @@ pnpm dsh --profile learn-dsh --dump-config
 pnpm dsh plugin --profile learn-dsh remove @learn-dsh/bundle
 ~~~
 
-当前 `learn-dsh` profile 安装测试证明外部 bundle 组合与移除；可交互的 CLI surface 和部署 preset 会在后续阶段加入。可运行的 Phase 2 Agent surface 由 `examples/headless` 提供。
+当前 `learn-dsh` profile 安装测试证明外部 bundle 组合、移除和重装；可交互的 CLI surface 和部署 preset 会在后续阶段加入。可运行的 Agent surface 由 `examples/headless` 提供。
+
+课程扩展见 [课程作者指南](docs/course-authoring.md)，环境与运行故障见 [故障排查](docs/troubleshooting.md)，发布候选边界见 [发布检查](docs/release.md)。
 
 ## 仓库结构
 
@@ -149,14 +160,17 @@ pnpm lint
 pnpm typecheck
 pnpm test:unit
 pnpm test:snapshot
+pnpm test:coverage
 pnpm build
 pnpm docs:check
 pnpm compat
+pnpm security:check
 pnpm test:profile
+pnpm release:check
 pnpm check
 ~~~
 
-`pnpm check` 依次运行以上全部门禁。测试和 example 均不使用模型 key，也不硬编码模型输出。
+`pnpm check` 依次运行以上全部门禁。`release:check` 会打包八个公开 tarball，在临时 consumer 中安装并导入它们，再从打包产物验证 profile 安装、卸载和重装。测试和 example 均不使用模型 key，也不硬编码模型输出。
 
 ## 非目标
 

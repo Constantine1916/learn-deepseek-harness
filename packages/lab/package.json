@@ -3,6 +3,17 @@
   "version": "0.1.0",
   "description": "Exercise workspace and deterministic check capability seam for Learn DSH.",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Constantine1916/learn-deepseek-harness.git",
+    "directory": "packages/lab"
+  },
+  "engines": {
+    "node": "^22.19.0 || >=24.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "type": "module",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",

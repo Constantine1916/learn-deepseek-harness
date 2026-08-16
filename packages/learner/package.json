@@ -3,6 +3,17 @@
   "version": "0.1.0",
   "description": "Learning event schemas, pure LearnerState projection, and query/append Service for Learn DSH.",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Constantine1916/learn-deepseek-harness.git",
+    "directory": "packages/learner"
+  },
+  "engines": {
+    "node": "^22.19.0 || >=24.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "type": "module",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",

@@ -20,17 +20,21 @@
     "docs:check": "node scripts/check-docs.mjs",
     "example:headless": "pnpm --filter @learn-dsh/example-headless start",
     "lint": "oxlint packages examples scripts *.config.ts --deny-warnings",
+    "release:check": "node scripts/check-release-candidate.mjs",
+    "security:check": "node scripts/check-secrets.mjs",
     "test": "pnpm run test:unit && pnpm run test:snapshot",
+    "test:coverage": "vitest run --config vitest.coverage.config.ts --coverage.enabled",
     "test:profile": "node scripts/check-profile-install.mjs",
     "test:snapshot": "vitest run --config vitest.snapshot.config.ts",
     "test:unit": "vitest run --config vitest.config.ts",
     "typecheck": "tsc -b --pretty false && tsc -p tsconfig.test.json --noEmit --pretty false",
-    "check": "pnpm run lint && pnpm run typecheck && pnpm run test:unit && pnpm run test:snapshot && pnpm run build && pnpm run docs:check && pnpm run compat && pnpm run test:profile"
+    "check": "pnpm run lint && pnpm run typecheck && pnpm run test:unit && pnpm run test:snapshot && pnpm run test:coverage && pnpm run build && pnpm run docs:check && pnpm run compat && pnpm run security:check && pnpm run test:profile && pnpm run release:check"
   },
   "devDependencies": {
     "@types/js-yaml": "4.0.9",
     "@types/node": "22.20.0",
     "@types/semver": "7.7.1",
+    "@vitest/coverage-v8": "4.1.8",
     "js-yaml": "4.2.0",
     "oxlint": "1.76.0",
     "semver": "7.7.3",

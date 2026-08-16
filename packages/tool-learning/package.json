@@ -3,6 +3,17 @@
   "version": "0.1.0",
   "description": "Model-facing learning state and activity tools for Learn DSH.",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Constantine1916/learn-deepseek-harness.git",
+    "directory": "packages/tool-learning"
+  },
+  "engines": {
+    "node": "^22.19.0 || >=24.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "type": "module",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",

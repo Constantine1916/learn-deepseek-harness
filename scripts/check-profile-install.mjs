@@ -6,7 +6,7 @@ import { spawnSync } from 'node:child_process'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const checkout = resolve(root, process.env.DSH_CHECKOUT ?? '../deepseek-harness')
-const bundle = resolve(root, 'packages/bundle')
+const bundle = resolve(process.env.LEARN_DSH_BUNDLE_PATH ?? resolve(root, 'packages/bundle'))
 const home = await mkdtemp(join(tmpdir(), 'learn-dsh-profile-'))
 
 function dsh(args) {
@@ -47,11 +47,26 @@ try {
       throw new Error(`Removed profile retained ${name}.\n${removed}`)
     }
   }
+
+  dsh(['plugin', '--profile', 'learn-dsh', 'add', bundle])
+  const reinstalled = dsh(['--profile', 'learn-dsh', '--dump-config'])
+  for (const [id, name] of expectedRows) {
+    if (!reinstalled.includes(`id: ${id}`) || !reinstalled.includes(`name: '${name}'`)) {
+      throw new Error(`Reinstalled profile did not contain ${name}.\n${reinstalled}`)
+    }
+  }
+  dsh(['plugin', '--profile', 'learn-dsh', 'remove', '@learn-dsh/bundle'])
+  const removedAgain = dsh(['--profile', 'learn-dsh', '--dump-config'])
+  for (const [id, name] of expectedRows) {
+    if (removedAgain.includes(id) || removedAgain.includes(name)) {
+      throw new Error(`Second removal retained ${name}.\n${removedAgain}`)
+    }
+  }
   const headlessAfter = dsh(['--profile', 'headless', '--dump-config'])
   if (headlessAfter !== headlessBefore) {
     throw new Error('Installing and removing Learn DSH changed the independent headless profile.')
   }
-  process.stdout.write('Profile install, dump-config, removal, and independent headless-profile stability passed.\n')
+  process.stdout.write('Profile install, dump-config, removal, reinstall, second removal, and independent headless-profile stability passed.\n')
 } finally {
   await rm(home, { recursive: true, force: true })
 }

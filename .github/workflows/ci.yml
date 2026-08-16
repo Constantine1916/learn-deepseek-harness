@@ -1,0 +1,68 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: ${{ matrix.os }} / Node ${{ matrix.node }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            node: 22.19.0
+          - os: ubuntu-latest
+            node: 24.x
+          - os: macos-latest
+            node: 22.19.0
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Check out Learn DSH
+        uses: actions/checkout@v4
+        with:
+          path: learn-deepseek-harness
+
+      - name: Check out supported DSH baseline
+        uses: actions/checkout@v4
+        with:
+          repository: deepseek-ai/deepseek-harness
+          ref: 0cf6f648c80de1b0572057cd746a20863e39d606
+          path: deepseek-harness
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.7.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+
+      - name: Install and build supported DSH baseline
+        working-directory: deepseek-harness
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm build:lib:host
+
+      - name: Install Learn DSH
+        working-directory: learn-deepseek-harness
+        run: pnpm install --frozen-lockfile
+
+      - name: Run release gates
+        working-directory: learn-deepseek-harness
+        run: pnpm check
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-${{ matrix.os }}-node-${{ matrix.node }}
+          path: learn-deepseek-harness/coverage
+          if-no-files-found: ignore
