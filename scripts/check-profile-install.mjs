@@ -25,14 +25,22 @@ try {
   const headlessBefore = dsh(['--profile', 'headless', '--dump-config'])
   dsh(['plugin', '--profile', 'learn-dsh', 'add', bundle])
   const installed = dsh(['--profile', 'learn-dsh', '--dump-config'])
-  if (!installed.includes('id: learn-dsh-teacher') || !installed.includes("name: '@learn-dsh/teacher'")) {
-    throw new Error(`Installed profile did not contain the Learn DSH teacher row.\n${installed}`)
+  const expectedRows = [
+    ['learn-dsh-curriculum', '@learn-dsh/curriculum'],
+    ['learn-dsh-teacher', '@learn-dsh/teacher'],
+  ]
+  for (const [id, name] of expectedRows) {
+    if (!installed.includes(`id: ${id}`) || !installed.includes(`name: '${name}'`)) {
+      throw new Error(`Installed profile did not contain ${name}.\n${installed}`)
+    }
   }
 
   dsh(['plugin', '--profile', 'learn-dsh', 'remove', '@learn-dsh/bundle'])
   const removed = dsh(['--profile', 'learn-dsh', '--dump-config'])
-  if (removed.includes('learn-dsh-teacher') || removed.includes('@learn-dsh/teacher')) {
-    throw new Error(`Removed profile retained the Learn DSH teacher row.\n${removed}`)
+  for (const [id, name] of expectedRows) {
+    if (removed.includes(id) || removed.includes(name)) {
+      throw new Error(`Removed profile retained ${name}.\n${removed}`)
+    }
   }
   const headlessAfter = dsh(['--profile', 'headless', '--dump-config'])
   if (headlessAfter !== headlessBefore) {

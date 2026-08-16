@@ -21,10 +21,11 @@ DSH host composition
 
 ## 2. 仓库布局
 
-Phase 0 的实际布局：
+当前实际布局：
 
 ~~~text
 packages/
+  curriculum/       课程 schema、图验证、内容入口和来源 anchor
   teacher/          最小教师 system-prompt 插件
   bundle/           可安装 profile patch layer
 examples/
@@ -33,7 +34,7 @@ scripts/            兼容性、文档和 profile 安装检查
 docs/               开发约定和兼容矩阵
 ~~~
 
-后续阶段按出现的稳定职责扩展为：
+后续阶段按出现的稳定职责继续扩展为：
 
 ~~~text
 packages/
@@ -70,6 +71,8 @@ MVP 不为每个概念建立一个 package。只有独立生命周期、稳定�
 ### learner
 
 声明学习事件并把事件前缀投影成 LearnerState。提供只读查询和追加领域事件的窄接口，不提供任意覆盖整份状态的 update 方法。
+
+DSH `0.1.0-rc.5` 与已核对的 `0.1.0-rc.6` 还没有树外必需 Session event 的公开持久化注册入口。内存中的 declaration merging 和投影不足以满足恢复语义，因为第一方 persistence reader 会拒绝未知且未标记 `ignorable` 的事件，而公开 `Session.append()` 不能设置该 envelope 字段。因此 learner package 在该缺口解决前不落地伪兼容实现；允许的后续决策只有升级到提供正式注册面的 DSH，或把 F-011 修订为独立、可审计、追加式 learner persistence seam。两者都必须先更新规格和兼容矩阵。
 
 ### teaching
 
@@ -132,6 +135,8 @@ Source
   anchor
   purpose
 ~~~
+
+课程 package 在没有 DSH source root 时仍校验 schema、SemVer、图关系和相对路径安全；文件存在性与 anchor 匹配在 source root 可解析时立即校验。默认随包发布的 manifest 始终完成前一组验证，真实 headless example 还必须针对锁定的相邻 DSH checkout 完成后一组验证。
 
 源码行号不是长期稳定标识。优先使用文档 heading、export 名、package 名、测试名或可校验文本 anchor；解析失败时报告不兼容，而不是静默使用相邻内容。
 
@@ -242,7 +247,7 @@ bundle 依赖 DSH 基础能力并挂载 Learn DSH 插件。开发安装：
 dsh plugin --profile learn-dsh add ./packages/bundle
 ~~~
 
-Phase 0 的自定义 `learn-dsh` profile 由 DSH 标准插件命令初始化为 base layer，再追加 Learn DSH bundle。它用于验证外部安装和配置组合；完整 headless surface 与 agent preset 在后续阶段加入。Phase 0 的 `examples/headless` 通过 DSH app boot 和真实 Cordis Loader 组装 prompt，不手工模拟 Loader。
+自定义 `learn-dsh` profile 由 DSH 标准插件命令初始化为 base layer，再追加 Learn DSH bundle。它用于验证外部安装和配置组合；完整 headless surface 与 agent preset 在后续阶段加入。`examples/headless` 通过 DSH app boot 和真实 Cordis Loader 组装 prompt、加载课程并解析来源 anchor，不手工模拟 Loader。
 
 发布后安装：
 

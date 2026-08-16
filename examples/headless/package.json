@@ -9,6 +9,7 @@
   "dependencies": {
     "@deepseek-ai/dsh-app-boot": "link:../../../deepseek-harness/packages/boot/app-boot",
     "@deepseek-ai/dsh-system-prompt": "link:../../../deepseek-harness/packages/core/system-prompt",
+    "@learn-dsh/curriculum": "workspace:*",
     "@learn-dsh/teacher": "workspace:*"
   }
 }

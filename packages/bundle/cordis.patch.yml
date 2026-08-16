@@ -1,4 +1,6 @@
 - insert:
+    - id: learn-dsh-curriculum
+      name: '@learn-dsh/curriculum'
     - id: learn-dsh-teacher
       name: '@learn-dsh/teacher'
       inject: [systemPrompt]

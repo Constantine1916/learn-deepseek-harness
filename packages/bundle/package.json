@@ -26,6 +26,7 @@
     }
   },
   "dependencies": {
+    "@learn-dsh/curriculum": "workspace:^",
     "@learn-dsh/teacher": "workspace:^"
   },
   "devDependencies": {

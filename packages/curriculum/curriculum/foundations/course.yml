@@ -1,0 +1,72 @@
+schemaVersion: 1
+id: dsh-foundations
+version: 0.1.0
+title: DeepSeek Harness Foundations
+locale: zh-CN
+dshVersionRange: 0.1.0-rc.5
+learningOutcomes:
+  - id: plugin-context-service-effect
+    description: 解释 Plugin、Context、Service、Effect 和 typed event 的关系。
+units:
+  - id: plugin-context-service-effect
+    title: Plugin、Context、Service、Effect 与 typed event
+    outcomeIds:
+      - plugin-context-service-effect
+    objectives:
+      - 从插件树说明 Context 如何提供组合边界。
+      - 区分 Service 能力注册与 typed event 协作。
+      - 解释 Effect 如何把注册生命周期绑定到 plugin fiber。
+    prerequisites: []
+    dshVersionRange: 0.1.0-rc.5
+    contentEntry: lessons/plugin-context-service-effect.md
+    sources:
+      - repository: deepseek-harness
+        version: 0cf6f648c80de1b0572057cd746a20863e39d606
+        path: docs/architecture.md
+        anchor:
+          kind: heading
+          value: Cordis
+        purpose: 建立 DSH 以 Cordis 插件树组合能力的整体模型。
+      - repository: deepseek-harness
+        version: 0cf6f648c80de1b0572057cd746a20863e39d606
+        path: vendor/cordis/src/context.ts
+        anchor:
+          kind: export
+          value: Context
+        purpose: 观察插件获得的组合与作用域入口。
+      - repository: deepseek-harness
+        version: 0cf6f648c80de1b0572057cd746a20863e39d606
+        path: vendor/cordis/src/service.ts
+        anchor:
+          kind: export
+          value: Service
+        purpose: 观察能力如何以 Service Definition 挂到 Context。
+    checkpoints:
+      - id: explain-lifecycle
+        title: 解释注册与卸载链路
+        evidenceKind: authored
+      - id: inspect-context-service
+        title: 在真实源码中定位 Context 与 Service
+        evidenceKind: observed
+    exercises:
+      - id: trace-minimal-plugin
+        title: 追踪一个最小插件的注册与 dispose
+        kind: source-inspection
+    hints:
+      - level: 1
+        text: 先找插件接收的 ctx，再列出它通过 ctx 注册了什么。
+      - level: 2
+        text: 对照 Service 构造器与 ctx.effect，标出能力所有权和清理所有权。
+      - level: 3
+        text: 画出 plugin fiber -> Context -> Service/event registration -> disposer 的完整链路，再逐项用源码验证。
+    rubric:
+      - id: names-roles
+        criterion: 准确说明五个概念各自承担的职责，不把 Service 与 Provider 混为一谈。
+        evidenceKinds: [authored]
+      - id: traces-disposal
+        criterion: 能从真实源码或运行观察证明注册会随 plugin fiber dispose 撤销。
+        evidenceKinds: [observed, authored]
+    completion:
+      requiredCheckpointIds: [explain-lifecycle, inspect-context-service]
+      requiredExerciseIds: [trace-minimal-plugin]
+      requiredRubricIds: [names-roles, traces-disposal]

@@ -2,7 +2,7 @@
 
 一个基于 DeepSeek Harness 插件生态构建的自适应教学 Agent，帮助开发者通过讲解、源码探索、实践任务和反馈循环，系统掌握 DSH。
 
-> 项目状态：Phase 0 工程与兼容性基线已实现。当前版本提供最小教师插件、可安装 bundle、真实 Loader headless example 和基础门禁；课程、诊断、学习状态、练习与 Web UI 尚未实现。
+> 项目状态：Phase 0 工程与兼容性基线，以及 Phase 1 的课程基础切片已实现。当前版本提供最小教师插件、版本化 foundations 课程、课程图与来源 anchor 校验、可安装 bundle、真实 Loader headless example 和基础门禁；诊断、持久 learner state、练习与 Web UI 尚未实现。
 
 ## 项目定位
 
@@ -78,9 +78,9 @@ MVP 覆盖以下学习路径：
 
 根目录的 [SPEC.md](SPEC.md) 是规格索引和变更规则。
 
-## Phase 0 快速开始
+## 当前快速开始
 
-Phase 0 精确支持 DSH `0.1.0-rc.5` 和 Node.js `^22.19.0 || >=24.0.0`。由于该 DSH 版本的包未发布到 npm，开发环境要求两个仓库相邻：
+当前实现精确支持 DSH `0.1.0-rc.5` 和 Node.js `^22.19.0 || >=24.0.0`。由于该 DSH 版本的包未发布到 npm，开发环境要求两个仓库相邻：
 
 ~~~text
 code/
@@ -103,7 +103,7 @@ pnpm build
 pnpm example:headless
 ~~~
 
-输出包含 DSH harness identity、`learn-dsh:teacher` section 和最终组装后的教师 prompt。
+输出包含 DSH harness identity、`learn-dsh:teacher` section、最终组装后的教师 prompt，以及由真实 curriculum Service 加载并针对锁定上游 checkout 验证过的课程和来源 anchor。
 
 验证标准外部 profile 安装、`dump-config` 和移除，不会写入真实 `~/.dsh`：
 
@@ -124,15 +124,16 @@ pnpm dsh plugin --profile learn-dsh remove @learn-dsh/bundle
 ## 仓库结构
 
 ~~~text
-packages/teacher/   最小教师 system-prompt 插件
-packages/bundle/    可安装的 DSH profile patch layer
-examples/headless/  真实 Loader keyless runnable example
-scripts/            兼容性、文档和 profile 安装检查
-specs/              产品规格、设计、计划、测试和验收标准
-docs/               开发约定和兼容矩阵
+packages/curriculum/  课程 schema、图验证、内容入口和 DSH 来源 anchor
+packages/teacher/     最小教师 system-prompt 插件
+packages/bundle/      可安装的 DSH profile patch layer
+examples/headless/    真实 Loader keyless runnable example
+scripts/              兼容性、文档和 profile 安装检查
+specs/                产品规格、设计、计划、测试和验收标准
+docs/                 开发约定和兼容矩阵
 ~~~
 
-包命名和边界见 [开发约定](docs/development.md)。后续阶段需要的目录不会在 Phase 0 预建空壳。
+包命名和边界见 [开发约定](docs/development.md)。后续阶段需要的目录只在对应职责开始实现时创建，不预建空壳。
 
 ## 开发门禁
 
@@ -162,11 +163,13 @@ pnpm check
 
 本项目基于 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) 的公开插件接口构建。精确版本、Node 范围、开发 checkout commit 和依赖方式见 [兼容矩阵](docs/compatibility.md)。DSH 处于预发布阶段，因此扩大版本范围前必须先更新规格并运行兼容性检查。
 
-## Phase 0 已知限制
+## 当前已知限制
 
 - DSH `0.1.0-rc.5` 依赖通过相邻 checkout 的本地 `link:` 解析；当前不能从 npm 完成同版本干净安装。
-- 教师插件只注册稳定 Persona section；没有课程图、诊断、learner state、教学工具或练习执行。
+- 课程目前只有第一个 foundations 单元；完整八项学习成果和连续课程在 Phase 4 完成。
+- 教师插件只注册稳定 Persona section；没有诊断、教学工具或练习执行。
 - `learn-dsh` profile 尚不是完整 headless Agent surface；真实 prompt 组装由 `examples/headless` 证明。
+- DSH `0.1.0-rc.5` 和已核对的 `0.1.0-rc.6` 都没有树外必需 Session event 的公开持久化注册入口，因此符合 F-010/F-011 的 learner state 尚未实现；项目不会通过修改上游事件词汇表或伪装领域事件绕过该限制。
 
 本项目是独立社区项目，不代表 DeepSeek 官方产品。
 

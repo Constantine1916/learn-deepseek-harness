@@ -170,3 +170,11 @@ Phase 0 的可复现入口：
 - `pnpm docs:check`：检查仓库 Markdown 相对链接。
 - `pnpm compat`：检查 DSH 版本、checkout commit、Node 范围和 peer 声明。
 - `pnpm test:profile`：在临时 `DSH_HOME` 中安装 bundle、检查 `dump-config`，再移除并检查无残留配置行。
+
+## 8. Phase 1 课程基础证据
+
+- `pnpm test:unit`：验证课程 schema、SemVer、重复 ID、缺失先修、循环、completion 引用、路径安全、四类来源 anchor、symlink 逃逸和 curriculum Service dispose/reload。
+- `pnpm test:snapshot`：通过真实 DSH app boot 与 Cordis Loader 加载 curriculum Service，并固定课程 ID、单元、内容入口和已解析来源 anchor。
+- `pnpm test:profile`：安装后的 profile 同时出现 curriculum 与 teacher 行，移除 bundle 后两者均无残留。
+
+P1-03 至 P1-05 的 Session replay、幂等与隔离证据尚未建立；DSH persistence reader 缺少树外必需事件注册入口时，不以仅内存测试替代恢复验收。

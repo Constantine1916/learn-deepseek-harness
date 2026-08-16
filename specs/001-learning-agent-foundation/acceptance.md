@@ -98,3 +98,14 @@ Phase 0 不代表规格 001 整体验收完成。当前纵向切片提供以下�
 | Q-005、F-AC-004 | `pnpm compat` 验证精确 DSH 版本、commit、Node 范围和 peer 声明 |
 | Q-006、F-AC-003 | `pnpm test:snapshot` 通过真实 Loader 组装 keyless 教师 prompt |
 | F-AC-001、F-AC-006 | `pnpm check` 汇总 lint、strict typecheck、unit、snapshot、build、docs、compatibility 和 profile checks |
+
+## Phase 1 课程基础证据
+
+Phase 1 当前只完成不依赖 learner persistence 缺口的课程切片；C 类恢复验收仍未满足。
+
+| 需求或验收项 | 当前证据入口 |
+|---|---|
+| F-003、D-002、D-003 | `pnpm test:unit` 验证首个完整单元的 schema、SemVer、图、completion 引用和负向加载 |
+| F-012、D-004 | `pnpm test:unit` 验证安全路径、四类 stable anchor、缺失 anchor 和 symlink 逃逸；`pnpm test:snapshot` 固定真实上游解析结果 |
+| F-001、A-002、A-005 | `pnpm test:profile` 验证 curriculum/teacher bundle 行安装与移除；curriculum 单测验证 Service dispose 后可无残留重载 |
+| Q-006、F-AC-003 | `pnpm test:snapshot` 通过真实 Loader 同时组装教师 prompt 与不可变课程读取结果 |

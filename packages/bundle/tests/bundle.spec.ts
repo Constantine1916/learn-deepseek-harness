@@ -15,6 +15,10 @@ describe('F-001 external Learn DSH bundle', () => {
     const patches = load(readFileSync(resolve(root, 'cordis.patch.yml'), 'utf8')) as Parameters<typeof composeEntries>[0][number]
     expect(composeEntries([patches])).toEqual([
       {
+        id: 'learn-dsh-curriculum',
+        name: '@learn-dsh/curriculum',
+      },
+      {
         id: 'learn-dsh-teacher',
         name: '@learn-dsh/teacher',
         inject: ['systemPrompt'],

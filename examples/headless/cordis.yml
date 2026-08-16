@@ -1,6 +1,12 @@
 - id: system-prompt
   name: '@deepseek-ai/dsh-system-prompt'
 
+- id: learn-dsh-curriculum
+  name: '@learn-dsh/curriculum'
+  config:
+    dshVersion: 0.1.0-rc.5
+    sourceRoot: ../../../deepseek-harness
+
 - id: learn-dsh-teacher
   name: '@learn-dsh/teacher'
   inject: [systemPrompt]

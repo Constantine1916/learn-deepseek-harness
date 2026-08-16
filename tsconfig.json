@@ -1,6 +1,7 @@
 {
   "files": [],
   "references": [
+    { "path": "./packages/curriculum" },
     { "path": "./packages/teacher" },
     { "path": "./packages/bundle" },
     { "path": "./examples/headless" }

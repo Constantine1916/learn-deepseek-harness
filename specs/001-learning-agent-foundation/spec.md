@@ -8,6 +8,8 @@ DSH 设计基线：0.1.0-rc.5
 
 Phase 0 支持基线由仓库根目录的 [`compatibility.json`](../../compatibility.json) 锁定：DSH `0.1.0-rc.5`、commit `0cf6f648c80de1b0572057cd746a20863e39d606`、Node.js `^22.19.0 || >=24.0.0`。该 DSH 版本尚未发布完整 npm 包集，因此 Phase 0 开发通过相邻上游 checkout 的本地链接获取依赖；这不修改或 fork 上游 Runtime。
 
+Phase 1 兼容性说明：截至 DSH `0.1.0-rc.6`，公开 `Session.append()` 可以由 declaration merging 扩展事件类型，但持久化读取仍只接受 DSH 构建时生成的事件词汇表；树外插件也没有公开入口把必需事件加入该词汇表或为 append 设置 `ignorable` envelope。F-010、F-011 和 Q-002 的要求保持不变，但 P1-03 至 P1-05 在该接口缺口解决前不得以修改上游词汇表、伪装成其他领域事件或把整份状态塞进消息的方式实现。P1-01、P1-02 可以独立交付。
+
 ## 1. 问题
 
 DSH 的插件树、事件、capability seam、session log 和运行时组合机制具有较高学习门槛。仅阅读架构文档很难证明学习者能够把概念应用到真实插件开发中；普通聊天 Agent 又容易给出泛化解释、跳过诊断、直接生成答案，或者在没有证据的情况下宣布学习者已经掌握。

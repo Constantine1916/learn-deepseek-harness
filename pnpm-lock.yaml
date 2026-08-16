@@ -44,12 +44,18 @@ importers:
       '@deepseek-ai/dsh-system-prompt':
         specifier: link:../../../deepseek-harness/packages/core/system-prompt
         version: link:../../../deepseek-harness/packages/core/system-prompt
+      '@learn-dsh/curriculum':
+        specifier: workspace:*
+        version: link:../../packages/curriculum
       '@learn-dsh/teacher':
         specifier: workspace:*
         version: link:../../packages/teacher
 
   packages/bundle:
     dependencies:
+      '@learn-dsh/curriculum':
+        specifier: workspace:^
+        version: link:../curriculum
       '@learn-dsh/teacher':
         specifier: workspace:^
         version: link:../teacher
@@ -57,6 +63,22 @@ importers:
       '@deepseek-ai/dsh-app-boot':
         specifier: link:../../../deepseek-harness/packages/boot/app-boot
         version: link:../../../deepseek-harness/packages/boot/app-boot
+
+  packages/curriculum:
+    dependencies:
+      '@deepseek-ai/schemastery':
+        specifier: 3.18.1
+        version: 3.18.1
+      js-yaml:
+        specifier: 4.2.0
+        version: 4.2.0
+      semver:
+        specifier: 7.7.3
+        version: 7.7.3
+    devDependencies:
+      '@deepseek-ai/cordis':
+        specifier: link:../../../deepseek-harness/vendor/cordis
+        version: link:../../../deepseek-harness/vendor/cordis
 
   packages/teacher:
     devDependencies:
@@ -68,6 +90,12 @@ importers:
         version: link:../../../deepseek-harness/packages/core/system-prompt
 
 packages:
+
+  '@deepseek-ai/cosmokit@1.8.2':
+    resolution: {integrity: sha512-muBOKtSrUKU5m/xpq8ZXWL6hQ/jgd4PhU2PqH97bcxIiLEJfNwZOGQEx4t/aS/GgxRAR+ra9pMHPMtTHU4sqqA==}
+
+  '@deepseek-ai/schemastery@3.18.1':
+    resolution: {integrity: sha512-Qn0FCSwCQnpnj6SB31I6i2sIKgKWnkbJM8O0EU91Gv2UsYVvtZTl6IA0sCwk2e2MZf5S8w5hpq9QkeVvK9qwxg==}
 
   '@esbuild/aix-ppc64@0.28.2':
     resolution: {integrity: sha512-XExcO+dvLKvVtNTibSTBej1NCAbaGhWn9Ww1ZPx80qsahhPFe/8jgWP0IchNe0F3HwkU7n8ejhH8bjonqht8mQ==}
@@ -801,6 +829,13 @@ packages:
     hasBin: true
 
 snapshots:
+
+  '@deepseek-ai/cosmokit@1.8.2': {}
+
+  '@deepseek-ai/schemastery@3.18.1':
+    dependencies:
+      '@deepseek-ai/cosmokit': 1.8.2
+      '@standard-schema/spec': 1.1.0
 
   '@esbuild/aix-ppc64@0.28.2':
     optional: true
