@@ -5,7 +5,7 @@
 测试必须证明三个不同层面：
 
 1. 领域逻辑正确：课程、事件、计划、完成规则和评测稳定。
-2. DSH 组合正确：插件生命周期、作用域、Session 重放、工具和 bundle 按公开接口工作。
+2. DSH 组合正确：插件生命周期、作用域、Learner Event Store、Session 请求快照、工具和 bundle 按公开接口工作。
 3. 教学体验达标：Agent 不跳过证据、不提前泄露答案，并能完成真实教学闭环。
 
 ## 2. 测试层级
@@ -30,6 +30,8 @@
 - 来源路径和 anchor 解析。
 - 学习事件 reducer 的每个分支。
 - 重放幂等和非法状态转换。
+- LearnerId、EnrollmentId、EventId、单调 seq 和事件版本校验。
+- learner-memory 追加、读取前缀、flush、重复命令去重和损坏诊断。
 - 候选活动筛选与先修判断。
 - completion rule。
 - 提示级别和泄露保护。
@@ -45,8 +47,10 @@
 - 插件加载、注册、dispose 和重复注册错误。
 - scoped prompt 与全局 prompt 的组合。
 - scoped tool 可见性、lookup 和执行一致。
-- 学习事件写入 Session Log 并重放。
-- 多 Agent 或多 Session 隔离。
+- 学习事件写入 Learner Event Store 并重放。
+- 原 Session 恢复与同 Enrollment 新 Session 延续。
+- 不同 Learner、Enrollment 和 profile 存储根隔离。
+- 模型实际收到的 LearnerState 快照进入对应 DSH Session Log。
 - bundle patch 加载出预期插件树。
 - 缺失必需 Service 时尽早失败。
 - Lab 使用 DSH FS、Shell、Sandbox 和 Approval，而不是绕过它们。
@@ -64,7 +68,7 @@
 - 检查失败和分类反馈。
 - 一级、二级和三级提示。
 - 检查成功和单元完成。
-- Session 恢复。
+- 原 Session 恢复和同 Enrollment 新 Session 延续。
 - 学习报告。
 
 快照重点固定事件、工具调用、课程 ID、状态变化和必须出现的反馈字段。自然语言允许通过受控 fixture 保持稳定，不使用宽泛 normalizer 隐藏真实回归。
@@ -78,8 +82,10 @@
 3. 启动 headless 教学 Agent。
 4. 完成一个 Tool 插件练习。
 5. 停止并恢复 Session。
-6. 验证学习状态和工作区。
-7. 卸载 bundle。
+6. 创建同 Enrollment 的新 Session 并验证学习状态连续。
+7. 验证不同 Enrollment 不共享状态。
+8. 验证学习状态、Session 请求快照和工作区。
+9. 卸载 bundle。
 
 CI 的主要正确性证据必须 keyless。需要 DEEPSEEK_API_KEY 的真实模型测试在无 key 时自跳过。
 
@@ -111,6 +117,8 @@ CI 的主要正确性证据必须 keyless。需要 DEEPSEEK_API_KEY 的真实模
 - 未授权命令继续触发 DSH approval。
 - 不可信课程字段不能注入 Cordis 配置或 shell 参数。
 - 日志、快照和失败产物不能包含凭据。
+- learner-memory 路径不能逃逸配置根，不能由 Session 内容触发自动安装插件或连接未配置后端。
+- 不同 LearnerId、EnrollmentId 和 profile 的持久记录不能串线。
 - dispose 必须停止活动进程并清理 attempt 资源。
 
 ## 4. 兼容性测试
@@ -130,6 +138,7 @@ CI 的主要正确性证据必须 keyless。需要 DEEPSEEK_API_KEY 的真实模
 - bundle/profile 安装是否成功。
 - 课程 source anchors 是否解析。
 - snapshots 是否保持语义。
+- learner event envelope、Provider schema version 和迁移入口是否兼容。
 - 练习模板和检查是否仍通过。
 
 ## 5. 故障注入
@@ -139,8 +148,10 @@ CI 的主要正确性证据必须 keyless。需要 DEEPSEEK_API_KEY 的真实模
 - 课程文件损坏。
 - 来源 anchor 消失。
 - 检查进程超时或被取消。
-- Session 在练习执行后、结果提交前恢复。
+- 进程分别在 learner event 持久化前、持久化后和工具成功返回前终止。
+- Session 请求快照写入前终止，但 Learner Event Store 已提交。
 - 重复提交同一个 EvidenceId。
+- learner-memory 记录损坏、序号断裂、未知必需事件版本或 Provider 缺失。
 - bundle dispose 发生在活动课程中。
 - DSH Provider 缺失或配置无效。
 
@@ -152,7 +163,7 @@ CI 的主要正确性证据必须 keyless。需要 DEEPSEEK_API_KEY 的真实模
 
 ~~~text
 F-003 rejects a cyclic curriculum graph
-F-011 replays one learner state without cross-session leakage
+F-011 continues one enrollment across sessions without cross-enrollment leakage
 Q-003 rejects reset outside the resolved attempt directory
 ~~~
 
@@ -177,4 +188,4 @@ Phase 0 的可复现入口：
 - `pnpm test:snapshot`：通过真实 DSH app boot 与 Cordis Loader 加载 curriculum Service，并固定课程 ID、单元、内容入口和已解析来源 anchor。
 - `pnpm test:profile`：安装后的 profile 同时出现 curriculum 与 teacher 行，移除 bundle 后两者均无残留。
 
-P1-03 至 P1-05 的 Session replay、幂等与隔离证据尚未建立；DSH persistence reader 缺少树外必需事件注册入口时，不以仅内存测试替代恢复验收。
+P1-03 至 P1-06 的 learner-memory、重放、幂等、跨 Session 延续与隔离证据尚未建立；仅内存 reducer 测试不替代持久 Provider 和进程重启验收。

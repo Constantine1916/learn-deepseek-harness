@@ -11,7 +11,7 @@
 
 `@learn-dsh/curriculum` owns the runtime course schema, graph validation, immutable read-only Service, packaged content entries, and DSH source-anchor resolution. It can load without a source checkout; callers provide a validated `sourceRoot` when source files become resolvable. `@learn-dsh/teacher` owns the teacher system-prompt contribution and depends only on the public `systemPrompt` Service Definition. `@learn-dsh/bundle` owns installation metadata and its patch layer; it contains no teaching behavior. `@learn-dsh/example-headless` is a private runnable composition used by the keyless snapshot.
 
-Future learner state, diagnostics, labs, tools, presets, and UI packages are not implemented yet. The learner package remains blocked on a public DSH persistence contract for required out-of-repo Session events.
+Future learner state, learner-memory, diagnostics, labs, tools, presets, and UI packages are not implemented yet. `learning/*` belongs to an independent append-only Learner Event Store; it is not registered as a DSH Session event. Model-visible LearnerState snapshots remain auditable through the corresponding DSH Session Log.
 
 ## Gates
 

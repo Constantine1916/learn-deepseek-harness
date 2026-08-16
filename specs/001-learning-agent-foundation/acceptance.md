@@ -29,11 +29,12 @@
 
 | ID | 必须结果 | 证据 |
 |---|---|---|
-| C-001 | 恢复后目标、计划、当前单元、尝试和证据一致 | replay 集成测试 |
-| C-002 | 两个 Session 的学习状态互不污染 | isolation 测试 |
+| C-001 | 恢复原 Session 或创建同 Enrollment 的新 Session 后，目标、计划、当前单元、尝试和证据一致 | replay 与跨 Session 集成测试 |
+| C-002 | 同一 Enrollment 可跨 Session 延续；不同 Learner 或 Enrollment 的学习状态互不污染 | continuity 与 isolation 测试 |
 | C-003 | 重复事件或重复恢复不会重复授予完成状态 | 幂等测试 |
-| C-004 | 模型可见学习状态可由 Session Log 和课程版本重建 | 重建 invariant 测试 |
+| C-004 | 长期 LearnerState 可由 Learner Event Store 和课程版本重建；模型实际看到的状态快照存在于对应 Session Log | 重建 invariant 与 Session snapshot 测试 |
 | C-005 | 计划和 mastery 的每次变化都引用原因和证据 | 事件 schema 测试 |
+| C-006 | 事件持久化前不报告领域成功；崩溃重试、序号断裂、损坏记录和缺失 Provider 均有确定结果 | 故障注入与恢复测试 |
 
 ## D. 课程质量
 
@@ -75,7 +76,7 @@
 - 一名熟悉 Agent 框架的开发者被诊断到不同起点。
 - 学习者连续失败时，Agent 不虚构通过结果，也不在前两级提示中直接给答案。
 - 环境故障被标记为 blocked，而不是误判为能力不足。
-- 恢复 Session 后，学习者无需重新描述目标即可继续。
+- 恢复原 Session 或开启同 Enrollment 的新 Session 后，学习者无需重新描述目标即可继续。
 
 ## 验收决策
 
@@ -101,7 +102,7 @@ Phase 0 不代表规格 001 整体验收完成。当前纵向切片提供以下�
 
 ## Phase 1 课程基础证据
 
-Phase 1 当前只完成不依赖 learner persistence 缺口的课程切片；C 类恢复验收仍未满足。
+Phase 1 当前只完成课程切片；独立 learner-memory、跨 Session 连续性和 C 类恢复验收仍未实现。
 
 | 需求或验收项 | 当前证据入口 |
 |---|---|

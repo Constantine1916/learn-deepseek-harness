@@ -169,7 +169,7 @@ pnpm check
 - 课程目前只有第一个 foundations 单元；完整八项学习成果和连续课程在 Phase 4 完成。
 - 教师插件只注册稳定 Persona section；没有诊断、教学工具或练习执行。
 - `learn-dsh` profile 尚不是完整 headless Agent surface；真实 prompt 组装由 `examples/headless` 证明。
-- DSH `0.1.0-rc.5` 和已核对的 `0.1.0-rc.6` 都没有树外必需 Session event 的公开持久化注册入口，因此符合 F-010/F-011 的 learner state 尚未实现；项目不会通过修改上游事件词汇表或伪装领域事件绕过该限制。
+- DSH `0.1.0-rc.5` 和已核对的 `0.1.0-rc.6` 都没有树外必需 Session event 的公开持久化注册入口。长期学习状态将由独立、追加式 learner-memory plugin 保存；DSH Session Log 只记录单次会话和模型实际收到的学习状态快照。该能力尚未实现。
 
 本项目是独立社区项目，不代表 DeepSeek 官方产品。
 

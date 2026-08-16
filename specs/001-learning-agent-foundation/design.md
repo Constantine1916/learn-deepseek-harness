@@ -10,6 +10,7 @@ DSH host composition
 ├── Learn DSH bundle
 │   ├── curriculum
 │   ├── learner
+│   ├── learner-memory
 │   ├── teaching
 │   ├── teacher-prompt
 │   ├── lab
@@ -17,7 +18,7 @@ DSH host composition
 └── learn-dsh agent preset
 ~~~
 
-不修改 agent-loop。教学流程通过公共 Agent、Session Event、System Prompt、Tools、FS、Shell、Sandbox 和 Approval 能力完成。
+不修改 agent-loop。教学流程通过公共 Agent、System Prompt、Tools、Storage、FS、Shell、Sandbox 和 Approval 能力完成；DSH Session Log 记录单次会话，Learner Event Store 记录跨会话学习状态。
 
 ## 2. 仓库布局
 
@@ -40,6 +41,7 @@ docs/               开发约定和兼容矩阵
 packages/
   curriculum/       课程 Service、验证和文件系统 Provider
   learner/          学习事件、状态投影和查询 Service
+  learner-memory/   追加式学习事件持久化 Service 与本地 Provider
   teaching/         诊断、计划和教学活动状态机
   teacher-prompt/   教师 Persona 与当前活动上下文
   lab/              练习工作区和评测执行
@@ -70,9 +72,15 @@ MVP 不为每个概念建立一个 package。只有独立生命周期、稳定�
 
 ### learner
 
-声明学习事件并把事件前缀投影成 LearnerState。提供只读查询和追加领域事件的窄接口，不提供任意覆盖整份状态的 update 方法。
+声明学习事件并把 Learner Event Store 的事件前缀投影成 LearnerState。提供只读查询和追加领域事件的窄接口，不提供任意覆盖整份状态的 update 方法。学习事件通过 LearnerId 和 EnrollmentId 形成长期学习范围，并记录触发该事件的 SessionId。
 
-DSH `0.1.0-rc.5` 与已核对的 `0.1.0-rc.6` 还没有树外必需 Session event 的公开持久化注册入口。内存中的 declaration merging 和投影不足以满足恢复语义，因为第一方 persistence reader 会拒绝未知且未标记 `ignorable` 的事件，而公开 `Session.append()` 不能设置该 envelope 字段。因此 learner package 在该缺口解决前不落地伪兼容实现；允许的后续决策只有升级到提供正式注册面的 DSH，或把 F-011 修订为独立、可审计、追加式 learner persistence seam。两者都必须先更新规格和兼容矩阵。
+`learning/*` 是 Learn DSH 领域事件，不声明为 DSH `SessionEventMap` 成员。DSH `0.1.0-rc.5` 与已核对的 `0.1.0-rc.6` 没有树外必需 Session event 的公开持久化注册入口；项目不得修改 `KNOWN_SESSION_EVENT_TYPES`、使用其他 DSH 事件名承载学习语义或把必需学习事件标记为 `ignorable`。
+
+### learner-memory
+
+拥有 `ctx.learnerMemory` Service Definition、持久事件 envelope、读取前缀、原子追加、flush 和损坏诊断。MVP 提供本地持久 Provider；远程或团队 Provider 出现前，Service Definition 与本地 Provider 可以同包演进。
+
+Consumer 以 LearnerId 和 EnrollmentId 读取有序事件，以 EventId 或命令 ID 保证追加幂等。Provider 不解释 mastery 或课程完成规则，只保存和读取经 schema 验证的领域事件。缺失 Provider、序号断裂、未知必需事件版本或损坏记录必须明确失败，不能退化为空学习历史。
 
 ### teaching
 
@@ -140,7 +148,7 @@ Source
 
 源码行号不是长期稳定标识。优先使用文档 heading、export 名、package 名、测试名或可校验文本 anchor；解析失败时报告不兼容，而不是静默使用相邻内容。
 
-## 5. 学习事件与投影
+## 5. 长期学习记忆、事件与投影
 
 建议的追加事件：
 
@@ -160,6 +168,24 @@ Source
 
 事件携带稳定 CourseId、UnitId、ExerciseAttemptId 和 EvidenceId。跨 package 的不透明 ID 使用 branded 类型。
 
+持久 envelope 还包含：
+
+~~~text
+eventId
+learnerId
+enrollmentId
+sourceSessionId
+seq
+time
+type
+version
+data
+~~~
+
+LearnerId 表示学习者身份；EnrollmentId 表示一次课程学习关系。一个 Enrollment 可以关联多个 DSH Session，新的 Session 通过相同 LearnerId、EnrollmentId 延续长期状态。不同 Learner 或不同 Enrollment 的事件前缀必须物理或逻辑隔离。
+
+MVP 的 LearnerId 由受信任 host 配置或身份 Provider 解析，不接受模型自由文本作为身份。EnrollmentId 由 learner Service 创建并持久化，Session 只引用已经解析的 LearnerId、EnrollmentId；未来账户系统不是 MVP 前置条件。
+
 LearnerState 是纯投影，至少包含：
 
 ~~~text
@@ -175,6 +201,16 @@ nextRecommendation
 ~~~
 
 mastery 变化引用 EvidenceId 和 reason code。重放不执行外部命令，不再次创建练习，也不重复发放完成状态。
+
+Learner Event Store 是学习领域历史真源，DSH Session Log 是单次会话和模型请求审计真源。领域写操作遵循：
+
+1. 校验命令与引用。
+2. 以稳定 EventId 或命令 ID 向 learner-memory 追加事件。
+3. 等待持久化成功。
+4. 更新或重放 LearnerState。
+5. 才向工具调用方报告成功。
+
+系统不宣称 Learner Event Store 与 DSH Session persistence 存在跨库事务。崩溃重试通过稳定 ID 幂等；模型请求只读取已经提交的 LearnerState。
 
 ## 6. 教学规划
 
@@ -219,6 +255,8 @@ artifacts
 
 稳定 Persona 保持简洁并尽量形成可复用前缀。当前单元、活动和学习状态作为动态上下文注入。
 
+teacher-prompt 从 `ctx.learner` 读取已提交 LearnerState，生成结构化上下文和可选自然语言摘要。每次实际进入模型请求的状态必须通过 DSH 已有请求上下文机制记录为 Session Log 快照；摘要和快照均可重新生成，不作为 Learner Event Store 的替代品。
+
 Prompt 约束：
 
 - 不虚构源码内容或检查结果。
@@ -238,6 +276,8 @@ Prompt 约束：
 - reset 先验证目录归属，只删除或重建当前 attempt。
 - 日志和 fixture 禁止包含 API key、用户凭据和主机环境快照。
 - 课程文件视为持久输入边界，加载时执行 schema 和路径验证。
+- learner-memory 根目录来自验证后的配置，不能解析到 DSH checkout、HOME 根或未授权目录；事件 payload、版本、序号和身份字段在持久读取边界验证。
+- Session 中的 LearnerId、EnrollmentId 只用于选择已配置且受信任的本地记录，不触发自动安装插件、下载代码或连接未配置后端。
 
 ## 10. Bundle 与 Preset
 
@@ -255,7 +295,7 @@ dsh plugin --profile learn-dsh add ./packages/bundle
 dsh plugin --profile learn-dsh add @learn-dsh/bundle
 ~~~
 
-preset 只携带单 Agent 的 Persona、课程上下文和教学工具限制；进程级课程注册、持久化和基础 DSH 服务留在 host composition。
+preset 只携带单 Agent 的 Persona、课程上下文和教学工具限制；进程级课程注册、learner-memory Provider 和基础 DSH 服务留在 host composition。
 
 ## 11. 版本策略
 
@@ -273,6 +313,8 @@ preset 只携带单 Agent 的 Persona、课程上下文和教学工具限制；�
 部署可调值必须进入经验证的 Config：
 
 - curriculumRoots
+- learnerMemoryRoot
+- learnerIdentity
 - supportedDshRange
 - workspaceRoot
 - maxAttemptsPerExercise
@@ -284,4 +326,4 @@ preset 只携带单 Agent 的 Persona、课程上下文和教学工具限制；�
 
 ## 13. 未来扩展
 
-MVP 后可以拆出远程 curriculum Provider、Web 学习节点、团队进度后端、间隔复习策略和课程作者工具。新增能力仍先判断是否构成完整 capability seam。
+MVP 后可以拆出远程 curriculum Provider、团队 learner-memory Provider、Web 学习节点、间隔复习策略和课程作者工具。若 DSH 后续提供版本化的树外 Session event vocabulary，Learn DSH 可以评估适配器或迁移路径，但不把该上游能力作为长期学习记忆的前置条件。新增能力仍先判断是否构成完整 capability seam。

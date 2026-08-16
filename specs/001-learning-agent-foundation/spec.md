@@ -8,7 +8,7 @@ DSH 设计基线：0.1.0-rc.5
 
 Phase 0 支持基线由仓库根目录的 [`compatibility.json`](../../compatibility.json) 锁定：DSH `0.1.0-rc.5`、commit `0cf6f648c80de1b0572057cd746a20863e39d606`、Node.js `^22.19.0 || >=24.0.0`。该 DSH 版本尚未发布完整 npm 包集，因此 Phase 0 开发通过相邻上游 checkout 的本地链接获取依赖；这不修改或 fork 上游 Runtime。
 
-Phase 1 兼容性说明：截至 DSH `0.1.0-rc.6`，公开 `Session.append()` 可以由 declaration merging 扩展事件类型，但持久化读取仍只接受 DSH 构建时生成的事件词汇表；树外插件也没有公开入口把必需事件加入该词汇表或为 append 设置 `ignorable` envelope。F-010、F-011 和 Q-002 的要求保持不变，但 P1-03 至 P1-05 在该接口缺口解决前不得以修改上游词汇表、伪装成其他领域事件或把整份状态塞进消息的方式实现。P1-01、P1-02 可以独立交付。
+Phase 1 持久化决策：截至 DSH `0.1.0-rc.6`，第一方 Session persistence 不支持树外 bundle 注册必需事件词汇表。Learn DSH 不把 `learning/*` 事件伪装成 DSH 事件，也不修改上游静态词汇表；长期学习状态由独立、追加式 Learner Event Store 持久化，DSH Session Log 继续记录单次会话和模型实际收到的学习状态快照。
 
 ## 1. 问题
 
@@ -59,7 +59,7 @@ DSH 的插件树、事件、capability seam、session log 和运行时组合机�
 - 提示逐级展开，默认不直接泄露完整答案。
 - 确定性代码检查判断可以机械验证的事实，模型负责解释与追问。
 - 课程绑定明确的 DSH 版本范围。
-- 模型看到的学习状态必须能够从持久记录重建。
+- 长期学习状态必须能够从版本化课程和追加式学习事件重建；模型实际看到的状态快照必须进入对应 DSH Session Log。
 - 教学流程使用 DSH 扩展点，不修改默认 Agent Loop。
 - 课程定义目标和 rubric，不硬编码一组固定问题来模拟自适应教学。
 
@@ -85,7 +85,7 @@ DSH 的插件树、事件、capability seam、session log 和运行时组合机�
 
 ### 6.3 恢复学习
 
-1. 从持久记录恢复目标、计划、当前单元和尝试。
+1. 从 Learner Event Store 恢复目标、计划、当前单元和尝试；恢复入口可以是原 Session，也可以是同一 Enrollment 的新 Session。
 2. 简短确认恢复点和仍未解决的问题。
 3. 从未完成任务或下一单元继续，不重新执行完整 onboarding。
 
@@ -175,21 +175,27 @@ Must：前两级提示不得包含完整参考实现。
 
 Must：系统必须记录使用过的提示层级，作为掌握证据的一部分。
 
-### F-010 学习状态
+### F-010 学习状态与长期记忆
 
 Must：状态至少包含学习目标、计划、当前单元、尝试、检查结果、掌握证据、误区、提示使用和下一步。
 
-Must：状态必须通过追加事件投影得到，不能把一份可任意覆盖的总结作为唯一真源。
+Must：状态必须通过独立 Learner Event Store 中的追加事件投影得到，不能把一份可任意覆盖的总结作为唯一真源。
 
 Must：重复重放同一事件不能重复授予完成状态。
 
-### F-011 Session 恢复与隔离
+Must：学习事件必须携带稳定 EventId、LearnerId、EnrollmentId 和来源 SessionId；同一 Enrollment 可以跨多个 Session 延续。
 
-Must：恢复 Session 后，计划、当前单元、尝试和掌握证据必须一致。
+### F-011 恢复、审计与隔离
 
-Must：不同 Session 的学习状态必须隔离。
+Must：恢复原 Session 或为同一 Enrollment 创建新 Session 后，计划、当前单元、尝试和掌握证据必须一致。
 
-Must：任何进入模型请求的学习状态都能从 Session Log 和版本化课程输入重建。
+Must：不同 Learner 或不同 Enrollment 的学习状态必须隔离；同一 Enrollment 的多个 Session 必须共享同一长期学习状态。
+
+Must：长期 LearnerState 必须能从 Learner Event Store 的事件前缀和版本化课程输入确定性重建。
+
+Must：任何进入模型请求的学习状态都必须作为精确快照记录到对应 DSH Session Log，使单次请求可审计；该快照不是长期学习状态真源。
+
+Must：学习领域写操作只有在事件持久化成功后才能向调用方报告成功；稳定 EventId 或命令 ID 保证崩溃重试不会重复授予证据、掌握或完成状态。
 
 ### F-012 DSH 来源探索
 
@@ -247,7 +253,7 @@ MVP 包含：
 - 至少两个代码练习和一个综合练习。
 - 分层提示。
 - 确定性评测。
-- 学习事件、投影和 Session 恢复。
+- 学习事件、长期 Learner Event Store、投影和 Session 恢复。
 - keyless snapshots、集成测试和安装文档。
 
 ## 10. 非目标
@@ -271,6 +277,8 @@ MVP 包含：
 | 练习破坏真实仓库 | 独立工作区、只读来源、sandbox、明确重置目标 |
 | 过早平台化 | 先完成一个真实教学闭环，再扩展课程和 UI |
 | Token 与模型成本失控 | 按单元注入、结构化投影、来源精确定位和 token 预算测试 |
+| Session Log 与 Learner Event Store 双写不一致 | Learner event 先持久化再报告领域成功；模型请求只记录已提交状态快照；使用稳定 EventId 保证重试幂等 |
+| 学习记忆损坏或身份串线 | 持久输入 schema、单调序号、LearnerId/EnrollmentId 隔离、备份与明确损坏诊断 |
 
 ## 12. 成功指标
 
@@ -278,6 +286,6 @@ MVP 验收以 [acceptance.md](acceptance.md) 为准。产品验证阶段另外�
 
 - 新用户完成首个真实插件练习的成功率。
 - 需要完整答案才能完成练习的比例。
-- Session 恢复后无需重新解释上下文即可继续的比例。
+- 恢复原 Session 或开启同一 Enrollment 的新 Session 后无需重新解释学习上下文即可继续的比例。
 - 诊断起点与后续实践表现的一致程度。
 - DSH 版本升级导致课程来源或练习失效的数量。

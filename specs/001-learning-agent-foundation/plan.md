@@ -33,17 +33,18 @@
 
 - P1-01（完成）：实现课程类型、schema、加载和课程图验证。关联 F-003。
 - P1-02（完成）：提交第一个 foundations 课程单元和来源锚点。关联 F-003、F-012。
-- P1-03：定义 branded IDs、学习事件和纯投影。关联 F-010、F-011。
-- P1-04：实现 learner 查询 Service 和事件追加接口。关联 F-010。
-- P1-05：验证 Session 重放、幂等和跨 Session 隔离。关联 F-011、Q-002。
+- P1-03：定义 LearnerId、EnrollmentId、EventId 等 branded IDs、学习事件和纯投影。关联 F-010、F-011。
+- P1-04：实现 learner-memory Service Definition、持久 envelope 和本地追加式 Provider。关联 F-010、F-011、Q-002。
+- P1-05：实现 learner 查询 Service、领域事件追加、持久化确认和幂等接口。关联 F-010、F-011。
+- P1-06：验证原 Session 恢复、同 Enrollment 跨 Session 延续、不同 Enrollment 隔离和损坏诊断。关联 F-011、Q-002。
 
-兼容性阻塞：DSH `0.1.0-rc.5` 与已核对的 `0.1.0-rc.6` 没有树外必需 Session event 的公开持久化注册入口。课程使用的 CourseId、UnitId 已建立 brand；P1-03 的学习事件和投影、P1-04、P1-05 暂不以私有词汇表修改或伪领域事件实现，等待规格所述核心架构决策。
+架构约束：`learning/*` 写入独立 Learner Event Store，不注册为 DSH Session event。模型实际收到的 LearnerState 快照在 Phase 2 通过 DSH 请求上下文进入对应 Session Log。
 
 出口：
 
 - 无效课程在加载时失败。
 - 固定事件前缀产生稳定 LearnerState。
-- 恢复后当前单元和证据一致。
+- 恢复原 Session 或为同一 Enrollment 创建新 Session 后，当前单元和证据一致。
 
 ## Phase 2 — 第一个教学闭环
 
@@ -51,12 +52,12 @@
 
 任务：
 
-- P2-01：实现教师 Persona 和当前活动上下文。关联 F-002、F-006。
+- P2-01：实现教师 Persona、当前活动上下文和 Session Log 学习状态快照。关联 F-002、F-006、F-011。
 - P2-02：实现活动状态机和最小规划器。关联 F-005、F-006。
 - P2-03：实现 learning_get_state、learning_start_unit 和 learning_complete_activity。关联 F-005、F-010。
 - P2-04：实现单个隔离练习 fixture、工作区创建和重置。关联 F-007。
 - P2-05：实现结构化检查结果和反馈输入。关联 F-008。
-- P2-06：增加首次进入、失败、成功和恢复快照。关联 Q-006。
+- P2-06：增加首次进入、失败、成功、原 Session 恢复和同 Enrollment 新 Session 延续快照。关联 F-011、Q-006。
 
 出口：
 
