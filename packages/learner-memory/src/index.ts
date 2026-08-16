@@ -14,7 +14,7 @@ declare module '@deepseek-ai/cordis' {
 }
 
 /** Current required learning-event payload version. */
-export const LEARNER_EVENT_VERSION = 1 as const
+export const LEARNER_EVENT_VERSION = 2 as const
 
 /** Persistent learner identity resolved by a trusted host or identity Provider. */
 export type LearnerId = string & { readonly __learnerId: unique symbol }

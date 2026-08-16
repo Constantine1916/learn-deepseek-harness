@@ -82,12 +82,6 @@ function diagnosticValue(result: DiagnosticCommandResult) {
         anchor: source.anchor.value,
       })),
     })),
-    waiver_eligibility: result.waiverEligibility.map(item => ({
-      unit_id: item.unitId,
-      eligible: item.eligible,
-      evidence_ids: [...item.evidenceIds],
-      blockers: [...item.blockers],
-    })),
   }
 }
 
@@ -127,20 +121,6 @@ const DIAGNOSTIC_OUTPUT = {
           },
         },
       },
-      waiver_eligibility: {
-        type: 'array',
-        required: true,
-        items: {
-          type: 'object',
-          additionalProperties: false,
-          properties: {
-            unit_id: { type: 'string', required: true },
-            eligible: { type: 'boolean', required: true },
-            evidence_ids: { type: 'array', required: true, items: { type: 'string' } },
-            blockers: { type: 'array', required: true, items: { type: 'string' } },
-          },
-        },
-      },
     },
   },
   render: (_args: unknown, value: unknown) => [{ type: 'text' as const, text: JSON.stringify(value) }],
@@ -150,7 +130,7 @@ export function apply(ctx: Context): void {
   ctx.systemPrompt.section({
     name: 'learn-dsh:learning-tools',
     order: 115,
-    text: 'Use learning_get_state before changing the lesson. For a new Enrollment, collect the goal and background with learning_start_diagnostic, assess every returned curriculum-derived candidate, then submit them together. A waiver is only a displayed eligibility until the learner explicitly requests learning_waive_unit. Use learning_start_unit only for the deterministic recommended unit. Advance activities only through learning_complete_activity. During an exercise, learning_request_hint returns only the next persisted hint level; do not reveal later levels early. Use learning_get_report for the final evidence-based summary. Supply a stable command_id for every write and reuse it only when retrying the exact same operation. Never claim an exercise passed unless the returned checks are passed.',
+    text: 'Use learning_get_state before changing the lesson. For a new Enrollment, collect the goal and background with learning_start_diagnostic, assess every returned curriculum-derived candidate, then submit them together. Diagnosis changes recommendations, but it never blocks an explicit learner request to learning_skip_unit. A skipped unit is not mastered or exercise-completed. Use learning_start_unit only for the deterministic recommended unit. Advance activities only through learning_complete_activity. During an exercise, learning_request_hint returns only the next persisted hint level; do not reveal later levels early. Use learning_get_report for the final evidence-based summary. Supply a stable command_id for every write and reuse it only when retrying the exact same operation. Never claim an exercise passed unless the returned checks are passed.',
   })
 
   ctx.tools.register(defineTool({
@@ -228,17 +208,24 @@ export function apply(ctx: Context): void {
   }))
 
   ctx.tools.register(defineTool({
-    name: 'learning_waive_unit',
-    description: 'Waive one unit only after the learner explicitly requests it and the completed diagnostic proves every required rubric with at least one observed or machine evidence item. Waived is distinct from exercise-completed.',
+    name: 'learning_skip_unit',
+    description: 'Skip an unfinished unit in the active learning plan whenever the learner explicitly requests it. Diagnostic gaps do not block this action. Skipped remains distinct from mastered and exercise-completed.',
     parameters: {
       command_id: { type: 'string', required: true },
       unit_id: { type: 'string', required: true },
-      reason: { type: 'string', required: true },
+      reason: { type: 'string', description: 'Optional learner-provided reason. The event always records that the skip was learner-requested.' },
     },
-    output: DIAGNOSTIC_OUTPUT,
+    output: {
+      schema: {
+        type: 'object',
+        additionalProperties: false,
+        properties: { state_snapshot: { type: 'string', required: true } },
+      },
+      render: (_args, value) => [{ type: 'text', text: JSON.stringify(value) }],
+    },
     async execute(args, exec) {
       const agent = requireAgent(exec)
-      return diagnosticValue(await ctx.teaching.waiveUnit(agent.id, args.command_id, args.unit_id, args.reason))
+      return { state_snapshot: JSON.stringify(await ctx.teaching.skipUnit(agent.id, args.command_id, args.unit_id, args.reason)) }
     },
   }))
 
@@ -291,7 +278,7 @@ export function apply(ctx: Context): void {
 
   ctx.tools.register(defineTool({
     name: 'learning_get_report',
-    description: 'Return the deterministic learning report from committed state. It distinguishes read or started units, exercise completion, diagnostic waiver, and comprehensive integration validation.',
+    description: 'Return the deterministic learning report from committed state. It distinguishes read or started units, user-skipped units, exercise completion, and comprehensive integration validation. Skipped units never appear as verified capabilities.',
     parameters: {},
     output: {
       schema: {

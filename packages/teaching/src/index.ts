@@ -71,17 +71,9 @@ export interface DiagnosticAssessmentInput {
   readonly existingEvidenceId?: string
 }
 
-export interface WaiverEligibility {
-  readonly unitId: UnitId
-  readonly eligible: boolean
-  readonly evidenceIds: readonly EvidenceId[]
-  readonly blockers: readonly string[]
-}
-
 export interface DiagnosticCommandResult {
   readonly state: LearnerState
   readonly candidates: readonly DiagnosticCandidate[]
-  readonly waiverEligibility: readonly WaiverEligibility[]
 }
 
 export interface HintCommandResult {
@@ -95,12 +87,12 @@ export interface LearningReport {
   readonly goal: string | null
   readonly readUnitIds: readonly UnitId[]
   readonly exerciseCompletedUnitIds: readonly UnitId[]
-  readonly diagnosticWaivedUnitIds: readonly UnitId[]
+  readonly skippedUnitIds: readonly UnitId[]
   readonly comprehensiveValidatedUnitIds: readonly UnitId[]
   readonly verifiedCapabilities: readonly Readonly<{
     outcomeId: string
     unitId: UnitId
-    verification: 'exercise' | 'diagnostic-waiver' | 'comprehensive'
+    verification: 'exercise' | 'comprehensive'
     evidenceIds: readonly EvidenceId[]
   }>[]
   readonly unresolvedMisconceptions: readonly Readonly<{ misconceptionId: string, summary: string, unitId?: UnitId }>[]
@@ -267,52 +259,13 @@ export class TeachingService extends Service {
 
   private recommended(state: LearnerState, course: CourseManifest): UnitId | null {
     const plan = state.activePlan?.unitIds ?? topologicalUnits(course)
-    return plan.find(unitId => state.unitProgress[unitId] !== 'completed' && state.unitProgress[unitId] !== 'waived'
-      && this.unit(course, unitId).prerequisites.every(id => state.unitProgress[id] === 'completed' || state.unitProgress[id] === 'waived')) ?? null
+    return plan.find(unitId => state.unitProgress[unitId] !== 'completed' && state.unitProgress[unitId] !== 'skipped'
+      && this.unit(course, unitId).prerequisites.every(id => state.unitProgress[id] === 'completed' || state.unitProgress[id] === 'skipped')) ?? null
   }
 
   private candidatesFor(state: LearnerState, course: CourseManifest): readonly DiagnosticCandidate[] {
     const targets = state.diagnostic?.targetOutcomeIds ?? course.learningOutcomes.map(outcome => outcome.id as string)
     return buildDiagnosticCandidates(course, targets)
-  }
-
-  private waiverEligibilityFor(state: LearnerState, candidates: readonly DiagnosticCandidate[]): readonly WaiverEligibility[] {
-    const byUnit = new Map<UnitId, DiagnosticCandidate[]>()
-    for (const candidate of candidates) {
-      const entries = byUnit.get(candidate.unitId) ?? []
-      entries.push(candidate)
-      byUnit.set(candidate.unitId, entries)
-    }
-    return Object.freeze([...byUnit].map(([unitId, unitCandidates]) => {
-      const evidenceIds: EvidenceId[] = []
-      const blockers: string[] = []
-      let hasNonAuthored = false
-      for (const candidate of unitCandidates) {
-        const assessment = state.diagnostic?.assessments[candidate.candidateId]
-        if (assessment === undefined) {
-          blockers.push(`${candidate.rubricId}:missing`)
-          continue
-        }
-        if (assessment.status !== 'meets' || assessment.evidenceId === undefined) {
-          blockers.push(`${candidate.rubricId}:${assessment.status}`)
-          continue
-        }
-        const evidence = state.evidence[assessment.evidenceId]
-        if (evidence === undefined || !candidate.allowedEvidenceKinds.includes(evidence.kind)) {
-          blockers.push(`${candidate.rubricId}:invalid-evidence`)
-          continue
-        }
-        evidenceIds.push(evidence.evidenceId)
-        if (evidence.kind === 'observed' || evidence.kind === 'machine') hasNonAuthored = true
-      }
-      if (!hasNonAuthored) blockers.push('unit:requires-observed-or-machine')
-      return Object.freeze({
-        unitId,
-        eligible: blockers.length === 0,
-        evidenceIds: Object.freeze(evidenceIds),
-        blockers: Object.freeze(blockers),
-      })
-    }))
   }
 
   private adaptivePlan(course: CourseManifest, state: LearnerState, candidates: readonly DiagnosticCandidate[]): readonly UnitId[] {
@@ -364,7 +317,7 @@ export class TeachingService extends Service {
     course: CourseManifest,
   ): Promise<LearnerState> {
     if (state.courseCompleted) return state
-    const ready = course.units.every(unit => state.unitProgress[unit.id] === 'completed' || state.unitProgress[unit.id] === 'waived')
+    const ready = course.units.every(unit => state.unitProgress[unit.id] === 'completed')
     if (!ready) return state
     const evidenceIds = Object.values(state.evidence).map(evidence => evidence.evidenceId)
     if (evidenceIds.length === 0) throw new TeachingError('invalid-state', 'course completion requires committed evidence')
@@ -407,19 +360,13 @@ export class TeachingService extends Service {
     const course = this.ctx.curriculum.course()
     const readUnitIds = course.units.filter(unit => state.unitProgress[unit.id] === 'in-progress' || state.unitProgress[unit.id] === 'completed').map(unit => unit.id)
     const exerciseCompletedUnitIds = course.units.filter(unit => state.unitProgress[unit.id] === 'completed').map(unit => unit.id)
-    const diagnosticWaivedUnitIds = course.units.filter(unit => state.unitProgress[unit.id] === 'waived').map(unit => unit.id)
+    const skippedUnitIds = course.units.filter(unit => state.unitProgress[unit.id] === 'skipped').map(unit => unit.id)
     const comprehensiveValidatedUnitIds = course.units.filter(unit =>
       state.unitProgress[unit.id] === 'completed' && unit.exercises.some(exercise => exercise.kind === 'integration')).map(unit => unit.id)
     const verifiedCapabilities = course.units.flatMap(unit => {
-      const progress = state.unitProgress[unit.id]
-      if (progress !== 'completed' && progress !== 'waived') return []
-      const verification = progress === 'waived'
-        ? 'diagnostic-waiver' as const
-        : unit.exercises.some(exercise => exercise.kind === 'integration') ? 'comprehensive' as const : 'exercise' as const
-      const evidenceIds = progress === 'waived'
-        ? Object.values(state.diagnostic?.assessments ?? {}).flatMap(assessment =>
-          assessment.unitId === unit.id && assessment.evidenceId !== undefined ? [assessment.evidenceId] : [])
-        : [...(state.mastery[unit.id]?.evidenceIds ?? [])]
+      if (state.unitProgress[unit.id] !== 'completed') return []
+      const verification = unit.exercises.some(exercise => exercise.kind === 'integration') ? 'comprehensive' as const : 'exercise' as const
+      const evidenceIds = [...(state.mastery[unit.id]?.evidenceIds ?? [])]
       return unit.outcomeIds.map(outcomeId => Object.freeze({
         outcomeId: outcomeId as string,
         unitId: unit.id,
@@ -439,7 +386,7 @@ export class TeachingService extends Service {
       goal: state.goal,
       readUnitIds: Object.freeze(readUnitIds),
       exerciseCompletedUnitIds: Object.freeze(exerciseCompletedUnitIds),
-      diagnosticWaivedUnitIds: Object.freeze(diagnosticWaivedUnitIds),
+      skippedUnitIds: Object.freeze(skippedUnitIds),
       comprehensiveValidatedUnitIds: Object.freeze(comprehensiveValidatedUnitIds),
       verifiedCapabilities: Object.freeze(verifiedCapabilities),
       unresolvedMisconceptions: Object.freeze(unresolvedMisconceptions),
@@ -465,7 +412,7 @@ export class TeachingService extends Service {
     const diagnosticId = diagnosticIdentity(rootCommandId)
     let state = await this.refresh(scope)
     if (state.diagnostic?.diagnosticId === diagnosticId) {
-      return Object.freeze({ state, candidates, waiverEligibility: this.waiverEligibilityFor(state, candidates) })
+      return Object.freeze({ state, candidates })
     }
     if (state.currentActivity !== null) throw new TeachingError('invalid-state', 'another teaching activity is already active')
     if (state.courseId === null) {
@@ -481,7 +428,7 @@ export class TeachingService extends Service {
       targetOutcomeIds: [...targets],
       candidateIds: candidates.map(candidate => candidate.candidateId),
     })
-    return Object.freeze({ state, candidates, waiverEligibility: this.waiverEligibilityFor(state, candidates) })
+    return Object.freeze({ state, candidates })
   }
 
   private observedSource(candidate: DiagnosticCandidate, input: DiagnosticAssessmentInput): LearnerEvidence['source'] {
@@ -506,7 +453,7 @@ export class TeachingService extends Service {
     if (diagnostic === null) throw new TeachingError('invalid-state', 'there is no diagnostic to submit')
     const candidates = this.candidatesFor(state, course)
     if (diagnostic.completed) {
-      return Object.freeze({ state, candidates, waiverEligibility: this.waiverEligibilityFor(state, candidates) })
+      return Object.freeze({ state, candidates })
     }
     const byId = new Map<string, DiagnosticAssessmentInput>()
     for (const input of inputs) {
@@ -596,11 +543,11 @@ export class TeachingService extends Service {
       })
     }
 
-    const eligibility = this.waiverEligibilityFor(state, candidates)
     const orderedPlan = this.adaptivePlan(course, state, candidates)
-    const recommendedUnitId = orderedPlan.find(unitId => !eligibility.find(item => item.unitId === unitId)?.eligible) ?? null
+    const recommendedUnitId = orderedPlan.find(unitId => candidates.some(candidate => candidate.unitId === unitId
+      && state.diagnostic?.assessments[candidate.candidateId]?.status !== 'meets')) ?? null
     const diagnosticReason = recommendedUnitId === null
-      ? 'all-target-units-eligible-for-user-requested-waiver'
+      ? 'all-target-rubrics-assessed-as-meets'
       : `first-evidence-gap:${recommendedUnitId}`
     state = await this.append(scope, sessionId, rootCommandId, 'diagnostic-completed', 'learning/diagnostic-completed', {
       diagnosticId: diagnostic.diagnosticId,
@@ -613,32 +560,27 @@ export class TeachingService extends Service {
       reason: 'diagnostic-target-path-with-misconception-priority',
       evidenceIds: grantedEvidenceIds,
     })
-    return Object.freeze({ state, candidates, waiverEligibility: this.waiverEligibilityFor(state, candidates) })
+    return Object.freeze({ state, candidates })
   }
 
-  async waiveUnit(sessionId: SessionId, rootCommandId: string, requestedUnitId: string, reason: string): Promise<DiagnosticCommandResult> {
+  async skipUnit(sessionId: SessionId, rootCommandId: string, requestedUnitId: string, reason?: string): Promise<LearnerState> {
     nonEmpty(rootCommandId, 'command_id')
     const scope = this.scopeFor(sessionId)
     const course = this.ctx.curriculum.course()
     let state = await this.refresh(scope)
-    if (state.diagnostic?.completed !== true) throw new TeachingError('invalid-state', 'unit waiver requires a completed diagnostic')
-    const candidates = this.candidatesFor(state, course)
     const unitId = UnitId(nonEmpty(requestedUnitId, 'unit_id'))
-    const eligibility = this.waiverEligibilityFor(state, candidates)
-    const selected = eligibility.find(item => item.unitId === unitId)
-    if (selected === undefined || !selected.eligible) {
-      throw new TeachingError('planner-rejected', `unit "${unitId}" is not eligible for waiver: ${selected?.blockers.join(', ') ?? 'not on target path'}`)
+    this.unit(course, unitId)
+    if (state.activePlan === null || !state.activePlan.unitIds.includes(unitId)) {
+      throw new TeachingError('planner-rejected', `unit "${unitId}" is not in the active learning plan`)
     }
-    if (state.unitProgress[unitId] === 'waived') {
-      return Object.freeze({ state, candidates, waiverEligibility: eligibility })
-    }
-    state = await this.append(scope, sessionId, rootCommandId, `unit-waived-${unitId}`, 'learning/unit-waived', {
+    if (state.unitProgress[unitId] === 'skipped') return state
+    if (state.unitProgress[unitId] === 'completed') throw new TeachingError('planner-rejected', `unit "${unitId}" is already completed`)
+    const normalizedReason = reason?.trim()
+    state = await this.append(scope, sessionId, rootCommandId, `unit-skipped-${unitId}`, 'learning/unit-skipped', {
       unitId,
-      evidenceIds: [...selected.evidenceIds],
-      reason: `learner-requested:${nonEmpty(reason, 'reason')}`,
+      reason: normalizedReason === undefined || normalizedReason.length === 0 ? 'learner-requested' : `learner-requested:${normalizedReason}`,
     })
-    state = await this.completeCourseIfReady(scope, sessionId, rootCommandId, state, course)
-    return Object.freeze({ state, candidates, waiverEligibility: this.waiverEligibilityFor(state, candidates) })
+    return state
   }
 
   async adjustPlan(sessionId: SessionId, rootCommandId: string, requestedUnitIds: readonly string[], reason: string): Promise<LearnerState> {
@@ -651,14 +593,14 @@ export class TeachingService extends Service {
     if (unitIds.length === 0 || new Set(unitIds).size !== unitIds.length) throw new TeachingError('invalid-command', 'adjusted plan must contain unique units')
     for (const unitId of unitIds) this.unit(course, unitId)
     const required = targetUnits(course, state.diagnostic.targetOutcomeIds)
-      .filter(unitId => state.unitProgress[unitId] !== 'completed' && state.unitProgress[unitId] !== 'waived')
+      .filter(unitId => state.unitProgress[unitId] !== 'completed' && state.unitProgress[unitId] !== 'skipped')
     for (const unitId of required) {
       if (!unitIds.includes(unitId)) throw new TeachingError('planner-rejected', `adjusted plan cannot omit required target-path unit "${unitId}"`)
     }
     for (const unitId of unitIds) {
       const unit = this.unit(course, unitId)
       for (const prerequisite of unit.prerequisites) {
-        if (state.unitProgress[prerequisite] !== 'completed' && state.unitProgress[prerequisite] !== 'waived'
+        if (state.unitProgress[prerequisite] !== 'completed' && state.unitProgress[prerequisite] !== 'skipped'
           && (!unitIds.includes(prerequisite) || unitIds.indexOf(prerequisite) > unitIds.indexOf(unitId))) {
           throw new TeachingError('planner-rejected', `adjusted plan places unit "${unitId}" before prerequisite "${prerequisite}"`)
         }

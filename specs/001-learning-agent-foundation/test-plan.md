@@ -6,7 +6,7 @@
 
 1. 领域逻辑正确：课程、事件、计划、完成规则和评测稳定。
 2. DSH 组合正确：插件生命周期、作用域、Learner Event Store、Session 请求快照、工具和 bundle 按公开接口工作。
-3. 教学体验达标：Agent 不跳过证据、不提前泄露答案，并能完成真实教学闭环。
+3. 教学体验达标：Agent 不虚构完成证据、不提前泄露答案，并能完成真实教学闭环。
 
 ## 2. 测试层级
 
@@ -204,15 +204,15 @@ Phase 0 的可复现入口：
 
 - `pnpm test:unit`：验证诊断候选由目标路径的 objectives、required rubric 和 evidenceKinds 动态生成，不依赖固定题目列表。
 - `pnpm test:unit`：验证 `meets | gap | uncertain`、observed source 引用、machine evidence 引用和缺失 required rubric 的拒绝结果。
-- `pnpm test:unit`：验证只有全部 required rubric 匹配且至少存在一条 observed 或 machine 证据时才产生跳过资格。
-- `pnpm test:unit`：验证跳过必须由学习者显式命令触发，写入引用 EvidenceId 的 `learning/unit-waived`，且 waived 与 completed 保持可区分。
-- `pnpm test:unit`：验证 gap/uncertain 阻止跳过、误区优先补课、计划遵守先修关系，以及每次计划变化保存原因和 evidence 引用。
-- `pnpm test:snapshot`：通过真实 Loader、Agent Loop 和 Session persistence 固定初学者与有经验开发者的不同诊断结果、计划、显式跳过和推荐起点。
+- `pnpm test:unit`：验证 `gap`、`uncertain` 或没有诊断掌握证据都不阻止学习者显式跳过，且系统不会自动跳过。
+- `pnpm test:unit`：验证显式跳过写入不要求 EvidenceId 的 `learning/unit-skipped`，`skipped` 满足导航先修但与 completed/mastery 保持可区分。
+- `pnpm test:unit`：验证误区仍影响推荐和报告、计划遵守先修关系，以及每次计划变化保存原因和可用 evidence 引用。
+- `pnpm test:snapshot`：通过真实 Loader、Agent Loop 和 Session persistence 固定初学者与有经验开发者的不同诊断结果、计划、用户显式跳过和推荐起点。
 
 ## 11. Phase 4 完整基础课程证据
 
 - `pnpm test:unit`：验证四个连续单元覆盖八项 learning outcomes，线性先修关系可达，且包含最小 Provider、最小 Tool 和综合 Bundle 实践。
 - `pnpm test:unit`：验证每个练习三级提示按顺序发放，提示事件先持久化再返回，重复命令幂等，前两级拒绝 fenced code、完整实现声明和超出预算的内容。
 - `pnpm test:unit`：通过真实 Lab Provider 固定 implementation failed，以及 configuration、environment、safety blocked 分类；blocked 恢复后同 attempt 可以重试且不降低 mastery。
-- `pnpm test:unit`：验证最终单元完成后幂等追加 course-completed，并生成区分 started/read、exercise-completed、diagnostic-waived 和 comprehensive-validated 的学习报告。
+- `pnpm test:unit`：验证全部单元真实完成后幂等追加 course-completed；存在 skipped 单元时不追加，并生成区分 started/read、user-skipped、exercise-completed 和 comprehensive-validated 的学习报告。
 - `pnpm test:snapshot`：通过真实 Agent Loop 固定三级提示、blocked 重试、四个连续单元的关键状态以及最终学习报告。

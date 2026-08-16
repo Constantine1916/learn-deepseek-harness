@@ -2,7 +2,7 @@
 
 一个基于 DeepSeek Harness 插件生态构建的自适应教学 Agent，帮助开发者通过讲解、源码探索、实践任务和反馈循环，系统掌握 DSH。
 
-> 项目状态：Phase 0–4 已实现。当前版本已经具备覆盖八项成果的四个连续 foundations 单元、独立追加式 Learner Event Store、课程派生诊断、证据驱动计划、用户显式跳课、三级提示、Provider/Tool/Bundle 实践、四类检查结果、学习报告、精确 Session Log 状态快照，以及真实 Agent Loop keyless 教学闭环；registry 发布和交互式 UI 尚未完成。
+> 项目状态：Phase 0–4 已实现。当前版本已经具备覆盖八项成果的四个连续 foundations 单元、独立追加式 Learner Event Store、课程派生诊断、用户控制的显式跳课、三级提示、Provider/Tool/Bundle 实践、四类检查结果、学习报告、精确 Session Log 状态快照，以及真实 Agent Loop keyless 教学闭环；registry 发布和交互式 UI 尚未完成。
 
 ## 项目定位
 
@@ -60,11 +60,11 @@ MVP 覆盖以下学习路径：
 | learner | 从持久学习事件投影状态，并提供查询、追加、幂等和 flush 接口 |
 | teaching | 绑定 Session 与 Enrollment，执行确定性计划和教学活动状态机 |
 | teacher | 注入教师 Persona 和模型实际看到的已提交 LearnerState |
-| tool-learning | 提供状态、诊断、显式跳课、计划调整、开始单元和完成活动工具 |
+| tool-learning | 提供状态、诊断、用户控制的显式跳课、计划调整、开始单元和完成活动工具 |
 | lab | 通过 DSH sandboxed FS/Shell 创建、重置练习并运行确定性检查 |
 | learn-dsh-bundle | 将教学插件和 DSH 基础能力组合成 profile patch layer |
 
-诊断、自适应计划、显式跳课、三级提示和学习报告均通过现有 teaching/learner/tool seam 提供，不需要修改 DSH Agent Loop。
+诊断、自适应计划、显式跳课、三级提示和学习报告均通过现有 teaching/learner/tool seam 提供，不需要修改 DSH Agent Loop。诊断只影响推荐；用户可以直接跳过计划中的未完成单元，跳过不会被报告为掌握或练习完成。
 
 插件边界和事件模型在 [技术设计](specs/001-learning-agent-foundation/design.md) 中定义。
 
@@ -105,7 +105,7 @@ pnpm build
 pnpm example:headless
 ~~~
 
-输出固定真实 Loader/Agent Loop 看到的教师 prompt 和学习工具，并覆盖初学者诊断、有经验开发者诊断与显式跳课、四个连续单元、三级提示、implementation 失败、environment blocked 同 attempt 重试、Provider/Tool/Bundle machine evidence、综合验证、学习报告、原 Session 恢复和同 Enrollment 新 Session 延续。场景会逐次断言模型收到的 LearnerState 与对应 DSH Session Log 快照完全一致。
+输出固定真实 Loader/Agent Loop 看到的教师 prompt 和学习工具，并覆盖初学者诊断、有经验开发者在诊断仍有 uncertain 时显式跳课、四个连续单元、三级提示、implementation 失败、environment blocked 同 attempt 重试、Provider/Tool/Bundle machine evidence、综合验证、学习报告、原 Session 恢复和同 Enrollment 新 Session 延续。场景会逐次断言模型收到的 LearnerState 与对应 DSH Session Log 快照完全一致。
 
 验证标准外部 profile 安装、`dump-config` 和移除，不会写入真实 `~/.dsh`：
 
@@ -174,11 +174,12 @@ pnpm check
 
 - DSH `0.1.0-rc.5` 依赖通过相邻 checkout 的本地 `link:` 解析；当前不能从 npm 完成同版本干净安装。
 - foundations 课程当前包含四个线性单元并覆盖八项 MVP 学习成果；更多课程、多语言和非线性路径不在 0.1.0 范围。
-- 当前诊断由课程 objectives 和 required rubric 派生；跳课要求用户显式请求、全部 rubric 匹配证据以及至少一条 observed 或 machine 证据。更细粒度的难度适配不属于 Phase 3 MVP。
+- 当前诊断由课程 objectives 和 required rubric 派生并影响推荐顺序；跳课只要求用户显式请求，不受 gap、uncertain 或证据缺失阻止。skipped 单元满足导航先修，但不计为 mastery、练习完成或已验证能力。
 - 三级提示按 attempt 顺序持久化；前两级通过课程加载门禁限制 fenced code、完整答案措辞和长度。该门禁不能替代课程作者人工教学复核。
 - `examples/headless` 使用脚本 LLM adapter 提供稳定 keyless 证据；可交互 CLI、真实模型 adapter 配置和 agent preset 尚未发布。
 - bundle patch 只挂载 Learn DSH 插件，要求 host profile 提供 Agent/System Prompt/Tools、sandboxed FS/Shell 和 Session 能力；当前 profile gate 验证安装、配置和移除，不代表完整交互部署。
 - 长期学习状态由独立 learner-memory 保存，不依赖树外 DSH Session event；DSH Session Log 只保存单次会话以及模型实际收到的精确 LearnerState 快照。
+- 当前 Learner Event Store 必需 payload version 为 2；version 1 记录会报告 unsupported-version，需要使用新的 Enrollment 或显式离线迁移。
 - 本地 learner-memory Provider 面向单 host 进程；多个独立进程不能同时写同一存储根。团队或多进程共享需要后续远程 Provider。
 
 本项目是独立社区项目，不代表 DeepSeek 官方产品。

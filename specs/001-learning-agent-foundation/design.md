@@ -102,7 +102,7 @@ explain -> checkpoint -> exercise -> feedback
 
 `learning/unit-started` 建立 `explain` 活动；`learning/activity-advanced` 记录显式转换、原因和可选 attempt；`learning/exercise-created`、`learning/checks-completed` 和 `learning/unit-completed` 继续保存领域事实。转换必须验证当前活动、单元和 attempt，不能由模型直接指定任意下一状态。
 
-Phase 2 的最小规划器只选择版本兼容、先修已完成且尚未完成的第一个计划单元。模型可以请求开始单元，但 teaching Service 必须拒绝跳过该确定性候选的请求。
+Phase 2 的最小规划器只选择版本兼容、先修已处理且尚未完成、未跳过的第一个计划单元。模型请求开始单元时仍必须使用该确定性候选；学习者显式跳过使用独立领域操作，不伪装成开始或完成。
 
 ### teacher-prompt
 
@@ -121,6 +121,7 @@ Phase 2 的一个 fixture 使用课程声明的 `runner: node` 和安全相对 `
 向 ctx.tools 注册模型可调用的领域操作，例如：
 
 - learning_get_state
+- learning_skip_unit
 - learning_start_unit
 - learning_request_hint
 - learning_create_exercise
@@ -203,6 +204,7 @@ Source
 - learning/evidence-recorded
 - learning/plan-created
 - learning/plan-adjusted
+- learning/unit-skipped
 - learning/unit-started
 - learning/activity-advanced
 - learning/exercise-created
@@ -214,7 +216,7 @@ Source
 - learning/unit-completed
 - learning/course-completed
 
-事件携带稳定 CourseId、UnitId、ExerciseAttemptId 和 EvidenceId。跨 package 的不透明 ID 使用 branded 类型。
+事件携带稳定 CourseId、UnitId、ExerciseAttemptId 和 EvidenceId。跨 package 的不透明 ID 使用 branded 类型。当前必需学习事件 payload version 为 2，其中跳过使用用户控制的 `learning/unit-skipped`；其他版本在持久读取边界明确报告 unsupported-version，不做静默语义转换。
 
 持久 envelope 还包含：
 
@@ -274,11 +276,11 @@ MVP 使用确定性的候选筛选：
 2. 删除先修未满足单元。
 3. 优先处理活动中的失败证据和已识别误区。
 4. 然后选择通向学习目标的最短未完成单元。
-5. 只有达到 completion rule 时才允许跳过。
+5. completion rule 只决定是否可以声明完成或掌握；学习者显式跳过不受该规则阻止。
 
 模型可以在候选活动内生成解释或问题，但不能绕过候选筛选和完成规则。
 
-### 6.1 Phase 3 诊断与显式跳过
+### 6.1 Phase 3 诊断与用户控制的跳过
 
 诊断候选不是固定题单。`teaching` 从目标路径中每个单元的 `objectives`、`completion.requiredRubricIds` 和对应 rubric 动态生成候选；每个候选稳定绑定 `DiagnosticCandidateId`、UnitId、RubricId、一个 objective、允许的 EvidenceKind，以及适用的课程 source 引用。
 
@@ -286,11 +288,11 @@ MVP 使用确定性的候选筛选：
 
 - `meets` 必须提交该 rubric 允许类型的证据；`observed` 证据必须引用当前单元课程中已验证的 source anchor，`machine` 证据必须引用 Learner Event Store 中已经提交的通过检查证据。
 - `gap` 追加误区事件，并使对应单元优先进入补课路径。
-- `uncertain` 保留明确的不确定项，不授予证据或跳课资格。
+- `uncertain` 保留明确的不确定项，不授予证据。
 
-规划器为每个目标路径单元计算 `waiverEligibility`。只有全部 required rubric 都有 `meets` 证据，且至少一条匹配证据为 `observed` 或 `machine` 时才 eligible。资格只用于展示；学习者显式请求后，`teaching` 必须重新校验并追加 `learning/unit-waived`。事件记录 EvidenceId、reason 和来源 SessionId；投影使用独立 `waived` 进度，允许满足后续先修，但报告不得把它描述为练习完成。
+诊断证据只用于生成推荐起点、误区和学习报告，不构成跳过门禁。学习者显式请求后，`teaching` 追加 `learning/unit-skipped`；事件记录 UnitId、reason 和来源 SessionId，不要求 EvidenceId。投影使用独立 `skipped` 进度，它满足后续教学导航的前置关系，但不创建 mastery，也不进入 exercise-completed 或 verified-capabilities。
 
-诊断完成后创建包含完整目标路径的计划。确定性排序先满足前置关系，再优先包含 unresolved misconception 的可开始单元，最后按通向目标 outcome 的稳定拓扑顺序选择。每次计划创建或调整都保存 evidence 引用；模型不能自行声明某单元 eligible 或 waived。
+诊断完成后创建包含完整目标路径的计划。确定性排序先满足前置关系，再优先包含 unresolved misconception 的可开始单元，最后按通向目标 outcome 的稳定拓扑顺序选择。每次计划创建或调整都保存原因和可用 evidence 引用；模型不能自行跳过单元，只有学习者显式 skip 命令可以改变为 `skipped`。
 
 ## 7. 评测模型
 
@@ -347,7 +349,7 @@ Phase 4 的提示由 `teaching` 按当前 attempt 顺序发放。学习者每次
 
 Phase 4 基础课程使用四个线性单元覆盖三组主题：Plugin/Context/Effect、Capability Seam、Tool、Bundle/Profile。后两组拆成最小 Provider、最小 Tool 和综合 Bundle 三项实践，从而保留两个独立代码练习和一个综合练习。检查仍只执行课程声明的固定 node runner；implementation 失败与 configuration、environment、safety blocked 结果保持结构化区分。
 
-学习报告由已提交 LearnerState 和版本化课程确定性生成，分别列出 started/read 单元、exercise-completed 单元、diagnostic-waived 单元和通过 integration exercise 的 comprehensive-validated 单元，并引用 mastery evidence、未解决误区和下一推荐。报告是查询结果，不作为新的状态真源。
+学习报告由已提交 LearnerState 和版本化课程确定性生成，分别列出 started/read 单元、user-skipped 单元、exercise-completed 单元和通过 integration exercise 的 comprehensive-validated 单元，并引用 mastery evidence、未解决误区和下一推荐。只有 `completed` 单元可以贡献 verified capabilities；包含 `skipped` 的路径不会触发 `learning/course-completed`。报告是查询结果，不作为新的状态真源。
 
 ## 10. Bundle 与 Preset
 

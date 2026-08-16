@@ -170,8 +170,8 @@ describe('F-005 F-006 Phase 2 deterministic teaching state machine', () => {
   })
 })
 
-describe('F-004 F-005 Phase 3 diagnostic and explicit waiver planning', () => {
-  it('derives candidates from objectives and required rubric, then blocks gap and uncertain waiver', async () => {
+describe('F-004 F-005 Phase 3 diagnostic and learner-controlled skipping', () => {
+  it('derives candidates from objectives and required rubric, while gap and uncertain do not block an explicit skip', async () => {
     const root = await mkdtemp(resolve(tmpdir(), 'learn-dsh-diagnostic-novice-'))
     const { ctx } = await setup(root)
     const activeSession = session('diagnostic-novice')
@@ -212,24 +212,21 @@ describe('F-004 F-005 Phase 3 diagnostic and explicit waiver planning', () => {
           summary: 'The learner cannot yet trace disposal in source.',
         },
       ])
-      expect(submitted.waiverEligibility).toEqual([{
-        unitId: UnitId('plugin-context-service-effect'),
-        eligible: false,
-        evidenceIds: [],
-        blockers: ['names-roles:gap', 'traces-disposal:uncertain', 'unit:requires-observed-or-machine'],
-      }])
       expect(submitted.state.activePlan).toMatchObject({
         unitIds: ['plugin-context-service-effect'],
         reason: 'diagnostic-target-path-with-misconception-priority',
       })
       expect(Object.values(submitted.state.misconceptions)).toHaveLength(1)
-      await expect(ctx.teaching.waiveUnit(
+      expect(submitted.state.unitProgress['plugin-context-service-effect']).toBe('not-started')
+
+      const skipped = await ctx.teaching.skipUnit(
         activeSession.id,
-        'diagnostic-novice-waive',
+        'diagnostic-novice-skip',
         'plugin-context-service-effect',
-        'I want to skip it',
-      )).rejects.toMatchObject({ code: 'planner-rejected' })
-      expect((await ctx.teaching.stateFor(activeSession.id)).unitProgress['plugin-context-service-effect']).toBe('not-started')
+        'I want to continue with the next topic',
+      )
+      expect(skipped.unitProgress['plugin-context-service-effect']).toBe('skipped')
+      expect(skipped.nextRecommendation).toEqual({ unitId: null, reason: 'plan-finished-after-skip' })
 
       const adjusted = await ctx.teaching.adjustPlan(
         activeSession.id,
@@ -244,7 +241,7 @@ describe('F-004 F-005 Phase 3 diagnostic and explicit waiver planning', () => {
     }
   })
 
-  it('requires a verified source observation and only waives after the learner request', async () => {
+  it('keeps diagnostic evidence validation separate from the learner-controlled skip decision', async () => {
     const root = await mkdtemp(resolve(tmpdir(), 'learn-dsh-diagnostic-experienced-'))
     const { ctx } = await setup(root)
     const activeSession = session('diagnostic-experienced')
@@ -279,33 +276,54 @@ describe('F-004 F-005 Phase 3 diagnostic and explicit waiver planning', () => {
       ])).rejects.toMatchObject({ code: 'invalid-command' })
 
       const submitted = await ctx.teaching.submitDiagnostic(activeSession.id, 'diagnostic-experienced-submit', assessments)
-      expect(submitted.waiverEligibility[0]).toMatchObject({ eligible: true, blockers: [] })
-      expect(submitted.waiverEligibility[0]?.evidenceIds).toHaveLength(2)
       expect(submitted.state.unitProgress['plugin-context-service-effect']).toBe('not-started')
 
-      const waived = await ctx.teaching.waiveUnit(
+      const skipped = await ctx.teaching.skipUnit(
         activeSession.id,
-        'diagnostic-experienced-waive',
+        'diagnostic-experienced-skip',
         'plugin-context-service-effect',
-        'Use the verified diagnostic evidence and continue',
       )
-      expect(waived.state.unitProgress['plugin-context-service-effect']).toBe('waived')
-      expect(waived.state.nextRecommendation).toEqual({ unitId: null, reason: 'plan-complete-after-waiver' })
+      expect(skipped.unitProgress['plugin-context-service-effect']).toBe('skipped')
+      expect(skipped.nextRecommendation).toEqual({ unitId: null, reason: 'plan-finished-after-skip' })
       const report = await ctx.teaching.getReport(activeSession.id)
       expect(report.readUnitIds).toEqual([])
       expect(report.exerciseCompletedUnitIds).toEqual([])
-      expect(report.diagnosticWaivedUnitIds).toEqual([UnitId('plugin-context-service-effect')])
-      expect(report.verifiedCapabilities).toEqual(expect.arrayContaining([
-        expect.objectContaining({ unitId: UnitId('plugin-context-service-effect'), verification: 'diagnostic-waiver' }),
-      ]))
-      const waiverEvent = (await ctx.learnerMemory.read(ctx.teaching.scopeFor(activeSession.id)))
-        .find(event => event.type === 'learning/unit-waived')
-      expect(waiverEvent).toBeDefined()
-      expect(waiverEvent!.data).toMatchObject({
+      expect(report.skippedUnitIds).toEqual([UnitId('plugin-context-service-effect')])
+      expect(report.verifiedCapabilities).toEqual([])
+      expect(report.courseCompleted).toBe(false)
+      const skipEvent = (await ctx.learnerMemory.read(ctx.teaching.scopeFor(activeSession.id)))
+        .find(event => event.type === 'learning/unit-skipped')
+      expect(skipEvent).toBeDefined()
+      expect(skipEvent!.data).toEqual({
         unitId: 'plugin-context-service-effect',
-        reason: 'learner-requested:Use the verified diagnostic evidence and continue',
+        reason: 'learner-requested',
       })
-      expect((waiverEvent!.data as { evidenceIds?: string[] }).evidenceIds).toHaveLength(2)
+    } finally {
+      await ctx.fiber.dispose()
+      await rm(root, { recursive: true, force: true })
+    }
+  })
+
+  it('allows direct skipping of active and future plan units without completing the course', async () => {
+    const root = await mkdtemp(resolve(tmpdir(), 'learn-dsh-direct-skip-'))
+    const { ctx } = await setup(root)
+    const activeSession = session('direct-skip')
+    try {
+      const unitIds = ctx.curriculum.course().units.map(unit => unit.id)
+      await ctx.teaching.startUnit(activeSession.id, 'direct-skip-start', 'Browse the DSH foundations quickly', unitIds[0])
+      for (const [index, unitId] of unitIds.entries()) {
+        await ctx.teaching.skipUnit(activeSession.id, `direct-skip-${String(index)}`, unitId)
+      }
+      const state = await ctx.teaching.stateFor(activeSession.id)
+      expect(state.currentActivity).toBeNull()
+      expect(Object.values(state.unitProgress)).toEqual(['skipped', 'skipped', 'skipped', 'skipped'])
+      expect(state.nextRecommendation).toEqual({ unitId: null, reason: 'plan-finished-after-skip' })
+      expect(state.courseCompleted).toBe(false)
+      const report = await ctx.teaching.getReport(activeSession.id)
+      expect(report.skippedUnitIds).toEqual(unitIds)
+      expect(report.verifiedCapabilities).toEqual([])
+      expect((await ctx.learnerMemory.read(ctx.teaching.scopeFor(activeSession.id)))
+        .filter(event => event.type === 'learning/course-completed')).toEqual([])
     } finally {
       await ctx.fiber.dispose()
       await rm(root, { recursive: true, force: true })
@@ -362,7 +380,7 @@ describe('F-009 F-013 Phase 4 hints, continuous course, and learning report', ()
       const report = await ctx.teaching.getReport(activeSession.id)
       expect(report.readUnitIds).toEqual(unitIds)
       expect(report.exerciseCompletedUnitIds).toEqual(unitIds)
-      expect(report.diagnosticWaivedUnitIds).toEqual([])
+      expect(report.skippedUnitIds).toEqual([])
       expect(report.comprehensiveValidatedUnitIds).toEqual([UnitId('bundle-profile-composition')])
       expect(new Set(report.verifiedCapabilities.map(item => item.outcomeId))).toEqual(
         new Set(ctx.curriculum.course().learningOutcomes.map(outcome => outcome.id)),

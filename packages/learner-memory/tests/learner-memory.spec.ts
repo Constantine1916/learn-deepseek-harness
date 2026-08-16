@@ -11,6 +11,7 @@ import {
   CommandId,
   EnrollmentId,
   EventId,
+  LEARNER_EVENT_VERSION,
   LearnerId,
   LearnerMemoryError,
   type LearnerEventDraft,
@@ -30,7 +31,7 @@ function draft(overrides: Partial<LearnerEventDraft> = {}): LearnerEventDraft {
     commandId: CommandId('command-1'),
     sourceSessionId: SessionId('session-1'),
     type: 'learning/goal-set',
-    version: 1,
+    version: LEARNER_EVENT_VERSION,
     data: { goal: 'Learn plugins' },
     ...overrides,
   }
@@ -159,7 +160,7 @@ describe('F-011 Q-002 learner-memory corruption diagnostics', () => {
   it('diagnoses sequence gaps, unsupported versions, identity mismatches, and duplicate ids', () => withRoot(async root => {
     const cases = [
       [{ ...draft(), seq: 2, time: 1 }, 'sequence-gap'],
-      [{ ...draft(), seq: 0, time: 1, version: 2 }, 'unsupported-version'],
+      [{ ...draft(), seq: 0, time: 1, version: 1 }, 'unsupported-version'],
       [{ ...draft(), seq: 0, time: 1, learnerId: LearnerId('other') }, 'identity-mismatch'],
       [null, 'corrupt'],
     ] as const

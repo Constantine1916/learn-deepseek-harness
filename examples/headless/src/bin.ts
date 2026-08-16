@@ -147,6 +147,9 @@ function summarizeRequest(request: CapturedRequest, sessionSnapshots: readonly s
     completedUnits: Object.entries(state.unitProgress)
       .filter(([, progress]) => progress === 'completed')
       .map(([unitId]) => unitId),
+    skippedUnits: Object.entries(state.unitProgress)
+      .filter(([, progress]) => progress === 'skipped')
+      .map(([unitId]) => unitId),
     checks,
     hints,
     exactSnapshotInSessionLog: sessionSnapshots.includes(request.learnerSnapshot),
@@ -360,12 +363,8 @@ const script: ScriptEntry[] = [
         },
         {
           candidate_id: 'diagnostic-plugin-context-service-effect-traces-disposal',
-          status: 'meets',
-          summary: 'The learner traced Context registration and fiber-owned disposal in the locked source.',
-          evidence_kind: 'observed',
-          source_path: 'vendor/cordis/src/context.ts',
-          source_anchor_kind: 'export',
-          source_anchor: 'Context',
+          status: 'uncertain',
+          summary: 'The learner chose not to spend time proving the disposal trace during diagnosis.',
         },
         {
           candidate_id: 'diagnostic-capability-seam-explains-seam-roles',
@@ -401,16 +400,16 @@ const script: ScriptEntry[] = [
     }),
   },
   {
-    label: 'experienced-waiver',
-    chunks: toolCallResponse('experienced-waiver-1', 'learning_waive_unit', {
-      command_id: 'phase-3-experienced-waiver',
+    label: 'experienced-skip',
+    chunks: toolCallResponse('experienced-skip-1', 'learning_skip_unit', {
+      command_id: 'phase-3-experienced-skip',
       unit_id: 'plugin-context-service-effect',
-      reason: 'The learner explicitly requested the evidence-backed waiver.',
+      reason: 'The learner wants to continue directly to capability seams.',
     }),
   },
   {
     label: 'experienced-recommendation',
-    chunks: textResponse('Your authored role explanation and verified source trace satisfy every required rubric. At your explicit request, the foundation unit is recorded as waived rather than exercise-completed; no unverified completion was granted.'),
+    chunks: textResponse('At your explicit request, the foundation unit is recorded as skipped even though the disposal trace remains uncertain. It satisfies navigation prerequisites but is not mastered, exercise-completed, or listed as a verified capability.'),
   },
   {
     label: 'capability-start',
@@ -530,7 +529,7 @@ const script: ScriptEntry[] = [
     }, 'The comprehensive bundle check passed and the course now has machine-backed evidence across all four units.'),
   },
   { label: 'learning-report', chunks: toolCallResponse('learning-report-1', 'learning_get_report', {}) },
-  { label: 'course-completed', chunks: textResponse('Learning report: all eight outcomes are verified. Four units were exercise-completed, the bundle unit has comprehensive validation, no unit was represented as both waived and completed, and remaining misconceptions are listed from committed state.') },
+  { label: 'course-completed', chunks: textResponse('Learning report: all eight outcomes are verified. Four units were exercise-completed, the bundle unit has comprehensive validation, no skipped unit was represented as mastered, and remaining misconceptions are listed from committed state.') },
 ]
 
 const directory = resolve(dirname(fileURLToPath(import.meta.url)), '..')

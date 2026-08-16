@@ -4,6 +4,7 @@ import {
   CommandId,
   EnrollmentId,
   EventId,
+  LEARNER_EVENT_VERSION,
   LearnerId,
 } from '@learn-dsh/learner-memory'
 import LocalLearnerMemory from '@learn-dsh/learner-memory/local'
@@ -22,7 +23,7 @@ try {
       commandId: CommandId('process-command'),
       sourceSessionId: SessionId('process-session'),
       type: 'learning/goal-set',
-      version: 1,
+      version: LEARNER_EVENT_VERSION,
       data: { goal: 'survive restart' },
     })
     await ctx.learnerMemory.flush(scope)

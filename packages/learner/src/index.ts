@@ -149,7 +149,7 @@ export interface LearnerState {
   readonly diagnostic: LearnerDiagnostic | null
   readonly activePlan: LearnerPlan | null
   readonly currentActivity: TeachingActivity | Readonly<{ kind: 'diagnostic', diagnosticId: DiagnosticId }> | null
-  readonly unitProgress: Readonly<Record<string, 'not-started' | 'in-progress' | 'completed' | 'waived'>>
+  readonly unitProgress: Readonly<Record<string, 'not-started' | 'in-progress' | 'completed' | 'skipped'>>
   readonly attempts: Readonly<Record<string, LearnerAttempt>>
   readonly evidence: Readonly<Record<string, LearnerEvidence>>
   readonly misconceptions: Readonly<Record<string, LearnerMisconception>>
@@ -231,7 +231,7 @@ const eventDataSchemas = {
   }).strict(),
   'learning/plan-created': z.object({ unitIds: z.array(unitIdSchema).min(1), reason: nonEmpty, evidenceIds: z.array(evidenceIdSchema).optional() }).strict(),
   'learning/plan-adjusted': z.object({ unitIds: z.array(unitIdSchema).min(1), reason: nonEmpty, evidenceIds: z.array(evidenceIdSchema).optional() }).strict(),
-  'learning/unit-waived': z.object({ unitId: unitIdSchema, evidenceIds: z.array(evidenceIdSchema).min(1), reason: nonEmpty }).strict(),
+  'learning/unit-skipped': z.object({ unitId: unitIdSchema, reason: nonEmpty }).strict(),
   'learning/unit-started': z.object({ unitId: unitIdSchema }).strict(),
   'learning/activity-advanced': z.object({
     unitId: unitIdSchema,
@@ -318,7 +318,7 @@ interface MutableState {
   diagnostic: LearnerDiagnostic | null
   activePlan: LearnerPlan | null
   currentActivity: LearnerState['currentActivity']
-  unitProgress: Record<string, 'not-started' | 'in-progress' | 'completed' | 'waived'>
+  unitProgress: Record<string, 'not-started' | 'in-progress' | 'completed' | 'skipped'>
   attempts: Record<string, LearnerAttempt>
   evidence: Record<string, LearnerEvidence>
   misconceptions: Record<string, LearnerMisconception>
@@ -353,11 +353,11 @@ function initialState(scope: LearnerScope, course: CourseManifest): MutableState
 }
 
 function nextPlanUnit(state: MutableState): UnitId | null {
-  return state.activePlan?.unitIds.find(unitId => state.unitProgress[unitId] !== 'completed' && state.unitProgress[unitId] !== 'waived') ?? null
+  return state.activePlan?.unitIds.find(unitId => state.unitProgress[unitId] !== 'completed' && state.unitProgress[unitId] !== 'skipped') ?? null
 }
 
 function prerequisiteSatisfied(state: MutableState, unitId: UnitId): boolean {
-  return state.unitProgress[unitId] === 'completed' || state.unitProgress[unitId] === 'waived'
+  return state.unitProgress[unitId] === 'completed' || state.unitProgress[unitId] === 'skipped'
 }
 
 function applyEvent(state: MutableState, raw: LearnerEventEnvelope, course: CourseManifest): void {
@@ -515,39 +515,22 @@ function applyEvent(state: MutableState, raw: LearnerEventEnvelope, course: Cour
       state.nextRecommendation = { unitId, reason: data.reason as string }
       break
     }
-    case 'learning/unit-waived': {
+    case 'learning/unit-skipped': {
       const unitId = data.unitId as UnitId
-      const unit = course.units.find(candidate => candidate.id === unitId)
-      if (unit === undefined) throw new LearnerProjectionError('invalid-event', `course "${course.id}" has no unit "${unitId}"`)
-      if (state.diagnostic?.completed !== true) throw new LearnerProjectionError('illegal-transition', 'unit waiver requires a completed diagnostic')
-      if (state.currentActivity !== null) throw new LearnerProjectionError('illegal-transition', 'a unit cannot be waived while another activity is active')
-      if (state.unitProgress[unitId] !== 'not-started') throw new LearnerProjectionError('illegal-transition', `unit "${unitId}" cannot be waived from ${String(state.unitProgress[unitId])}`)
-      for (const prerequisite of unit.prerequisites) {
-        if (!prerequisiteSatisfied(state, prerequisite)) throw new LearnerProjectionError('illegal-transition', `unit "${unitId}" prerequisite "${prerequisite}" is incomplete`)
+      assertKnownUnit(course, unitId)
+      if (state.activePlan === null || !state.activePlan.unitIds.includes(unitId)) {
+        throw new LearnerProjectionError('illegal-transition', `unit "${unitId}" is not in the active plan`)
       }
-      const evidenceIds = data.evidenceIds as EvidenceId[]
-      assertEvidence(state, evidenceIds, 'unit waiver evidenceIds')
-      const evidence = evidenceIds.map(evidenceId => state.evidence[evidenceId]!)
-      for (const rubricId of unit.completion.requiredRubricIds) {
-        const assessment = Object.values(state.diagnostic.assessments).find(item => item.unitId === unitId && item.rubricId === rubricId)
-        if (assessment?.status !== 'meets' || assessment.evidenceId === undefined || !evidenceIds.includes(assessment.evidenceId)) {
-          throw new LearnerProjectionError('illegal-transition', `unit "${unitId}" waiver lacks meets evidence for rubric "${rubricId}"`)
-        }
-        const match = state.evidence[assessment.evidenceId]
-        const rubric = unit.rubric.find(item => item.id === rubricId)
-        if (match === undefined || rubric === undefined || !rubric.evidenceKinds.includes(match.kind)) {
-          throw new LearnerProjectionError('illegal-transition', `unit "${unitId}" waiver has invalid evidence for rubric "${rubricId}"`)
-        }
+      if (state.currentActivity?.kind === 'diagnostic') {
+        throw new LearnerProjectionError('illegal-transition', 'a unit cannot be skipped while a diagnostic is active')
       }
-      if (!evidence.some(item => item.kind === 'observed' || item.kind === 'machine')) {
-        throw new LearnerProjectionError('illegal-transition', `unit "${unitId}" waiver requires observed or machine evidence`)
+      if (state.unitProgress[unitId] === 'completed' || state.unitProgress[unitId] === 'skipped') {
+        throw new LearnerProjectionError('illegal-transition', `unit "${unitId}" cannot be skipped from ${String(state.unitProgress[unitId])}`)
       }
-      const blockingAssessment = Object.values(state.diagnostic?.assessments ?? {}).find(assessment =>
-        assessment.unitId === unitId && assessment.status !== 'meets')
-      if (blockingAssessment !== undefined) throw new LearnerProjectionError('illegal-transition', `unit "${unitId}" waiver is blocked by ${blockingAssessment.status} rubric "${blockingAssessment.rubricId}"`)
-      state.unitProgress[unitId] = 'waived'
+      state.unitProgress[unitId] = 'skipped'
+      if (state.currentActivity !== null && state.currentActivity.unitId === unitId) state.currentActivity = null
       const next = nextPlanUnit(state)
-      state.nextRecommendation = { unitId: next, reason: next === null ? 'plan-complete-after-waiver' : 'next-plan-unit-after-waiver' }
+      state.nextRecommendation = { unitId: next, reason: next === null ? 'plan-finished-after-skip' : 'next-plan-unit-after-skip' }
       break
     }
     case 'learning/unit-started': {
@@ -557,7 +540,7 @@ function applyEvent(state: MutableState, raw: LearnerEventEnvelope, course: Cour
       for (const prerequisite of unit.prerequisites) {
         if (!prerequisiteSatisfied(state, prerequisite)) throw new LearnerProjectionError('illegal-transition', `unit "${unitId}" prerequisite "${prerequisite}" is incomplete`)
       }
-      if (state.unitProgress[unitId] === 'completed' || state.unitProgress[unitId] === 'waived') {
+      if (state.unitProgress[unitId] === 'completed' || state.unitProgress[unitId] === 'skipped') {
         throw new LearnerProjectionError('illegal-transition', `unit "${unitId}" is already ${state.unitProgress[unitId]}`)
       }
       state.unitProgress[unitId] = 'in-progress'
@@ -709,7 +692,7 @@ function applyEvent(state: MutableState, raw: LearnerEventEnvelope, course: Cour
       const courseId = data.courseId as CourseId
       if (courseId !== course.id || state.courseId !== courseId) throw new LearnerProjectionError('illegal-transition', `course completion does not match enrollment course "${String(state.courseId)}"`)
       assertEvidence(state, data.evidenceIds as EvidenceId[], 'course completion evidenceIds')
-      const incomplete = course.units.find(unit => state.unitProgress[unit.id] !== 'completed' && state.unitProgress[unit.id] !== 'waived')
+      const incomplete = course.units.find(unit => state.unitProgress[unit.id] !== 'completed')
       if (incomplete !== undefined) throw new LearnerProjectionError('illegal-transition', `course cannot complete while unit "${incomplete.id}" is incomplete`)
       state.courseCompleted = true
       state.currentActivity = null

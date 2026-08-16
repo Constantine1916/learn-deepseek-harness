@@ -12,10 +12,10 @@
       "learning_get_report",
       "learning_get_state",
       "learning_request_hint",
+      "learning_skip_unit",
       "learning_start_diagnostic",
       "learning_start_unit",
-      "learning_submit_diagnostic",
-      "learning_waive_unit"
+      "learning_submit_diagnostic"
     ],
     "requestHeader": {
       "hasTeacherPersona": true,
@@ -25,10 +25,10 @@
         "learning_get_report",
         "learning_get_state",
         "learning_request_hint",
+        "learning_skip_unit",
         "learning_start_diagnostic",
         "learning_start_unit",
-        "learning_submit_diagnostic",
-        "learning_waive_unit"
+        "learning_submit_diagnostic"
       ]
     },
     "firstResponse": "I teach DSH through source-backed explanation, learner checkpoints, sandboxed exercises, and machine evidence. I only use capabilities allowed by this profile, and I will not claim completion without persisted evidence.",
@@ -37,7 +37,7 @@
     "failureResponse": "Machine check failed in the implementation category: answer.json is incomplete. Revise the missing lifecycle fields and source citations in this same attempt; no mastery or completion has been granted.",
     "successResponse": "Machine check passed: answer.json now contains every required lifecycle field and at least two valid curriculum source citations. This machine evidence can now support mastery together with your authored checkpoint.",
     "blockedResponse": "The Provider check is blocked by an environment timeout, not failed for implementation. No mastery was reduced; restore the checker and retry the same attempt.",
-    "reportResponse": "Learning report: all eight outcomes are verified. Four units were exercise-completed, the bundle unit has comprehensive validation, no unit was represented as both waived and completed, and remaining misconceptions are listed from committed state."
+    "reportResponse": "Learning report: all eight outcomes are verified. Four units were exercise-completed, the bundle unit has comprehensive validation, no skipped unit was represented as mastered, and remaining misconceptions are listed from committed state."
   },
   "curriculum": {
     "id": "dsh-foundations",
@@ -134,6 +134,7 @@
       "label": "first-entry",
       "activity": null,
       "completedUnits": [],
+      "skippedUnits": [],
       "checks": [],
       "hints": [],
       "exactSnapshotInSessionLog": true
@@ -142,6 +143,7 @@
       "label": "state-read",
       "activity": null,
       "completedUnits": [],
+      "skippedUnits": [],
       "checks": [],
       "hints": [],
       "exactSnapshotInSessionLog": true
@@ -150,6 +152,7 @@
       "label": "novice-diagnostic-start",
       "activity": null,
       "completedUnits": [],
+      "skippedUnits": [],
       "checks": [],
       "hints": [],
       "exactSnapshotInSessionLog": true
@@ -160,6 +163,7 @@
         "kind": "diagnostic"
       },
       "completedUnits": [],
+      "skippedUnits": [],
       "checks": [],
       "hints": [],
       "exactSnapshotInSessionLog": true
@@ -168,6 +172,7 @@
       "label": "start-unit",
       "activity": null,
       "completedUnits": [],
+      "skippedUnits": [],
       "checks": [],
       "hints": [],
       "exactSnapshotInSessionLog": true
@@ -179,6 +184,7 @@
         "unitId": "plugin-context-service-effect"
       },
       "completedUnits": [],
+      "skippedUnits": [],
       "checks": [],
       "hints": [],
       "exactSnapshotInSessionLog": true
@@ -190,6 +196,7 @@
         "unitId": "plugin-context-service-effect"
       },
       "completedUnits": [],
+      "skippedUnits": [],
       "checks": [],
       "hints": [],
       "exactSnapshotInSessionLog": true
@@ -201,6 +208,7 @@
         "unitId": "plugin-context-service-effect"
       },
       "completedUnits": [],
+      "skippedUnits": [],
       "checks": [],
       "hints": [],
       "exactSnapshotInSessionLog": true
@@ -213,6 +221,7 @@
         "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74"
       },
       "completedUnits": [],
+      "skippedUnits": [],
       "checks": [],
       "hints": [],
       "exactSnapshotInSessionLog": true
@@ -225,6 +234,7 @@
         "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74"
       },
       "completedUnits": [],
+      "skippedUnits": [],
       "checks": [],
       "hints": [
         {
@@ -242,6 +252,7 @@
         "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74"
       },
       "completedUnits": [],
+      "skippedUnits": [],
       "checks": [],
       "hints": [
         {
@@ -263,6 +274,7 @@
         "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74"
       },
       "completedUnits": [],
+      "skippedUnits": [],
       "checks": [],
       "hints": [
         {
@@ -288,6 +300,7 @@
         "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74"
       },
       "completedUnits": [],
+      "skippedUnits": [],
       "checks": [
         {
           "checkId": "trace-artifact",
@@ -319,6 +332,7 @@
         "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74"
       },
       "completedUnits": [],
+      "skippedUnits": [],
       "checks": [
         {
           "checkId": "trace-artifact",
@@ -350,6 +364,7 @@
         "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74"
       },
       "completedUnits": [],
+      "skippedUnits": [],
       "checks": [
         {
           "checkId": "trace-artifact",
@@ -381,6 +396,7 @@
         "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74"
       },
       "completedUnits": [],
+      "skippedUnits": [],
       "checks": [
         {
           "checkId": "trace-artifact",
@@ -410,6 +426,7 @@
       "completedUnits": [
         "plugin-context-service-effect"
       ],
+      "skippedUnits": [],
       "checks": [
         {
           "checkId": "trace-artifact",
@@ -439,6 +456,7 @@
       "completedUnits": [
         "plugin-context-service-effect"
       ],
+      "skippedUnits": [],
       "checks": [
         {
           "checkId": "trace-artifact",
@@ -468,6 +486,7 @@
       "completedUnits": [
         "plugin-context-service-effect"
       ],
+      "skippedUnits": [],
       "checks": [
         {
           "checkId": "trace-artifact",
@@ -495,6 +514,7 @@
       "label": "experienced-diagnostic-start",
       "activity": null,
       "completedUnits": [],
+      "skippedUnits": [],
       "checks": [],
       "hints": [],
       "exactSnapshotInSessionLog": true
@@ -505,14 +525,16 @@
         "kind": "diagnostic"
       },
       "completedUnits": [],
+      "skippedUnits": [],
       "checks": [],
       "hints": [],
       "exactSnapshotInSessionLog": true
     },
     {
-      "label": "experienced-waiver",
+      "label": "experienced-skip",
       "activity": null,
       "completedUnits": [],
+      "skippedUnits": [],
       "checks": [],
       "hints": [],
       "exactSnapshotInSessionLog": true
@@ -521,6 +543,9 @@
       "label": "experienced-recommendation",
       "activity": null,
       "completedUnits": [],
+      "skippedUnits": [
+        "plugin-context-service-effect"
+      ],
       "checks": [],
       "hints": [],
       "exactSnapshotInSessionLog": true
@@ -531,6 +556,7 @@
       "completedUnits": [
         "plugin-context-service-effect"
       ],
+      "skippedUnits": [],
       "checks": [
         {
           "checkId": "trace-artifact",
@@ -563,6 +589,7 @@
       "completedUnits": [
         "plugin-context-service-effect"
       ],
+      "skippedUnits": [],
       "checks": [
         {
           "checkId": "trace-artifact",
@@ -595,6 +622,7 @@
       "completedUnits": [
         "plugin-context-service-effect"
       ],
+      "skippedUnits": [],
       "checks": [
         {
           "checkId": "trace-artifact",
@@ -627,6 +655,7 @@
       "completedUnits": [
         "plugin-context-service-effect"
       ],
+      "skippedUnits": [],
       "checks": [
         {
           "checkId": "trace-artifact",
@@ -660,6 +689,7 @@
       "completedUnits": [
         "plugin-context-service-effect"
       ],
+      "skippedUnits": [],
       "checks": [
         {
           "checkId": "trace-artifact",
@@ -693,6 +723,7 @@
       "completedUnits": [
         "plugin-context-service-effect"
       ],
+      "skippedUnits": [],
       "checks": [
         {
           "checkId": "trace-artifact",
@@ -726,6 +757,7 @@
       "completedUnits": [
         "plugin-context-service-effect"
       ],
+      "skippedUnits": [],
       "checks": [
         {
           "checkId": "trace-artifact",
@@ -764,6 +796,7 @@
       "completedUnits": [
         "plugin-context-service-effect"
       ],
+      "skippedUnits": [],
       "checks": [
         {
           "checkId": "trace-artifact",
@@ -802,6 +835,7 @@
       "completedUnits": [
         "plugin-context-service-effect"
       ],
+      "skippedUnits": [],
       "checks": [
         {
           "checkId": "trace-artifact",
@@ -840,6 +874,7 @@
       "completedUnits": [
         "plugin-context-service-effect"
       ],
+      "skippedUnits": [],
       "checks": [
         {
           "checkId": "trace-artifact",
@@ -875,6 +910,7 @@
         "plugin-context-service-effect",
         "capability-seam"
       ],
+      "skippedUnits": [],
       "checks": [
         {
           "checkId": "trace-artifact",
@@ -910,6 +946,7 @@
         "plugin-context-service-effect",
         "capability-seam"
       ],
+      "skippedUnits": [],
       "checks": [
         {
           "checkId": "trace-artifact",
@@ -948,6 +985,7 @@
         "plugin-context-service-effect",
         "capability-seam"
       ],
+      "skippedUnits": [],
       "checks": [
         {
           "checkId": "trace-artifact",
@@ -986,6 +1024,7 @@
         "plugin-context-service-effect",
         "capability-seam"
       ],
+      "skippedUnits": [],
       "checks": [
         {
           "checkId": "trace-artifact",
@@ -1024,6 +1063,7 @@
         "plugin-context-service-effect",
         "capability-seam"
       ],
+      "skippedUnits": [],
       "checks": [
         {
           "checkId": "trace-artifact",
@@ -1063,6 +1103,7 @@
         "plugin-context-service-effect",
         "capability-seam"
       ],
+      "skippedUnits": [],
       "checks": [
         {
           "checkId": "trace-artifact",
@@ -1102,6 +1143,7 @@
         "plugin-context-service-effect",
         "capability-seam"
       ],
+      "skippedUnits": [],
       "checks": [
         {
           "checkId": "trace-artifact",
@@ -1141,6 +1183,7 @@
         "plugin-context-service-effect",
         "capability-seam"
       ],
+      "skippedUnits": [],
       "checks": [
         {
           "checkId": "trace-artifact",
@@ -1182,6 +1225,7 @@
         "capability-seam",
         "model-callable-tool"
       ],
+      "skippedUnits": [],
       "checks": [
         {
           "checkId": "trace-artifact",
@@ -1223,6 +1267,7 @@
         "capability-seam",
         "model-callable-tool"
       ],
+      "skippedUnits": [],
       "checks": [
         {
           "checkId": "trace-artifact",
@@ -1267,6 +1312,7 @@
         "capability-seam",
         "model-callable-tool"
       ],
+      "skippedUnits": [],
       "checks": [
         {
           "checkId": "trace-artifact",
@@ -1311,6 +1357,7 @@
         "capability-seam",
         "model-callable-tool"
       ],
+      "skippedUnits": [],
       "checks": [
         {
           "checkId": "trace-artifact",
@@ -1355,6 +1402,7 @@
         "capability-seam",
         "model-callable-tool"
       ],
+      "skippedUnits": [],
       "checks": [
         {
           "checkId": "trace-artifact",
@@ -1400,6 +1448,7 @@
         "capability-seam",
         "model-callable-tool"
       ],
+      "skippedUnits": [],
       "checks": [
         {
           "checkId": "trace-artifact",
@@ -1445,6 +1494,7 @@
         "capability-seam",
         "model-callable-tool"
       ],
+      "skippedUnits": [],
       "checks": [
         {
           "checkId": "trace-artifact",
@@ -1490,6 +1540,7 @@
         "capability-seam",
         "model-callable-tool"
       ],
+      "skippedUnits": [],
       "checks": [
         {
           "checkId": "trace-artifact",
@@ -1537,6 +1588,7 @@
         "model-callable-tool",
         "bundle-profile-composition"
       ],
+      "skippedUnits": [],
       "checks": [
         {
           "checkId": "trace-artifact",
@@ -1584,6 +1636,7 @@
         "model-callable-tool",
         "bundle-profile-composition"
       ],
+      "skippedUnits": [],
       "checks": [
         {
           "checkId": "trace-artifact",
@@ -1962,7 +2015,7 @@
         "model-callable-tool",
         "bundle-profile-composition"
       ],
-      "diagnosticWaivedUnitIds": [],
+      "skippedUnitIds": [],
       "comprehensiveValidatedUnitIds": [
         "bundle-profile-composition"
       ],
@@ -2090,9 +2143,8 @@
             "candidateId": "diagnostic-plugin-context-service-effect-traces-disposal",
             "unitId": "plugin-context-service-effect",
             "rubricId": "traces-disposal",
-            "status": "meets",
-            "summary": "The learner traced Context registration and fiber-owned disposal in the locked source.",
-            "evidenceId": "evidence-d0b28bb345e436dea0612235a573a2bea267b7424b589c34e9319f1bf91dd42c"
+            "status": "uncertain",
+            "summary": "The learner chose not to spend time proving the disposal trace during diagnosis."
           },
           "diagnostic-capability-seam-explains-seam-roles": {
             "candidateId": "diagnostic-capability-seam-explains-seam-roles",
@@ -2138,8 +2190,8 @@
           }
         },
         "completed": true,
-        "recommendedUnitId": "capability-seam",
-        "reason": "first-evidence-gap:capability-seam"
+        "recommendedUnitId": "plugin-context-service-effect",
+        "reason": "first-evidence-gap:plugin-context-service-effect"
       },
       "activePlan": {
         "unitIds": [
@@ -2150,14 +2202,13 @@
         ],
         "reason": "diagnostic-target-path-with-misconception-priority",
         "evidenceIds": [
-          "evidence-27a9f55ce8a418a205b27979399ba6c760c2fc677224568c4f73703556af63f4",
-          "evidence-d0b28bb345e436dea0612235a573a2bea267b7424b589c34e9319f1bf91dd42c"
+          "evidence-27a9f55ce8a418a205b27979399ba6c760c2fc677224568c4f73703556af63f4"
         ],
         "revision": 1
       },
       "currentActivity": null,
       "unitProgress": {
-        "plugin-context-service-effect": "waived",
+        "plugin-context-service-effect": "skipped",
         "capability-seam": "not-started",
         "model-callable-tool": "not-started",
         "bundle-profile-composition": "not-started"
@@ -2168,23 +2219,18 @@
           "kind": "authored",
           "summary": "The learner accurately distinguishes Plugin, Context, Service, Effect, and typed events.",
           "unitId": "plugin-context-service-effect"
-        },
-        {
-          "kind": "observed",
-          "summary": "The learner traced Context registration and fiber-owned disposal in the locked source.",
-          "unitId": "plugin-context-service-effect"
         }
       ],
       "mastery": {},
       "nextRecommendation": {
         "unitId": "capability-seam",
-        "reason": "next-plan-unit-after-waiver"
+        "reason": "next-plan-unit-after-skip"
       },
       "courseCompleted": false,
       "sourceSessionIds": [
         "phase-3-experienced-session"
       ],
-      "lastSeq": 18
+      "lastSeq": 17
     }
   }
 }
