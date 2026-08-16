@@ -116,6 +116,10 @@ try {
         throw new Error(`${manifest.name} export target ${target} is missing from its tarball.`)
       }
     }
+    for (const target of Object.values(manifest.bin ?? {})) {
+      const normalized = String(target).startsWith('./') ? String(target) : `./${String(target)}`
+      if (!normalizedEntries.has(normalized)) throw new Error(`${manifest.name} bin target ${normalized} is missing from its tarball.`)
+    }
 
     tarballs.set(manifest.name, tarball)
   }
@@ -148,6 +152,13 @@ try {
 
   for (const name of tarballs.keys()) {
     run('node', ['--input-type=module', '--eval', `await import(${JSON.stringify(name)})`], { cwd: consumerRoot })
+  }
+  run('node', ['--input-type=module', '--eval', "await import('@learn-dsh/bundle/setup')"], { cwd: consumerRoot })
+
+  const setupHome = resolve(temporaryRoot, 'setup-home')
+  const setupPath = run('pnpm', ['exec', 'learn-dsh-setup', 'path', '--home', setupHome], { cwd: consumerRoot }).trim()
+  if (setupPath !== resolve(setupHome, '.agent-presets/learn-dsh')) {
+    throw new Error(`Packed setup CLI resolved an unexpected preset path: ${setupPath}`)
   }
 
   const installedBundle = resolve(consumerRoot, 'node_modules/@learn-dsh/bundle')

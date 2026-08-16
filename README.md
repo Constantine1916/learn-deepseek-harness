@@ -116,23 +116,43 @@ pnpm example:headless
 
 输出固定真实 Loader/Agent Loop 看到的教师 prompt 和学习工具，并覆盖初学者诊断、有经验开发者在诊断仍有 uncertain 时显式跳课、四个连续单元、三级提示、implementation 失败、environment blocked 同 attempt 重试、Provider/Tool/Bundle machine evidence、综合验证、学习报告、原 Session 恢复和同 Enrollment 新 Session 延续。场景会逐次断言模型收到的 LearnerState 与对应 DSH Session Log 快照完全一致。
 
+安装本地 `learn-dsh` agent preset：
+
+~~~sh
+pnpm build
+pnpm preset:install
+pnpm preset:check
+~~~
+
+然后把 bundle 安装到 DSH 的 `web` profile，并启动真实交互 surface：
+
+~~~sh
+cd ../deepseek-harness
+pnpm dsh plugin --profile web add /absolute/path/to/learn-deepseek-harness/packages/bundle
+pnpm dsh --profile web --help
+pnpm dsh --profile web
+~~~
+
+浏览器中新建 Session 时选择 `Learn DSH` preset。真实模型对话需要先通过 DSH 的 Models/settings 配置 provider 与凭据；凭据不要写入本仓库。preset 只挂载教师 Persona、学习工具和必要的 agent-side 文件/Shell 工具，课程、长期记忆、Lab 和 teaching 状态机由 profile 中的 bundle host rows 提供。
+
+卸载时分别移除 profile bundle 与受管 preset：
+
+~~~sh
+cd ../deepseek-harness
+pnpm dsh plugin --profile web remove @learn-dsh/bundle
+cd ../learn-deepseek-harness
+pnpm preset:remove
+~~~
+
 验证标准外部 profile 安装、`dump-config` 和移除，不会写入真实 `~/.dsh`：
 
 ~~~sh
 pnpm test:profile
 ~~~
 
-如需手动安装到自己的 profile，在上游 DSH checkout 中运行：
+安装测试会在临时 `DSH_HOME` 中验证 preset install/check/remove、web profile bundle 安装、真实 app-owned `--help` surface、卸载和重装。完整 keyless 教学证据仍由 `examples/headless` 提供。
 
-~~~sh
-pnpm dsh plugin --profile learn-dsh add /absolute/path/to/learn-deepseek-harness/packages/bundle
-pnpm dsh --profile learn-dsh --dump-config
-pnpm dsh plugin --profile learn-dsh remove @learn-dsh/bundle
-~~~
-
-当前 `learn-dsh` profile 安装测试证明外部 bundle 组合、移除和重装；可交互的 CLI surface 和部署 preset 会在后续阶段加入。可运行的 Agent surface 由 `examples/headless` 提供。
-
-课程扩展见 [课程作者指南](docs/course-authoring.md)，环境与运行故障见 [故障排查](docs/troubleshooting.md)，发布候选边界见 [发布检查](docs/release.md)。
+课程扩展见 [课程作者指南](docs/course-authoring.md)，教学质量验收见 [教学评估协议](docs/teaching-evaluation.md)，环境与运行故障见 [故障排查](docs/troubleshooting.md)，发布候选边界见 [发布检查](docs/release.md)。
 
 ## 仓库结构
 
@@ -144,7 +164,7 @@ packages/lab/         练习工作区/check Service Definition 与 sandboxed 本
 packages/teaching/    确定性规划、Session 绑定和教学活动状态机
 packages/teacher/     教师 Persona 与 LearnerState 动态上下文
 packages/tool-learning/ 模型可调用的诊断、计划与教学领域工具
-packages/bundle/      可安装的 DSH profile patch layer
+packages/bundle/      可安装的 DSH host patch、learn-dsh preset 与 setup CLI
 examples/headless/    真实 Loader、Agent Loop 与 Session Log keyless 教学闭环
 scripts/              兼容性、文档和 profile 安装检查
 specs/                产品规格、设计、计划、测试和验收标准
@@ -160,6 +180,7 @@ pnpm lint
 pnpm typecheck
 pnpm test:unit
 pnpm test:snapshot
+pnpm eval:teaching:keyless
 pnpm test:coverage
 pnpm build
 pnpm docs:check
@@ -190,8 +211,8 @@ pnpm check
 - foundations 课程当前包含四个线性单元并覆盖八项 MVP 学习成果；更多课程、多语言和非线性路径不在 0.1.0 范围。
 - 当前诊断由课程 objectives 和 required rubric 派生并影响推荐顺序；跳课只要求用户显式请求，不受 gap、uncertain 或证据缺失阻止。skipped 单元满足导航先修，但不计为 mastery、练习完成或已验证能力。
 - 三级提示按 attempt 顺序持久化；前两级通过课程加载门禁限制 fenced code、完整答案措辞和长度。该门禁不能替代课程作者人工教学复核。
-- `examples/headless` 使用脚本 LLM adapter 提供稳定 keyless 证据；可交互 CLI、真实模型 adapter 配置和 agent preset 尚未发布。
-- bundle patch 只挂载 Learn DSH 插件，要求 host profile 提供 Agent/System Prompt/Tools、sandboxed FS/Shell 和 Session 能力；当前 profile gate 验证安装、配置和移除，不代表完整交互部署。
+- `examples/headless` 使用脚本 LLM adapter 提供稳定 keyless 证据；`learn-dsh` preset 和 web profile 启动入口已提供，但当前执行环境没有真实模型凭据，真人教学验收也尚未完成。
+- bundle host patch 要求 profile 提供 Agent/System Prompt/Tools、agent-preset roster、sandboxed FS/Shell 和 Session 能力；当前 web profile gate 验证 preset 发现、安装、app surface、移除和重装，真实模型教学质量仍需独立评估。
 - 长期学习状态由独立 learner-memory 保存，不依赖树外 DSH Session event；DSH Session Log 只保存单次会话以及模型实际收到的精确 LearnerState 快照。
 - 当前 Learner Event Store 必需 payload version 为 2；version 1 记录会报告 unsupported-version，需要使用新的 Enrollment 或显式离线迁移。
 - 本地 learner-memory Provider 面向单 host 进程；多个独立进程不能同时写同一存储根。团队或多进程共享需要后续远程 Provider。

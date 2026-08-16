@@ -20,10 +20,3 @@
       config:
         learnerId: local-learner
         enrollmentId: dsh-foundations-local
-
-    - id: learn-dsh-teacher
-      name: '@learn-dsh/teacher'
-      inject: [systemPrompt, teaching]
-
-    - id: learn-dsh-tool-learning
-      name: '@learn-dsh/tool-learning'

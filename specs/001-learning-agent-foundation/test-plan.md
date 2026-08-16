@@ -38,7 +38,7 @@
 - 检查结果分类。
 - 练习目录归属和 reset 目标解析。
 
-目标：packages 下业务源文件保持每文件 100% statement、branch、function 和 line coverage。对纯类型、生成代码或不可执行声明使用窄且有说明的例外。
+发布门禁：packages 下被单元测试执行的业务源码整体至少保持 84% statement、72% branch、90% function 和 90% line coverage。纯类型、元数据常量、生成代码或不可执行声明不强制进入运行时 coverage；关键状态转换、持久化、安全边界和用户旅程仍必须由针对性测试与真实组装 snapshot 覆盖，不能仅依赖总体百分比。
 
 ### 2.3 Plugin 集成测试
 
@@ -219,10 +219,11 @@ Phase 0 的可复现入口：
 
 ## 12. Phase 5 发布候选门禁
 
-- `pnpm test:coverage`：生成业务源码 text、JSON summary 和 LCOV 报告，并以 84% statements、72% branches、90% functions、90% lines 作为防回退下限。该临时下限只用于阻止现状倒退；只有达到 2.2 节的每文件 100% 目标后，F-AC-002 才能通过。
+- `pnpm test:coverage`：生成业务源码 text、JSON summary 和 LCOV 报告，并以 84% statements、72% branches、90% functions、90% lines 作为强制防回退门禁。阈值与 2.2 节一致，通过时可作为 F-AC-002 证据。
 - `pnpm security:check`：扫描 Git 跟踪文本和环境文件名，拒绝 private key、OpenAI/DeepSeek 风格 key、GitHub token 和 AWS access key 等高置信度凭据模式。
-- `pnpm test:profile`：在临时 `DSH_HOME` 中执行 add、dump-config、remove、reinstall、第二次 remove，并证明独立 headless profile 不变。
-- `pnpm release:check`：打包八个公开 package，检查发布元数据、runtime dependency protocol、tarball 内容、export 目标和凭据模式；在临时 consumer 中通过 tarball 安装全部 Learn DSH package、导入公开入口，并从安装后 bundle 路径复用 profile 重装门禁。
+- `pnpm eval:teaching:keyless`：对真实组装 snapshot 执行来源准确性、证据边界、自适应路径、提示顺序、blocked 重试、Session Log 审计和报告语义 rubric；它不替代真人参与者验收。
+- `pnpm test:profile`：在临时 `DSH_HOME` 中执行 preset install/check/remove、web profile add、dump-config、app-owned `--help`、remove、reinstall、第二次 remove，并证明独立 headless profile 不变。
+- `pnpm release:check`：打包八个公开 package，检查发布元数据、runtime dependency protocol、tarball 内容、export/bin 目标和凭据模式；在临时 consumer 中通过 tarball 安装全部 Learn DSH package、导入公开入口，并从安装后 bundle 路径复用 preset/profile 重装门禁。
 - `.github/workflows/ci.yml`：在 Linux Node 22.19、Linux Node 24 和 macOS Node 22.19 上 checkout 锁定 DSH commit，构建 host packages 并运行 `pnpm check`。
 
-受支持的 DSH `0.1.0-rc.5` 包集尚未完整发布，因此当前 release candidate 的 DSH peer dependency 来自锁定 checkout，不把该结果记为纯 registry 安装。真实模型和人工教学 rubric 也不由 deterministic CI 替代。
+受支持的 DSH `0.1.0-rc.5` 包集尚未完整发布，因此当前 release candidate 的 DSH peer dependency 来自锁定 checkout，不把该结果记为纯 registry 安装。真实模型和真人参与者 rubric 也不由 deterministic CI 替代。

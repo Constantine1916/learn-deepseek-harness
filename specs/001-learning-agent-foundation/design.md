@@ -33,7 +33,7 @@ packages/
   teaching/         确定性规划和教学活动状态机
   teacher/          教师 Persona 与 LearnerState 动态上下文
   tool-learning/    面向模型的学习状态与活动工具
-  bundle/           可安装 profile patch layer
+  bundle/           可安装 profile patch layer、agent preset 与 setup CLI
 examples/
   headless/         真实 Loader、Agent Loop、Lab 与 Session Log keyless snapshot
 scripts/            兼容性、文档和 profile 安装检查
@@ -353,21 +353,27 @@ Phase 4 基础课程使用四个线性单元覆盖三组主题：Plugin/Context/
 
 ## 10. Bundle 与 Preset
 
-bundle 依赖 DSH 基础能力并挂载 Learn DSH 插件。开发安装：
+bundle 依赖 DSH 基础能力并挂载进程级 Learn DSH 插件。`curriculum`、`learner-memory`、`learner`、`lab` 和 `teaching` 位于 host composition；`teacher`、`tool-learning` 以及 preset 选择的基础 agent 工具位于 `learn-dsh` agent preset，避免同一 profile 中的其他 preset 获得教学 Persona 或工具。
+
+开发安装：
 
 ~~~sh
-dsh plugin --profile learn-dsh add ./packages/bundle
+learn-dsh-setup install
+dsh plugin --profile web add ./packages/bundle
 ~~~
 
-自定义 `learn-dsh` profile 由 DSH 标准插件命令初始化为 base layer，再追加 Learn DSH bundle。它用于验证外部安装和配置组合；交互式 CLI surface 与 agent preset 在后续阶段加入。`examples/headless` 通过 DSH app boot、真实 Cordis Loader、公共 Agent Loop、脚本 LLM adapter、sandboxed Lab 和 JSONL Session persistence 执行 Phase 2 教学闭环，不手工模拟请求或 Session Log。
+本地 setup CLI 把发布物内的 `presets/learn-dsh/agent.cordis.yml`、`preset.yml` 和所有权 marker 幂等安装到 DSH 的 user preset root。它只写入解析后的 `$DSH_HOME/.agent-presets/learn-dsh`，冲突时默认拒绝，卸载前验证 marker，不修改 DSH checkout。标准 profile 插件命令把 bundle 安装到真实 DSH profile；profile app 自己拥有交互 surface，Learn DSH 不复制 CLI 或 Agent Loop。
+
+`examples/headless` 通过 DSH app boot、真实 Cordis Loader、公共 Agent Loop、脚本 LLM adapter、sandboxed Lab 和 JSONL Session persistence 执行完整教学闭环，不手工模拟请求或 Session Log。profile gate 另外启动 app-owned `--help` surface，证明安装后的真实 profile 可启动；无模型 key 时不把它冒充真实模型教学评估。
 
 发布后安装：
 
 ~~~sh
-dsh plugin --profile learn-dsh add @learn-dsh/bundle
+learn-dsh-setup install
+dsh plugin --profile web add @learn-dsh/bundle
 ~~~
 
-preset 只携带单 Agent 的 Persona、课程上下文和教学工具限制；进程级课程注册、learner-memory Provider 和基础 DSH 服务留在 host composition。
+preset 只携带单 Agent 的 Persona、教学工具和必要的 agent-side shell/filesystem 工具；进程级课程注册、learner-memory Provider、Lab、teaching 状态机和基础 DSH 服务留在 host composition。
 
 ## 11. 版本策略
 

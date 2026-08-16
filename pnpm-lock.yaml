@@ -126,6 +126,9 @@ importers:
         specifier: workspace:^
         version: link:../tool-learning
     devDependencies:
+      '@deepseek-ai/cordis-plugin-include':
+        specifier: link:../../../deepseek-harness/vendor/include
+        version: link:../../../deepseek-harness/vendor/include
       '@deepseek-ai/dsh-app-boot':
         specifier: link:../../../deepseek-harness/packages/boot/app-boot
         version: link:../../../deepseek-harness/packages/boot/app-boot

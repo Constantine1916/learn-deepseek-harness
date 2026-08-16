@@ -103,6 +103,10 @@ Must：项目必须以外部插件和 bundle 安装到受支持的 DSH Runtime�
 
 Must：卸载 bundle 后，DSH 的其他 profile 必须保持可用。
 
+Must：发布物必须包含可由 DSH agent-preset roster 发现的 `learn-dsh` preset，并提供幂等的安装、检查和卸载命令；preset 只拥有模型侧 Persona、教学工具和必要的 agent-side 工具，长期状态、课程、Lab 和其他 host capability 仍由 bundle 挂载。
+
+Must：安装验证必须从真实 DSH profile 启动到 app-owned CLI surface，并证明 preset 文件来自 Learn DSH 发布物，不依赖修改 DSH checkout。
+
 ### F-002 教师 Persona
 
 Must：Agent 必须说明自己的教学角色、学习闭环和权限限制。
@@ -251,7 +255,7 @@ Must：报告必须区分“已阅读”“用户跳过”“已完成练习”�
 
 MVP 包含：
 
-- 一个可安装的 headless/CLI 教学 bundle。
+- 一个可安装的教学 bundle、`learn-dsh` agent preset 和真实 DSH profile 启动入口。
 - 教师 Persona。
 - 版本化基础课程图。
 - 初始诊断和计划。

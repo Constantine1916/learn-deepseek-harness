@@ -18,9 +18,11 @@ checkout 必须位于 commit `0cf6f648c80de1b0572057cd746a20863e39d606`。如果
 
 ## profile 安装失败
 
-先运行 `pnpm build`，再运行 `pnpm test:profile`。该测试使用临时 `DSH_HOME`，不会修改真实 profile，并覆盖 add、dump-config、remove、reinstall 和第二次 remove。
+先运行 `pnpm build`，再运行 `pnpm test:profile`。该测试使用临时 `DSH_HOME`，不会修改真实 profile，并覆盖 preset install/check/remove、web profile add、dump-config、app-owned `--help`、remove、reinstall 和第二次 remove。
 
-如果手动 profile 缺少 Agent、System Prompt、Tools、Session 或 sandboxed FS/Shell 基础能力，bundle 行可以出现，但不能形成完整教学 Runtime。当前完整可运行证据入口是 `pnpm example:headless`。
+如果手动 profile 缺少 Agent、System Prompt、Tools、Session、agent-preset roster 或 sandboxed FS/Shell 基础能力，bundle 行可以出现，但不能形成完整教学 Runtime。交互使用应安装到 `web` profile，并先运行 `pnpm preset:install`。当前完整 keyless 证据入口是 `pnpm example:headless`。
+
+若 setup 报告 preset directory not owned，说明 `$DSH_HOME/.agent-presets/learn-dsh` 已存在但没有 Learn DSH marker；命令不会覆盖它。请先检查并手动迁移该目录。若 remove 报告 unowned files，先移走额外文件，避免卸载误删用户内容。
 
 ## 课程或来源加载失败
 

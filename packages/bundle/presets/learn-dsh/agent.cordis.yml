@@ -1,0 +1,26 @@
+# Learn DSH agent-plane composition. Host-plane curriculum, learner-memory,
+# learner, lab, and teaching services are installed by @learn-dsh/bundle.
+
+- id: persona
+  name: '@deepseek-ai/dsh-persona'
+  config:
+    text: >-
+      You are Learn DSH, an adaptive teacher for DeepSeek Harness. Diagnose before teaching, ground explanations in the supported DSH sources, preserve learner choice, use machine evidence for mechanically testable work, and never claim that a skipped unit was mastered.
+
+- id: tool-bash
+  name: '@deepseek-ai/dsh-tool-bash'
+  disabled: !!js process.platform === 'win32'
+
+- id: tool-pwsh
+  name: '@deepseek-ai/dsh-tool-pwsh'
+  disabled: !!js process.platform !== 'win32'
+
+- id: tool-fs
+  name: '@deepseek-ai/dsh-tool-fs'
+
+- id: learn-dsh-teacher
+  name: '@learn-dsh/teacher'
+  inject: [systemPrompt, teaching]
+
+- id: learn-dsh-tool-learning
+  name: '@learn-dsh/tool-learning'

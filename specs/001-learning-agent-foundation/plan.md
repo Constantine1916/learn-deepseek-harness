@@ -106,11 +106,11 @@
 任务：
 
 - P5-01（阻塞）：发布 @learn-dsh/bundle 及其依赖包。关联 F-001。受支持的 DSH `0.1.0-rc.5` 尚无完整 npm 包集；真实 publish 需要先确认 DSH 发布或兼容矩阵迁移策略。
-- P5-02（部分完成）：本地 release candidate 已验证八个 tarball 的干净 consumer 安装、公开入口导入、profile 安装、卸载和重新安装。关联 F-001。纯 registry 安装和从安装后 profile 启动交互教学 Runtime 仍待发布依赖与 preset。
-- P5-03（部分完成）：本地兼容性、完整 keyless snapshots、tracked-file/tarball secret scan、发布内容检查和 macOS/Linux Node matrix workflow 已建立。关联 Q-003、Q-005、Q-006。首次远程 matrix 结果和 100% coverage closure 仍待完成。
-- P5-04：执行可选真实模型教学评估和人工 rubric。关联 Q-006。
-- P5-05（完成）：完成快速开始、课程作者指南、故障排查、发布检查和已知限制。
-- P5-06（进行中）：已汇总 Phase 0–4 与 Phase 5 本地发布候选证据；远程 CI、coverage closure、人工 rubric 和 registry 发布证据待补。
+- P5-02（本地完成）：本地 release candidate 已验证八个 tarball 的干净 consumer 安装、公开入口导入、`learn-dsh` preset setup CLI、preset install/check/remove、真实 web profile app surface、bundle 安装、卸载和重新安装。关联 F-001。纯 registry 安装仍待发布依赖。
+- P5-03（进行中）：本地兼容性、完整 keyless snapshots、coverage、tracked-file/tarball secret scan、发布内容检查和 macOS/Linux Node matrix workflow 已建立。关联 Q-003、Q-005、Q-006。Linux runner 已显式安装 bubblewrap，远程 matrix 结果待本次提交后确认。
+- P5-04（部分完成）：keyless teaching rubric 已成为确定性门禁；当前环境没有真实模型 key，真人参与者试用尚未执行。关联 Q-006。
+- P5-05（完成）：完成快速开始、课程作者指南、故障排查、发布检查、教学评估协议和已知限制。
+- P5-06（进行中）：已汇总 Phase 0–4 与 Phase 5 本地发布候选证据；远程 CI、人工 rubric 和 registry 发布证据待补。
 
 出口：
 

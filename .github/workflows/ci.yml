@@ -45,6 +45,13 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
 
+      - name: Install Linux sandbox backend
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes bubblewrap
+          bwrap --version
+
       - name: Install and build supported DSH baseline
         working-directory: deepseek-harness
         run: |

@@ -18,8 +18,12 @@
     "clean": "tsc -b --clean",
     "compat": "node scripts/check-dsh-compatibility.mjs",
     "docs:check": "node scripts/check-docs.mjs",
+    "eval:teaching:keyless": "node scripts/check-teaching-rubric.mjs",
     "example:headless": "pnpm --filter @learn-dsh/example-headless start",
     "lint": "oxlint packages examples scripts *.config.ts --deny-warnings",
+    "preset:check": "tsx packages/bundle/src/setup-bin.ts check",
+    "preset:install": "tsx packages/bundle/src/setup-bin.ts install",
+    "preset:remove": "tsx packages/bundle/src/setup-bin.ts remove",
     "release:check": "node scripts/check-release-candidate.mjs",
     "security:check": "node scripts/check-secrets.mjs",
     "test": "pnpm run test:unit && pnpm run test:snapshot",
@@ -28,7 +32,7 @@
     "test:snapshot": "vitest run --config vitest.snapshot.config.ts",
     "test:unit": "vitest run --config vitest.config.ts",
     "typecheck": "tsc -b --pretty false && tsc -p tsconfig.test.json --noEmit --pretty false",
-    "check": "pnpm run lint && pnpm run typecheck && pnpm run test:unit && pnpm run test:snapshot && pnpm run test:coverage && pnpm run build && pnpm run docs:check && pnpm run compat && pnpm run security:check && pnpm run test:profile && pnpm run release:check"
+    "check": "pnpm run lint && pnpm run typecheck && pnpm run test:unit && pnpm run test:snapshot && pnpm run eval:teaching:keyless && pnpm run test:coverage && pnpm run build && pnpm run docs:check && pnpm run compat && pnpm run security:check && pnpm run test:profile && pnpm run release:check"
   },
   "devDependencies": {
     "@types/js-yaml": "4.0.9",
