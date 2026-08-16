@@ -27,9 +27,12 @@
   },
   "dependencies": {
     "@learn-dsh/curriculum": "workspace:^",
+    "@learn-dsh/lab": "workspace:^",
     "@learn-dsh/learner": "workspace:^",
     "@learn-dsh/learner-memory": "workspace:^",
-    "@learn-dsh/teacher": "workspace:^"
+    "@learn-dsh/teacher": "workspace:^",
+    "@learn-dsh/teaching": "workspace:^",
+    "@learn-dsh/tool-learning": "workspace:^"
   },
   "devDependencies": {
     "@deepseek-ai/dsh-app-boot": "link:../../../deepseek-harness/packages/boot/app-boot"

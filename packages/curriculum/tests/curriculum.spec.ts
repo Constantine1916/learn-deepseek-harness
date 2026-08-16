@@ -33,7 +33,11 @@ interface RawUnit {
   contentEntry: string
   sources: RawSource[]
   checkpoints: Array<{ id: string }>
-  exercises: Array<{ id: string }>
+  exercises: Array<{
+    id: string
+    fixture: string
+    checks: Array<{ id: string, entry: string, timeoutMs: number }>
+  }>
   hints: Array<{ level: number }>
   rubric: Array<{ id: string, evidenceKinds: string[] }>
   completion: {
@@ -97,6 +101,14 @@ describe('F-003 versioned curriculum schema and graph', () => {
     const unsafeSource = fixture()
     unsafeSource.units[0]!.sources[0]!.path = '/etc/passwd'
     expect(() => parseCourseManifest(unsafeSource)).toThrow(/source path must stay inside/)
+
+    const unsafeFixture = fixture()
+    unsafeFixture.units[0]!.exercises[0]!.fixture = '../outside'
+    expect(() => parseCourseManifest(unsafeFixture)).toThrow(/fixture must stay inside/)
+
+    const unsafeCheck = fixture()
+    unsafeCheck.units[0]!.exercises[0]!.checks[0]!.entry = '/tmp/check.mjs'
+    expect(() => parseCourseManifest(unsafeCheck)).toThrow(/check .* entry must stay inside/)
 
     const shortCommit = fixture()
     shortCommit.units[0]!.sources[0]!.version = '0cf6f64'

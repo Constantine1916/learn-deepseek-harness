@@ -190,3 +190,12 @@ Phase 0 的可复现入口：
 - `pnpm test:profile`：安装后的 profile 同时出现 curriculum、learner-memory、learner 与 teacher 行，移除 bundle 后均无残留。
 
 模型实际收到的 LearnerState 快照进入 DSH Session Log 属于 Phase 2；Phase 1 不把 headless 状态输出误记为 Session 请求审计证据。
+
+## 9. Phase 2 第一个教学闭环证据
+
+- `pnpm test:unit`：验证 `explain → checkpoint → exercise → feedback` 转换、确定性先修规划、非法跳转拒绝、稳定命令重试、失败后同 attempt 重试、machine evidence 门禁和单元完成。
+- `pnpm test:unit`：通过真实 DSH ToolRuntime 执行 `learning_get_state`、`learning_start_unit` 和 `learning_complete_activity`，并验证工具只返回已提交状态。
+- `pnpm test:unit`：通过 DSH sandbox、FS、Shell 和 policy 创建、检查、重置真实 fixture；验证 workspace 归属、marker 身份、失败分类和通过产物。
+- `pnpm test:snapshot`：通过真实 Loader、Agent Loop、脚本 LLM adapter 和 JSONL Session persistence 固定首次进入、失败检查、成功检查、原 Session 恢复和同 Enrollment 新 Session 延续。每个模型请求中的 `learn-dsh:learner-state` 文本必须逐字存在于对应 Session Log。
+- `pnpm test:profile`：安装后的 profile 出现 curriculum、learner-memory、learner、lab、teaching、teacher 和 tool-learning 行，移除 bundle 后无残留。
+- `pnpm check`：汇总 lint、strict typecheck、unit、snapshot、build、docs、compatibility 和 profile 门禁。

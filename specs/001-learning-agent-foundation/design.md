@@ -29,15 +29,18 @@ packages/
   curriculum/       课程 schema、图验证、内容入口和来源 anchor
   learner-memory/   追加式学习事件持久化 Service 与本地 Provider
   learner/          学习事件、纯投影和查询/追加 Service
-  teacher/          最小教师 system-prompt 插件
+  lab/              练习工作区 Service 与 sandboxed 本地 Provider
+  teaching/         确定性规划和教学活动状态机
+  teacher/          教师 Persona 与 LearnerState 动态上下文
+  tool-learning/    面向模型的学习状态与活动工具
   bundle/           可安装 profile patch layer
 examples/
-  headless/         真实 Loader prompt 组装与 keyless snapshot
+  headless/         真实 Loader、Agent Loop、Lab 与 Session Log keyless snapshot
 scripts/            兼容性、文档和 profile 安装检查
 docs/               开发约定和兼容矩阵
 ~~~
 
-后续阶段按出现的稳定职责继续扩展为：
+后续阶段继续补充诊断、提示、完整课程和发布入口；不为这些职责预建空 package：
 
 ~~~text
 packages/
@@ -45,7 +48,7 @@ packages/
   learner/          学习事件、状态投影和查询 Service
   learner-memory/   追加式学习事件持久化 Service 与本地 Provider
   teaching/         诊断、计划和教学活动状态机
-  teacher-prompt/   教师 Persona 与当前活动上下文
+  teacher/          教师 Persona 与当前活动上下文
   lab/              练习工作区和评测执行
   tool-learning/    面向模型的课程、练习、提示和提交工具
   bundle/           可安装的 profile patch layer
@@ -88,6 +91,19 @@ Consumer 以 LearnerId 和 EnrollmentId 读取有序事件，以 EventId 或命�
 
 拥有诊断、计划和当前教学活动的状态转换。它选择下一活动，但不直接执行 Shell、编辑文件或调用模型。所有选择结果都追加带原因的学习事件。
 
+Phase 2 使用以下最小确定性活动状态机完成第一个纵向切片：
+
+~~~text
+explain -> checkpoint -> exercise -> feedback
+                              ^          |
+                              | failed   | passed
+                              +----------+------> unit completed
+~~~
+
+`learning/unit-started` 建立 `explain` 活动；`learning/activity-advanced` 记录显式转换、原因和可选 attempt；`learning/exercise-created`、`learning/checks-completed` 和 `learning/unit-completed` 继续保存领域事实。转换必须验证当前活动、单元和 attempt，不能由模型直接指定任意下一状态。
+
+Phase 2 的最小规划器只选择版本兼容、先修已完成且尚未完成的第一个计划单元。模型可以请求开始单元，但 teaching Service 必须拒绝跳过该确定性候选的请求。
+
 ### teacher-prompt
 
 向 ctx.systemPrompt 注册稳定教师 Persona，并把当前目标、单元、证据和活动以作用域上下文加入请求。它只呈现 learner 和 teaching 的状态，不拥有状态。
@@ -95,6 +111,10 @@ Consumer 以 LearnerId 和 EnrollmentId 读取有序事件，以 EventId 或命�
 ### lab
 
 创建、定位、重置练习工作区；通过 DSH FS、Shell、Subprocess、Sandbox 和 Approval 能力执行已解析的检查规格。它不能接收模型生成的任意重置路径。
+
+`ctx.lab` 是可替换的 Service Definition；本地 Provider 使用 DSH `ctx.fs` 解析和验证路径，使用 `ctx.shell` 执行受信任的 fixture 准备器和检查入口，并把调用 Session 解析出的 `ctx.sandboxPolicy` 传给每次执行。模型只能传递已加载的 ExerciseId/AttemptId，不能传目录或命令。
+
+Phase 2 的一个 fixture 使用课程声明的 `runner: node` 和安全相对 `entry`。Lab 根据固定 runner 构造命令；课程和模型都不能提供 shell 源码。attempt 目录带有身份 marker，reset 必须同时验证目录属于配置 workspace root 且 marker 与 LearnerId、EnrollmentId、ExerciseAttemptId 一致。
 
 ### tool-learning
 
@@ -109,6 +129,14 @@ Consumer 以 LearnerId 和 EnrollmentId 读取有序事件，以 EventId 或命�
 - learning_complete_activity
 
 工具只表达领域动作。普通文件编辑和 Shell 仍由 DSH 原生工具提供并受现有策略控制。
+
+Phase 2 首先交付三个工具：
+
+- `learning_get_state`：只读取当前 Session 绑定 Enrollment 的已提交状态。
+- `learning_start_unit`：使用确定性规划器建立 enrollment/goal/plan（缺失时）并开始唯一允许的单元。
+- `learning_complete_activity`：根据当前活动完成 explain、checkpoint、exercise 或 feedback；checkpoint 创建隔离 attempt，exercise 运行确定性检查，feedback 只有在已提交 machine evidence 后才能完成单元。
+
+写工具要求调用方提供稳定 `command_id`。一个工具需要追加多个领域事件时，从该根 ID 确定性派生各事件的 EventId/CommandId，使崩溃后的同命令重试可以继续而不会重复授予证据或完成状态。
 
 ### bundle
 
@@ -133,10 +161,24 @@ Unit
   prerequisites[]
   sources[]
   checkpoints[]
-  exerciseIds[]
+  exercises[]
   hints[]
   rubric[]
   completionRule
+
+Exercise
+  id
+  title
+  kind
+  fixture
+  checks[]
+
+ExerciseCheck
+  id
+  runner: node
+  entry
+  timeoutMs
+  category
 
 Source
   repository
@@ -145,6 +187,8 @@ Source
   anchor
   purpose
 ~~~
+
+`fixture` 和 check `entry` 都是安全相对路径。Phase 2 不接受课程提供的任意 shell command；本地 Lab Provider 只支持显式 runner，并由 runner 与 entry 构造执行。
 
 课程 package 在没有 DSH source root 时仍校验 schema、SemVer、图关系和相对路径安全；文件存在性与 anchor 匹配在 source root 可解析时立即校验。默认随包发布的 manifest 始终完成前一组验证，真实 headless example 还必须针对锁定的相邻 DSH checkout 完成后一组验证。
 
@@ -160,6 +204,7 @@ Source
 - learning/plan-created
 - learning/plan-adjusted
 - learning/unit-started
+- learning/activity-advanced
 - learning/exercise-created
 - learning/checks-completed
 - learning/hint-used
@@ -259,6 +304,8 @@ artifacts
 
 teacher-prompt 从 `ctx.learner` 读取已提交 LearnerState，生成结构化上下文和可选自然语言摘要。每次实际进入模型请求的状态必须通过 DSH 已有请求上下文机制记录为 Session Log 快照；摘要和快照均可重新生成，不作为 Learner Event Store 的替代品。
 
+Phase 2 使用 `ctx.systemPrompt.context()` 注册命名动态上下文。DSH Agent Loop 在每次 prompt assembly 后把变化后的完整 runtime-context snapshot 作为 plugin 来源的 `user/message` 追加到 Session Log；该文本包含规范 JSON 的 LearnerState 与课程/活动摘要。对应模型请求的 `request/header` 继续记录实际 system prompt 和 tool schemas。测试必须断言模型收到的 LearnerState 文本与 Session Log 中的快照逐字一致。
+
 Prompt 约束：
 
 - 不虚构源码内容或检查结果。
@@ -289,7 +336,7 @@ bundle 依赖 DSH 基础能力并挂载 Learn DSH 插件。开发安装：
 dsh plugin --profile learn-dsh add ./packages/bundle
 ~~~
 
-自定义 `learn-dsh` profile 由 DSH 标准插件命令初始化为 base layer，再追加 Learn DSH bundle。它用于验证外部安装和配置组合；完整 headless surface 与 agent preset 在后续阶段加入。`examples/headless` 通过 DSH app boot 和真实 Cordis Loader 组装 prompt、加载课程并解析来源 anchor，不手工模拟 Loader。
+自定义 `learn-dsh` profile 由 DSH 标准插件命令初始化为 base layer，再追加 Learn DSH bundle。它用于验证外部安装和配置组合；交互式 CLI surface 与 agent preset 在后续阶段加入。`examples/headless` 通过 DSH app boot、真实 Cordis Loader、公共 Agent Loop、脚本 LLM adapter、sandboxed Lab 和 JSONL Session persistence 执行 Phase 2 教学闭环，不手工模拟请求或 Session Log。
 
 发布后安装：
 

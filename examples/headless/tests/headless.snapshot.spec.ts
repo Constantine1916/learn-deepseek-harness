@@ -8,8 +8,8 @@ import { describe, expect, it } from 'vitest'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 
-describe('Q-006 keyless real Loader prompt snapshot', () => {
-  it('assembles the Learn DSH teacher prompt', async () => {
+describe('F-011 Q-006 keyless real Agent Loop teaching snapshot', () => {
+  it('completes Phase 2 and audits LearnerState snapshots through Session Log', async () => {
     const home = await mkdtemp(resolve(tmpdir(), 'learn-dsh-headless-'))
     try {
       const result = spawnSync(process.execPath, ['--import', import.meta.resolve('tsx'), resolve(root, 'src/bin.ts')], {

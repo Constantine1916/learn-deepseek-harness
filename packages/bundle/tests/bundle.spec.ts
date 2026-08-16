@@ -27,9 +27,21 @@ describe('F-001 external Learn DSH bundle', () => {
         name: '@learn-dsh/learner',
       },
       {
+        id: 'learn-dsh-lab',
+        name: '@learn-dsh/lab/local',
+      },
+      {
+        id: 'learn-dsh-teaching',
+        name: '@learn-dsh/teaching',
+      },
+      {
         id: 'learn-dsh-teacher',
         name: '@learn-dsh/teacher',
-        inject: ['systemPrompt'],
+        inject: ['systemPrompt', 'teaching'],
+      },
+      {
+        id: 'learn-dsh-tool-learning',
+        name: '@learn-dsh/tool-learning',
       },
     ])
   })

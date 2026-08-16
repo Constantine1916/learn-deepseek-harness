@@ -2,7 +2,7 @@
 
 一个基于 DeepSeek Harness 插件生态构建的自适应教学 Agent，帮助开发者通过讲解、源码探索、实践任务和反馈循环，系统掌握 DSH。
 
-> 项目状态：Phase 0 工程基线和 Phase 1 课程/长期学习状态基础已实现。当前版本提供最小教师插件、版本化 foundations 课程、独立追加式 Learner Event Store、确定性 LearnerState 投影、可安装 bundle、真实 Loader headless example 和基础门禁；诊断、模型请求状态快照、练习与 Web UI 尚未实现。
+> 项目状态：Phase 0、Phase 1 和 Phase 2 已实现。当前版本已经具备版本化 foundations 单元、独立追加式 Learner Event Store、确定性教学状态机、三个学习工具、sandboxed 练习与机器检查、精确 Session Log 状态快照，以及真实 Agent Loop keyless 教学闭环；诊断、自适应路径调整、三级提示执行、完整课程和交互式 UI 尚未实现。
 
 ## 项目定位
 
@@ -58,12 +58,13 @@ MVP 覆盖以下学习路径：
 | curriculum | 课程图、概念、前置关系、源码锚点和练习目录 |
 | learner-memory | 持久化按 LearnerId/EnrollmentId 隔离的追加式学习事件 |
 | learner | 从持久学习事件投影状态，并提供查询、追加、幂等和 flush 接口 |
-| teacher-persona | 教师身份、教学原则和分层提示策略 |
-| diagnostic | 根据目标与回答选择诊断任务并记录证据 |
-| lesson-planner | 根据课程依赖和学习者状态选择下一教学活动 |
-| lab | 创建隔离练习工作区并限制可执行能力 |
-| evaluator | 运行确定性检查，结合 rubric 生成教学反馈 |
+| teaching | 绑定 Session 与 Enrollment，执行确定性计划和教学活动状态机 |
+| teacher | 注入教师 Persona 和模型实际看到的已提交 LearnerState |
+| tool-learning | 提供查询状态、开始单元和完成活动三个模型工具 |
+| lab | 通过 DSH sandboxed FS/Shell 创建、重置练习并运行确定性检查 |
 | learn-dsh-bundle | 将教学插件和 DSH 基础能力组合成 profile patch layer |
+
+诊断、自适应调课、三级提示和学习报告属于后续 Phase，当前还没有对应的可用组件。
 
 插件边界和事件模型在 [技术设计](specs/001-learning-agent-foundation/design.md) 中定义。
 
@@ -98,13 +99,13 @@ pnpm compat
 pnpm build
 ~~~
 
-运行不需要 API key 的真实 Loader prompt example：
+运行不需要 API key 的真实 Agent Loop 教学闭环：
 
 ~~~sh
 pnpm example:headless
 ~~~
 
-输出包含 DSH harness identity、`learn-dsh:teacher` section、最终组装后的教师 prompt，以及由真实 curriculum Service 加载并针对锁定上游 checkout 验证过的课程和来源 anchor。
+输出固定真实 Loader/Agent Loop 看到的教师 prompt 和三个学习工具，并覆盖首次进入、单元开始、讲解、检查点、隔离练习、失败检查、同 attempt 重试、成功 machine evidence、单元完成、原 Session 恢复和同 Enrollment 新 Session 延续。场景会逐次断言模型收到的 LearnerState 与对应 DSH Session Log 快照完全一致。
 
 验证标准外部 profile 安装、`dump-config` 和移除，不会写入真实 `~/.dsh`：
 
@@ -120,7 +121,7 @@ pnpm dsh --profile learn-dsh --dump-config
 pnpm dsh plugin --profile learn-dsh remove @learn-dsh/bundle
 ~~~
 
-当前 `learn-dsh` profile 只证明外部 bundle 组合；可交互的完整教学 Agent 会在后续阶段加入。
+当前 `learn-dsh` profile 安装测试证明外部 bundle 组合与移除；可交互的 CLI surface 和部署 preset 会在后续阶段加入。可运行的 Phase 2 Agent surface 由 `examples/headless` 提供。
 
 ## 仓库结构
 
@@ -128,9 +129,12 @@ pnpm dsh plugin --profile learn-dsh remove @learn-dsh/bundle
 packages/curriculum/  课程 schema、图验证、内容入口和 DSH 来源 anchor
 packages/learner-memory/ 追加式 Learner Event Store Service 与本地 Provider
 packages/learner/     学习事件、纯投影和 learner 查询/追加 Service
-packages/teacher/     最小教师 system-prompt 插件
+packages/lab/         练习工作区/check Service Definition 与 sandboxed 本地 Provider
+packages/teaching/    确定性规划、Session 绑定和教学活动状态机
+packages/teacher/     教师 Persona 与 LearnerState 动态上下文
+packages/tool-learning/ 三个模型可调用的学习领域工具
 packages/bundle/      可安装的 DSH profile patch layer
-examples/headless/    真实 Loader keyless runnable example
+examples/headless/    真实 Loader、Agent Loop 与 Session Log keyless 教学闭环
 scripts/              兼容性、文档和 profile 安装检查
 specs/                产品规格、设计、计划、测试和验收标准
 docs/                 开发约定和兼容矩阵
@@ -170,9 +174,11 @@ pnpm check
 
 - DSH `0.1.0-rc.5` 依赖通过相邻 checkout 的本地 `link:` 解析；当前不能从 npm 完成同版本干净安装。
 - 课程目前只有第一个 foundations 单元；完整八项学习成果和连续课程在 Phase 4 完成。
-- 教师插件只注册稳定 Persona section；没有诊断、教学工具或练习执行。
-- `learn-dsh` profile 尚不是完整 headless Agent surface；真实 prompt 组装由 `examples/headless` 证明。
-- 长期学习状态已由独立 learner-memory 保存，不依赖树外 DSH Session event。模型实际收到的 LearnerState 精确快照将在 Phase 2 接入 DSH Session Log；当前 headless snapshot 只证明长期状态提交、重放与真实 Loader 组合。
+- 当前规划器只执行确定性先修顺序；目标诊断、按证据跳课、学习者调课和难度适配在 Phase 3 完成。
+- 课程 manifest 已包含三级提示，但提示调用、提示使用事件和前两级泄露门禁在 Phase 4 完成。
+- `examples/headless` 使用脚本 LLM adapter 提供稳定 keyless 证据；可交互 CLI、真实模型 adapter 配置和 agent preset 尚未发布。
+- bundle patch 只挂载 Learn DSH 插件，要求 host profile 提供 Agent/System Prompt/Tools、sandboxed FS/Shell 和 Session 能力；当前 profile gate 验证安装、配置和移除，不代表完整交互部署。
+- 长期学习状态由独立 learner-memory 保存，不依赖树外 DSH Session event；DSH Session Log 只保存单次会话以及模型实际收到的精确 LearnerState 快照。
 - 本地 learner-memory Provider 面向单 host 进程；多个独立进程不能同时写同一存储根。团队或多进程共享需要后续远程 Provider。
 
 本项目是独立社区项目，不代表 DeepSeek 官方产品。

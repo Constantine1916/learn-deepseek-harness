@@ -52,6 +52,13 @@ units:
       - id: trace-minimal-plugin
         title: 追踪一个最小插件的注册与 dispose
         kind: source-inspection
+        fixture: trace-minimal-plugin
+        checks:
+          - id: trace-artifact
+            runner: node
+            entry: check.mjs
+            timeoutMs: 10000
+            category: implementation
     hints:
       - level: 1
         text: 先找插件接收的 ctx，再列出它通过 ctx 注册了什么。

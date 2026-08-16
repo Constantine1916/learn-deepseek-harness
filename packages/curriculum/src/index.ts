@@ -45,6 +45,7 @@ export type RubricId = string & { readonly __rubricId: unique symbol }
 export type EvidenceKind = 'authored' | 'machine' | 'observed'
 export type ExerciseKind = 'source-inspection' | 'code' | 'integration'
 export type SourceAnchorKind = 'heading' | 'text' | 'export' | 'test'
+export type ExerciseCheckCategory = 'implementation' | 'configuration' | 'environment' | 'safety'
 
 const ID_PATTERN = /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/
 
@@ -89,6 +90,16 @@ export interface CurriculumExercise {
   readonly id: ExerciseId
   readonly title: string
   readonly kind: ExerciseKind
+  readonly fixture: string
+  readonly checks: readonly CurriculumExerciseCheck[]
+}
+
+export interface CurriculumExerciseCheck {
+  readonly id: string
+  readonly runner: 'node'
+  readonly entry: string
+  readonly timeoutMs: number
+  readonly category: ExerciseCheckCategory
 }
 
 export interface CurriculumHint {
@@ -159,7 +170,19 @@ interface RawCourseManifest {
       purpose: string
     }>
     checkpoints: Array<{ id: string, title: string, evidenceKind: EvidenceKind }>
-    exercises: Array<{ id: string, title: string, kind: ExerciseKind }>
+    exercises: Array<{
+      id: string
+      title: string
+      kind: ExerciseKind
+      fixture: string
+      checks: Array<{
+        id: string
+        runner: 'node'
+        entry: string
+        timeoutMs: number
+        category: ExerciseCheckCategory
+      }>
+    }>
     hints: Array<{ level: 1 | 2 | 3, text: string }>
     rubric: Array<{ id: string, criterion: string, evidenceKinds: EvidenceKind[] }>
     completion: {
@@ -213,6 +236,14 @@ export const CourseManifestSchema: z<RawCourseManifest> = z.object({
       id: idSchema,
       title: nonEmptyString,
       kind: z.union(['source-inspection', 'code', 'integration'] as const).required(),
+      fixture: nonEmptyString,
+      checks: z.array(z.object({
+        id: idSchema,
+        runner: z.const('node').required(),
+        entry: nonEmptyString,
+        timeoutMs: z.number().step(1).min(1).required(),
+        category: z.union(['implementation', 'configuration', 'environment', 'safety'] as const).required(),
+      }).required()).min(1).required(),
     }).required()).min(1).required(),
     hints: z.array(z.object({
       level: z.union([z.const(1), z.const(2), z.const(3)]).required(),
@@ -323,6 +354,16 @@ function validateSemantics(raw: RawCourseManifest): void {
     const rubricIds = unit.rubric.map(item => item.id)
     requireUnique(checkpointIds, `unit "${unit.id}" checkpoints`)
     requireUnique(exerciseIds, `unit "${unit.id}" exercises`)
+    for (const exercise of unit.exercises) {
+      requireSafeRelativePath(exercise.fixture, `unit "${unit.id}" exercise "${exercise.id}" fixture`)
+      requireUnique(exercise.checks.map(check => check.id), `unit "${unit.id}" exercise "${exercise.id}" checks`)
+      for (const check of exercise.checks) {
+        requireSafeRelativePath(check.entry, `unit "${unit.id}" exercise "${exercise.id}" check "${check.id}" entry`)
+        if (!Number.isSafeInteger(check.timeoutMs) || check.timeoutMs < 1) {
+          throw new CurriculumValidationError(`unit "${unit.id}" exercise "${exercise.id}" check "${check.id}" timeoutMs must be a positive safe integer`)
+        }
+      }
+    }
     requireUnique(rubricIds, `unit "${unit.id}" rubric`)
     requireReferences(unit.completion.requiredCheckpointIds, new Set(checkpointIds), `unit "${unit.id}" completion.requiredCheckpointIds`)
     requireReferences(unit.completion.requiredExerciseIds, new Set(exerciseIds), `unit "${unit.id}" completion.requiredExerciseIds`)

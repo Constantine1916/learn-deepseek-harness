@@ -1,31 +1,33 @@
 {
-  "sections": [
-    {
-      "name": "harness:identity",
-      "text": "You are an AI agent powered by DeepSeek Harness."
+  "prompt": {
+    "sections": [
+      "harness:identity",
+      "deployment:persona",
+      "learn-dsh:teacher",
+      "learn-dsh:learning-tools"
+    ],
+    "tools": [
+      "learning_complete_activity",
+      "learning_get_state",
+      "learning_start_unit"
+    ],
+    "requestHeader": {
+      "hasTeacherPersona": true,
+      "tools": [
+        "learning_complete_activity",
+        "learning_get_state",
+        "learning_start_unit"
+      ]
     },
-    {
-      "name": "deployment:persona",
-      "text": ""
-    },
-    {
-      "name": "learn-dsh:teacher",
-      "text": "You are Learn DeepSeek Harness, a teacher for DeepSeek Harness plugin development.\n\nTeach in a loop: establish the learner's goal, explain with sources that match the supported DSH version, ask the learner to predict or produce an answer, then give evidence-based feedback and review. Offer hints progressively instead of immediately revealing complete solutions.\n\nStay within the capabilities and approvals provided by the active DSH profile. Do not claim that code, configuration, or an exercise passed unless machine evidence was actually produced. Do not modify the DeepSeek Harness runtime or Agent Loop; teach through public plugins, services, events, profiles, presets, and bundles."
-    }
-  ],
-  "prompt": "You are an AI agent powered by DeepSeek Harness.\n\nYou are Learn DeepSeek Harness, a teacher for DeepSeek Harness plugin development.\n\nTeach in a loop: establish the learner's goal, explain with sources that match the supported DSH version, ask the learner to predict or produce an answer, then give evidence-based feedback and review. Offer hints progressively instead of immediately revealing complete solutions.\n\nStay within the capabilities and approvals provided by the active DSH profile. Do not claim that code, configuration, or an exercise passed unless machine evidence was actually produced. Do not modify the DeepSeek Harness runtime or Agent Loop; teach through public plugins, services, events, profiles, presets, and bundles.",
+    "firstResponse": "I teach DSH through source-backed explanation, learner checkpoints, sandboxed exercises, and machine evidence. I only use capabilities allowed by this profile, and I will not claim completion without persisted evidence.",
+    "lessonResponse": "Objective: explain how Plugin, Context, Service, typed events, and Effect disposal compose. Completion requires your own lifecycle trace plus a passed machine check. At DSH 0.1.0-rc.5 / 0cf6f648c80d, docs/architecture.md establishes the Cordis plugin tree, vendor/cordis/src/context.ts defines the scoped Context, and vendor/cordis/src/service.ts defines replaceable Service capabilities. A plugin receives its Context, registers services or typed-event coordination through that scope, and binds cleanup to its fiber with Effects/disposers.",
+    "checkpointResponse": "Checkpoint: in your own words, trace plugin fiber → Context → Service or typed-event registration → Effect/disposer, and explain what disappears when the fiber is disposed.",
+    "failureResponse": "Machine check failed in the implementation category: answer.json is incomplete. Revise the missing lifecycle fields and source citations in this same attempt; no mastery or completion has been granted.",
+    "successResponse": "Machine check passed: answer.json now contains every required lifecycle field and at least two valid curriculum source citations. This machine evidence can now support mastery together with your authored checkpoint."
+  },
   "curriculum": {
     "id": "dsh-foundations",
     "version": "0.1.0",
-    "dshVersionRange": "0.1.0-rc.5",
-    "units": [
-      {
-        "id": "plugin-context-service-effect",
-        "title": "Plugin、Context、Service、Effect 与 typed event",
-        "prerequisites": [],
-        "contentEntry": "lessons/plugin-context-service-effect.md"
-      }
-    ],
     "sourceVerification": [
       {
         "unitId": "plugin-context-service-effect",
@@ -50,46 +52,260 @@
       }
     ]
   },
+  "journey": [
+    {
+      "label": "first-entry",
+      "activity": null,
+      "completedUnits": [],
+      "checks": [],
+      "exactSnapshotInSessionLog": true
+    },
+    {
+      "label": "state-read",
+      "activity": null,
+      "completedUnits": [],
+      "checks": [],
+      "exactSnapshotInSessionLog": true
+    },
+    {
+      "label": "start-unit",
+      "activity": null,
+      "completedUnits": [],
+      "checks": [],
+      "exactSnapshotInSessionLog": true
+    },
+    {
+      "label": "explain",
+      "activity": {
+        "kind": "explain",
+        "unitId": "plugin-context-service-effect"
+      },
+      "completedUnits": [],
+      "checks": [],
+      "exactSnapshotInSessionLog": true
+    },
+    {
+      "label": "checkpoint-prompt",
+      "activity": {
+        "kind": "checkpoint",
+        "unitId": "plugin-context-service-effect"
+      },
+      "completedUnits": [],
+      "checks": [],
+      "exactSnapshotInSessionLog": true
+    },
+    {
+      "label": "checkpoint-answer",
+      "activity": {
+        "kind": "checkpoint",
+        "unitId": "plugin-context-service-effect"
+      },
+      "completedUnits": [],
+      "checks": [],
+      "exactSnapshotInSessionLog": true
+    },
+    {
+      "label": "exercise-before-failure",
+      "activity": {
+        "kind": "exercise",
+        "unitId": "plugin-context-service-effect",
+        "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74"
+      },
+      "completedUnits": [],
+      "checks": [],
+      "exactSnapshotInSessionLog": true
+    },
+    {
+      "label": "failed-check",
+      "activity": {
+        "kind": "feedback",
+        "unitId": "plugin-context-service-effect",
+        "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74"
+      },
+      "completedUnits": [],
+      "checks": [
+        {
+          "checkId": "trace-artifact",
+          "status": "failed",
+          "category": "implementation"
+        }
+      ],
+      "exactSnapshotInSessionLog": true
+    },
+    {
+      "label": "retry-ready",
+      "activity": {
+        "kind": "exercise",
+        "unitId": "plugin-context-service-effect",
+        "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74"
+      },
+      "completedUnits": [],
+      "checks": [
+        {
+          "checkId": "trace-artifact",
+          "status": "failed",
+          "category": "implementation"
+        }
+      ],
+      "exactSnapshotInSessionLog": true
+    },
+    {
+      "label": "exercise-before-success",
+      "activity": {
+        "kind": "exercise",
+        "unitId": "plugin-context-service-effect",
+        "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74"
+      },
+      "completedUnits": [],
+      "checks": [
+        {
+          "checkId": "trace-artifact",
+          "status": "failed",
+          "category": "implementation"
+        }
+      ],
+      "exactSnapshotInSessionLog": true
+    },
+    {
+      "label": "successful-check",
+      "activity": {
+        "kind": "feedback",
+        "unitId": "plugin-context-service-effect",
+        "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74"
+      },
+      "completedUnits": [],
+      "checks": [
+        {
+          "checkId": "trace-artifact",
+          "status": "passed",
+          "category": "implementation"
+        }
+      ],
+      "exactSnapshotInSessionLog": true
+    },
+    {
+      "label": "unit-completed",
+      "activity": null,
+      "completedUnits": [
+        "plugin-context-service-effect"
+      ],
+      "checks": [
+        {
+          "checkId": "trace-artifact",
+          "status": "passed",
+          "category": "implementation"
+        }
+      ],
+      "exactSnapshotInSessionLog": true
+    },
+    {
+      "label": "original-session-resume",
+      "activity": null,
+      "completedUnits": [
+        "plugin-context-service-effect"
+      ],
+      "checks": [
+        {
+          "checkId": "trace-artifact",
+          "status": "passed",
+          "category": "implementation"
+        }
+      ],
+      "exactSnapshotInSessionLog": true
+    },
+    {
+      "label": "new-session-continuity",
+      "activity": null,
+      "completedUnits": [
+        "plugin-context-service-effect"
+      ],
+      "checks": [
+        {
+          "checkId": "trace-artifact",
+          "status": "passed",
+          "category": "implementation"
+        }
+      ],
+      "exactSnapshotInSessionLog": true
+    }
+  ],
+  "sessionLog": {
+    "originalSessionId": "phase-2-original-session",
+    "originalRuntimeSnapshotCount": 8,
+    "continuedSessionId": "phase-2-continued-session",
+    "continuedRuntimeSnapshotCount": 1
+  },
   "learnerMemory": {
-    "eventCount": 4,
-    "state": {
-      "learnerId": "snapshot-learner",
-      "enrollmentId": "snapshot-enrollment",
+    "eventCount": 15,
+    "finalState": {
+      "learnerId": "local-learner",
+      "enrollmentId": "dsh-foundations-local",
       "courseId": "dsh-foundations",
-      "goal": "Understand DSH plugin composition",
+      "goal": "Understand DSH plugin composition through real source and machine evidence",
       "activePlan": {
         "unitIds": [
           "plugin-context-service-effect"
         ],
-        "reason": "first-foundations-unit",
+        "reason": "phase-2-deterministic-prerequisite-plan",
         "revision": 1
       },
-      "currentActivity": {
-        "kind": "unit",
-        "unitId": "plugin-context-service-effect"
-      },
+      "currentActivity": null,
       "unitProgress": {
-        "plugin-context-service-effect": "in-progress"
+        "plugin-context-service-effect": "completed"
       },
-      "attempts": {},
-      "evidence": {},
-      "misconceptions": {},
-      "mastery": {},
+      "attempts": [
+        {
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74",
+          "exerciseId": "trace-minimal-plugin",
+          "unitId": "plugin-context-service-effect",
+          "checks": [
+            {
+              "checkId": "trace-artifact",
+              "status": "passed",
+              "category": "implementation",
+              "summary": "The lifecycle trace artifact passed deterministic checks",
+              "details": [
+                "answer.json has every required field and at least two valid source citations"
+              ],
+              "artifacts": [
+                "answer.json"
+              ]
+            }
+          ]
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "authored",
+          "summary": "The learner traced Context ownership, Service registration, typed events, and Effect disposal.",
+          "unitId": "plugin-context-service-effect"
+        },
+        {
+          "kind": "machine",
+          "summary": "trace-artifact: The lifecycle trace artifact passed deterministic checks",
+          "unitId": "plugin-context-service-effect",
+          "attemptId": "attempt-a6204ad05cd2c055466b4794b8c44f74"
+        }
+      ],
+      "mastery": {
+        "plugin-context-service-effect": {
+          "level": "mastered",
+          "evidenceIds": [
+            "evidence-6a0128ab44165153fffae525c8dfea10688e9f44ecc2314b01ffe55d43ecb160",
+            "evidence-03581dc6dd844070ebd3358d501eda4da989e84117343559220970c0f27caade"
+          ],
+          "reason": "The authored explanation and machine evidence jointly support unit completion."
+        }
+      },
       "nextRecommendation": {
-        "unitId": "plugin-context-service-effect",
-        "reason": "first-foundations-unit"
+        "unitId": null,
+        "reason": "plan-complete"
       },
       "courseCompleted": false,
       "sourceSessionIds": [
-        "snapshot-session"
+        "phase-2-original-session"
       ],
-      "appliedEventIds": [
-        "snapshot-event-1",
-        "snapshot-event-2",
-        "snapshot-event-3",
-        "snapshot-event-4"
-      ],
-      "lastSeq": 3
+      "lastSeq": 14
     }
   }
 }

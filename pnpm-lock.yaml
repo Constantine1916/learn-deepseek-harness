@@ -38,18 +38,51 @@ importers:
 
   examples/headless:
     dependencies:
+      '@deepseek-ai/dsh-agent':
+        specifier: link:../../../deepseek-harness/packages/core/agent
+        version: link:../../../deepseek-harness/packages/core/agent
+      '@deepseek-ai/dsh-agent-spine-demo':
+        specifier: link:../../../deepseek-harness/packages/examples/agent-spine-demo
+        version: link:../../../deepseek-harness/packages/examples/agent-spine-demo
       '@deepseek-ai/dsh-app-boot':
         specifier: link:../../../deepseek-harness/packages/boot/app-boot
         version: link:../../../deepseek-harness/packages/boot/app-boot
+      '@deepseek-ai/dsh-bash-sandbox':
+        specifier: link:../../../deepseek-harness/packages/shell/bash-sandbox
+        version: link:../../../deepseek-harness/packages/shell/bash-sandbox
+      '@deepseek-ai/dsh-fs':
+        specifier: link:../../../deepseek-harness/packages/fs/fs
+        version: link:../../../deepseek-harness/packages/fs/fs
+      '@deepseek-ai/dsh-fs-sandbox':
+        specifier: link:../../../deepseek-harness/packages/fs/fs-sandbox
+        version: link:../../../deepseek-harness/packages/fs/fs-sandbox
+      '@deepseek-ai/dsh-llm':
+        specifier: link:../../../deepseek-harness/packages/llm/llm
+        version: link:../../../deepseek-harness/packages/llm/llm
+      '@deepseek-ai/dsh-sandbox-local':
+        specifier: link:../../../deepseek-harness/packages/sandbox/sandbox-local
+        version: link:../../../deepseek-harness/packages/sandbox/sandbox-local
+      '@deepseek-ai/dsh-sandbox-policy':
+        specifier: link:../../../deepseek-harness/packages/sandbox/sandbox-policy
+        version: link:../../../deepseek-harness/packages/sandbox/sandbox-policy
       '@deepseek-ai/dsh-session':
         specifier: link:../../../deepseek-harness/packages/core/session
         version: link:../../../deepseek-harness/packages/core/session
-      '@deepseek-ai/dsh-system-prompt':
-        specifier: link:../../../deepseek-harness/packages/core/system-prompt
-        version: link:../../../deepseek-harness/packages/core/system-prompt
+      '@deepseek-ai/dsh-session-persistence':
+        specifier: link:../../../deepseek-harness/packages/session/session-persistence
+        version: link:../../../deepseek-harness/packages/session/session-persistence
+      '@deepseek-ai/dsh-session-persistence-jsonl':
+        specifier: link:../../../deepseek-harness/packages/session/session-persistence-jsonl
+        version: link:../../../deepseek-harness/packages/session/session-persistence-jsonl
+      '@deepseek-ai/dsh-subprocess-local':
+        specifier: link:../../../deepseek-harness/packages/subprocess/subprocess-local
+        version: link:../../../deepseek-harness/packages/subprocess/subprocess-local
       '@learn-dsh/curriculum':
         specifier: workspace:*
         version: link:../../packages/curriculum
+      '@learn-dsh/lab':
+        specifier: workspace:*
+        version: link:../../packages/lab
       '@learn-dsh/learner':
         specifier: workspace:*
         version: link:../../packages/learner
@@ -59,12 +92,21 @@ importers:
       '@learn-dsh/teacher':
         specifier: workspace:*
         version: link:../../packages/teacher
+      '@learn-dsh/teaching':
+        specifier: workspace:*
+        version: link:../../packages/teaching
+      '@learn-dsh/tool-learning':
+        specifier: workspace:*
+        version: link:../../packages/tool-learning
 
   packages/bundle:
     dependencies:
       '@learn-dsh/curriculum':
         specifier: workspace:^
         version: link:../curriculum
+      '@learn-dsh/lab':
+        specifier: workspace:^
+        version: link:../lab
       '@learn-dsh/learner':
         specifier: workspace:^
         version: link:../learner
@@ -74,6 +116,12 @@ importers:
       '@learn-dsh/teacher':
         specifier: workspace:^
         version: link:../teacher
+      '@learn-dsh/teaching':
+        specifier: workspace:^
+        version: link:../teaching
+      '@learn-dsh/tool-learning':
+        specifier: workspace:^
+        version: link:../tool-learning
     devDependencies:
       '@deepseek-ai/dsh-app-boot':
         specifier: link:../../../deepseek-harness/packages/boot/app-boot
@@ -94,6 +142,58 @@ importers:
       '@deepseek-ai/cordis':
         specifier: link:../../../deepseek-harness/vendor/cordis
         version: link:../../../deepseek-harness/vendor/cordis
+
+  packages/lab:
+    dependencies:
+      '@deepseek-ai/schemastery':
+        specifier: 3.18.1
+        version: 3.18.1
+    devDependencies:
+      '@deepseek-ai/cordis':
+        specifier: link:../../../deepseek-harness/vendor/cordis
+        version: link:../../../deepseek-harness/vendor/cordis
+      '@deepseek-ai/dsh-agent':
+        specifier: link:../../../deepseek-harness/packages/core/agent
+        version: link:../../../deepseek-harness/packages/core/agent
+      '@deepseek-ai/dsh-bash-sandbox':
+        specifier: link:../../../deepseek-harness/packages/shell/bash-sandbox
+        version: link:../../../deepseek-harness/packages/shell/bash-sandbox
+      '@deepseek-ai/dsh-fs':
+        specifier: link:../../../deepseek-harness/packages/fs/fs
+        version: link:../../../deepseek-harness/packages/fs/fs
+      '@deepseek-ai/dsh-fs-sandbox':
+        specifier: link:../../../deepseek-harness/packages/fs/fs-sandbox
+        version: link:../../../deepseek-harness/packages/fs/fs-sandbox
+      '@deepseek-ai/dsh-sandbox':
+        specifier: link:../../../deepseek-harness/packages/sandbox/sandbox
+        version: link:../../../deepseek-harness/packages/sandbox/sandbox
+      '@deepseek-ai/dsh-sandbox-local':
+        specifier: link:../../../deepseek-harness/packages/sandbox/sandbox-local
+        version: link:../../../deepseek-harness/packages/sandbox/sandbox-local
+      '@deepseek-ai/dsh-sandbox-policy':
+        specifier: link:../../../deepseek-harness/packages/sandbox/sandbox-policy
+        version: link:../../../deepseek-harness/packages/sandbox/sandbox-policy
+      '@deepseek-ai/dsh-session':
+        specifier: link:../../../deepseek-harness/packages/core/session
+        version: link:../../../deepseek-harness/packages/core/session
+      '@deepseek-ai/dsh-shell':
+        specifier: link:../../../deepseek-harness/packages/shell/shell
+        version: link:../../../deepseek-harness/packages/shell/shell
+      '@deepseek-ai/dsh-subprocess-local':
+        specifier: link:../../../deepseek-harness/packages/subprocess/subprocess-local
+        version: link:../../../deepseek-harness/packages/subprocess/subprocess-local
+      '@deepseek-ai/dsh-system-prompt':
+        specifier: link:../../../deepseek-harness/packages/core/system-prompt
+        version: link:../../../deepseek-harness/packages/core/system-prompt
+      '@learn-dsh/curriculum':
+        specifier: workspace:*
+        version: link:../curriculum
+      '@learn-dsh/learner':
+        specifier: workspace:*
+        version: link:../learner
+      '@learn-dsh/learner-memory':
+        specifier: workspace:*
+        version: link:../learner-memory
 
   packages/learner:
     dependencies:
@@ -132,9 +232,79 @@ importers:
       '@deepseek-ai/cordis':
         specifier: link:../../../deepseek-harness/vendor/cordis
         version: link:../../../deepseek-harness/vendor/cordis
+      '@deepseek-ai/dsh-agent':
+        specifier: link:../../../deepseek-harness/packages/core/agent
+        version: link:../../../deepseek-harness/packages/core/agent
+      '@deepseek-ai/dsh-session':
+        specifier: link:../../../deepseek-harness/packages/core/session
+        version: link:../../../deepseek-harness/packages/core/session
       '@deepseek-ai/dsh-system-prompt':
         specifier: link:../../../deepseek-harness/packages/core/system-prompt
         version: link:../../../deepseek-harness/packages/core/system-prompt
+      '@learn-dsh/teaching':
+        specifier: workspace:*
+        version: link:../teaching
+
+  packages/teaching:
+    dependencies:
+      '@deepseek-ai/schemastery':
+        specifier: 3.18.1
+        version: 3.18.1
+    devDependencies:
+      '@deepseek-ai/cordis':
+        specifier: link:../../../deepseek-harness/vendor/cordis
+        version: link:../../../deepseek-harness/vendor/cordis
+      '@deepseek-ai/dsh-session':
+        specifier: link:../../../deepseek-harness/packages/core/session
+        version: link:../../../deepseek-harness/packages/core/session
+      '@learn-dsh/curriculum':
+        specifier: workspace:*
+        version: link:../curriculum
+      '@learn-dsh/lab':
+        specifier: workspace:*
+        version: link:../lab
+      '@learn-dsh/learner':
+        specifier: workspace:*
+        version: link:../learner
+      '@learn-dsh/learner-memory':
+        specifier: workspace:*
+        version: link:../learner-memory
+
+  packages/tool-learning:
+    devDependencies:
+      '@deepseek-ai/cordis':
+        specifier: link:../../../deepseek-harness/vendor/cordis
+        version: link:../../../deepseek-harness/vendor/cordis
+      '@deepseek-ai/dsh-agent':
+        specifier: link:../../../deepseek-harness/packages/core/agent
+        version: link:../../../deepseek-harness/packages/core/agent
+      '@deepseek-ai/dsh-llm':
+        specifier: link:../../../deepseek-harness/packages/llm/llm
+        version: link:../../../deepseek-harness/packages/llm/llm
+      '@deepseek-ai/dsh-session':
+        specifier: link:../../../deepseek-harness/packages/core/session
+        version: link:../../../deepseek-harness/packages/core/session
+      '@deepseek-ai/dsh-system-prompt':
+        specifier: link:../../../deepseek-harness/packages/core/system-prompt
+        version: link:../../../deepseek-harness/packages/core/system-prompt
+      '@deepseek-ai/dsh-tools':
+        specifier: link:../../../deepseek-harness/packages/core/tools
+        version: link:../../../deepseek-harness/packages/core/tools
+      '@learn-dsh/curriculum':
+        specifier: workspace:*
+        version: link:../curriculum
+      '@learn-dsh/lab':
+        specifier: workspace:*
+        version: link:../lab
+      '@learn-dsh/learner':
+        specifier: workspace:*
+        version: link:../learner
+      '@learn-dsh/learner-memory':
+        specifier: workspace:*
+        version: link:../learner-memory
+      '@learn-dsh/teaching':
+        specifier: workspace:*
+        version: link:../teaching
 
 packages:
 

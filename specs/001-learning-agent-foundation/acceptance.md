@@ -111,4 +111,18 @@ Phase 1 已完成课程、独立 learner-memory、纯投影、跨 Session 连续
 | F-010、C-003、C-005 | `pnpm test:unit` 验证 typed learning events、全部 reducer 分支、Evidence 引用、非法转换不落盘和 EventId/CommandId 幂等 |
 | F-011、Q-002、C-001、C-002、C-006 | `pnpm test:unit` 验证 fsync 后成功、flush、真实子进程重启、同 Enrollment 跨 Session 延续、不同 scope 隔离和损坏诊断 |
 | F-001、A-002、A-005 | `pnpm test:profile` 验证 curriculum/learner-memory/learner/teacher bundle 行安装与移除；Service lifecycle 单测验证 dispose/reload |
-| Q-006、F-AC-003 | `pnpm test:snapshot` 通过真实 Loader 同时组装教师 prompt、课程读取结果和已提交 LearnerState；Session 请求快照证据留给 Phase 2 |
+| Q-006、F-AC-003 | Phase 1 的 `pnpm test:snapshot` 通过真实 Loader 组装教师 prompt、课程读取结果和已提交 LearnerState；它本身不作为 Session 请求审计证据 |
+
+## Phase 2 第一个教学闭环证据
+
+Phase 2 已完成一个可运行的纵向切片。它不代表诊断、三级提示、完整课程和发布验收已经完成。
+
+| 需求或验收项 | 当前证据入口 |
+|---|---|
+| F-002、F-006、P2-01、B-001 | `pnpm test:unit` 验证教师 Persona 和动态上下文生命周期；`pnpm test:snapshot` 固定真实 Agent 请求中的教师 prompt、工具和当前活动 |
+| F-005、F-006、P2-02、B-003、B-004 | `pnpm test:unit` 验证确定性先修规划和完整活动状态机；`pnpm test:snapshot` 固定 explain、checkpoint、exercise、feedback 和完成顺序 |
+| F-010、P2-03、C-003、C-006 | `pnpm test:unit` 通过真实 ToolRuntime 验证三个学习工具、durability-before-success、稳定 command id 和崩溃重试幂等 |
+| F-007、P2-04、E-001、E-002、E-004 | `pnpm test:unit` 通过真实 sandboxed FS/Shell 创建和重置 fixture，拒绝越界 workspace，并只执行固定 runner 与安全相对 entry |
+| F-008、P2-05、B-005 | `pnpm test:unit` 和 `pnpm test:snapshot` 验证 implementation 失败、结构化 details/artifacts、成功 machine evidence 和无证据不完成；四类失败的完整覆盖仍属于后续验收 |
+| F-011、Q-006、P2-06、C-001、C-002、C-004、F-AC-003 | `pnpm test:snapshot` 通过真实 Loader、Agent Loop 和 JSONL Session persistence 验证首次进入、失败、成功、原 Session 恢复、同 Enrollment 新 Session 延续，以及模型 LearnerState 与 Session Log 快照逐字一致 |
+| F-001、A-002、A-005 | `pnpm test:profile` 验证七个 Learn DSH bundle 行的安装、dump-config 和无残留移除 |

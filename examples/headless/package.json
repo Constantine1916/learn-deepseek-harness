@@ -7,12 +7,25 @@
     "start": "tsx src/bin.ts"
   },
   "dependencies": {
+    "@deepseek-ai/dsh-agent": "link:../../../deepseek-harness/packages/core/agent",
+    "@deepseek-ai/dsh-agent-spine-demo": "link:../../../deepseek-harness/packages/examples/agent-spine-demo",
     "@deepseek-ai/dsh-app-boot": "link:../../../deepseek-harness/packages/boot/app-boot",
+    "@deepseek-ai/dsh-bash-sandbox": "link:../../../deepseek-harness/packages/shell/bash-sandbox",
+    "@deepseek-ai/dsh-fs": "link:../../../deepseek-harness/packages/fs/fs",
+    "@deepseek-ai/dsh-fs-sandbox": "link:../../../deepseek-harness/packages/fs/fs-sandbox",
+    "@deepseek-ai/dsh-llm": "link:../../../deepseek-harness/packages/llm/llm",
+    "@deepseek-ai/dsh-sandbox-local": "link:../../../deepseek-harness/packages/sandbox/sandbox-local",
+    "@deepseek-ai/dsh-sandbox-policy": "link:../../../deepseek-harness/packages/sandbox/sandbox-policy",
     "@deepseek-ai/dsh-session": "link:../../../deepseek-harness/packages/core/session",
-    "@deepseek-ai/dsh-system-prompt": "link:../../../deepseek-harness/packages/core/system-prompt",
+    "@deepseek-ai/dsh-session-persistence": "link:../../../deepseek-harness/packages/session/session-persistence",
+    "@deepseek-ai/dsh-session-persistence-jsonl": "link:../../../deepseek-harness/packages/session/session-persistence-jsonl",
+    "@deepseek-ai/dsh-subprocess-local": "link:../../../deepseek-harness/packages/subprocess/subprocess-local",
     "@learn-dsh/curriculum": "workspace:*",
+    "@learn-dsh/lab": "workspace:*",
     "@learn-dsh/learner": "workspace:*",
     "@learn-dsh/learner-memory": "workspace:*",
-    "@learn-dsh/teacher": "workspace:*"
+    "@learn-dsh/teacher": "workspace:*",
+    "@learn-dsh/teaching": "workspace:*",
+    "@learn-dsh/tool-learning": "workspace:*"
   }
 }

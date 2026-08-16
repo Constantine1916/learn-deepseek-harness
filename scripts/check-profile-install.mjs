@@ -29,7 +29,10 @@ try {
     ['learn-dsh-curriculum', '@learn-dsh/curriculum'],
     ['learn-dsh-learner-memory', '@learn-dsh/learner-memory/local'],
     ['learn-dsh-learner', '@learn-dsh/learner'],
+    ['learn-dsh-lab', '@learn-dsh/lab/local'],
+    ['learn-dsh-teaching', '@learn-dsh/teaching'],
     ['learn-dsh-teacher', '@learn-dsh/teacher'],
+    ['learn-dsh-tool-learning', '@learn-dsh/tool-learning'],
   ]
   for (const [id, name] of expectedRows) {
     if (!installed.includes(`id: ${id}`) || !installed.includes(`name: '${name}'`)) {

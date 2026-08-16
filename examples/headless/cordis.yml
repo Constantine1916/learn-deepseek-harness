@@ -1,11 +1,47 @@
-- id: system-prompt
-  name: '@deepseek-ai/dsh-system-prompt'
+- id: sandbox
+  name: '@deepseek-ai/dsh-sandbox-local'
+
+- id: sandbox-policy
+  name: '@deepseek-ai/dsh-sandbox-policy'
+  config:
+    mode: workspace-write
+    workspaceRoot: !!js process.env.LEARN_DSH_WORKSPACE_ROOT
+
+- id: subprocess
+  name: '@deepseek-ai/dsh-subprocess-local'
+
+- id: bash
+  name: '@deepseek-ai/dsh-bash-sandbox'
+  config:
+    timeoutMs: 30000
+
+- id: fs
+  name: '@deepseek-ai/dsh-fs-sandbox'
+  config:
+    cwd: !!js process.env.LEARN_DSH_WORKSPACE_ROOT
+
+- id: agent-spine
+  name: '@deepseek-ai/dsh-agent-spine-demo'
+  config:
+    agents: []
+    workspaceContext: false
+    skills:
+      enabled: false
+    toolBash: false
+    toolJobs: false
+    goals: false
+
+- id: session-persistence
+  name: '@deepseek-ai/dsh-session-persistence-jsonl'
+  config:
+    root: !!js dshHomePath('learn-dsh/sessions')
+    compression: none
 
 - id: learn-dsh-curriculum
   name: '@learn-dsh/curriculum'
   config:
     dshVersion: 0.1.0-rc.5
-    sourceRoot: ../../../deepseek-harness
+    sourceRoot: !!js process.env.LEARN_DSH_SOURCE_ROOT
 
 - id: learn-dsh-learner-memory
   name: '@learn-dsh/learner-memory/local'
@@ -15,6 +51,19 @@
 - id: learn-dsh-learner
   name: '@learn-dsh/learner'
 
+- id: learn-dsh-lab
+  name: '@learn-dsh/lab/local'
+  config:
+    workspaceRoot: .learn-dsh/attempts
+
+- id: learn-dsh-teaching
+  name: '@learn-dsh/teaching'
+  config:
+    learnerId: local-learner
+    enrollmentId: dsh-foundations-local
+
 - id: learn-dsh-teacher
   name: '@learn-dsh/teacher'
-  inject: [systemPrompt]
+
+- id: learn-dsh-tool-learning
+  name: '@learn-dsh/tool-learning'

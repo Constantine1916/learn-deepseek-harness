@@ -1,7 +1,7 @@
 {
-  "name": "@learn-dsh/teacher",
+  "name": "@learn-dsh/teaching",
   "version": "0.1.0",
-  "description": "Learn DSH teacher system-prompt contribution for DeepSeek Harness.",
+  "description": "Deterministic learning planner and teaching activity state machine for Learn DSH.",
   "license": "MIT",
   "type": "module",
   "main": "lib/index.js",
@@ -20,15 +20,21 @@
   ],
   "peerDependencies": {
     "@deepseek-ai/cordis": "4.0.1",
-    "@deepseek-ai/dsh-agent": "0.1.0-rc.5",
-    "@deepseek-ai/dsh-system-prompt": "0.1.0-rc.5",
-    "@learn-dsh/teaching": "0.1.0"
+    "@deepseek-ai/dsh-session": "0.1.0-rc.5",
+    "@learn-dsh/curriculum": "0.1.0",
+    "@learn-dsh/lab": "0.1.0",
+    "@learn-dsh/learner": "0.1.0",
+    "@learn-dsh/learner-memory": "0.1.0"
+  },
+  "dependencies": {
+    "@deepseek-ai/schemastery": "3.18.1"
   },
   "devDependencies": {
     "@deepseek-ai/cordis": "link:../../../deepseek-harness/vendor/cordis",
-    "@deepseek-ai/dsh-agent": "link:../../../deepseek-harness/packages/core/agent",
     "@deepseek-ai/dsh-session": "link:../../../deepseek-harness/packages/core/session",
-    "@deepseek-ai/dsh-system-prompt": "link:../../../deepseek-harness/packages/core/system-prompt",
-    "@learn-dsh/teaching": "workspace:*"
+    "@learn-dsh/curriculum": "workspace:*",
+    "@learn-dsh/lab": "workspace:*",
+    "@learn-dsh/learner": "workspace:*",
+    "@learn-dsh/learner-memory": "workspace:*"
   }
 }

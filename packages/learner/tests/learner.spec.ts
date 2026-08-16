@@ -77,6 +77,9 @@ describe('F-010 learner events and pure projection', () => {
     await ctx.learner.append(scope, input('learning/plan-created', { unitIds: [unitId], reason: 'foundation-first' }))
     await ctx.learner.append(scope, input('learning/plan-adjusted', { unitIds: [unitId], reason: 'keep-current-plan' }))
     await ctx.learner.append(scope, input('learning/unit-started', { unitId }))
+    await ctx.learner.append(scope, input('learning/activity-advanced', {
+      unitId, from: 'explain', to: 'checkpoint', reason: 'explanation-observed', checkpointId: 'explain-lifecycle',
+    }))
     await ctx.learner.append(scope, input('learning/evidence-recorded', {
       evidenceId: EvidenceId('evidence-1'), kind: 'observed', summary: 'Located Context and Service', unitId,
     }))
@@ -85,7 +88,13 @@ describe('F-010 learner events and pure projection', () => {
     }))
     await ctx.learner.append(scope, input('learning/checks-completed', {
       attemptId: ExerciseAttemptId('attempt-1'),
-      checks: [{ checkId: 'trace', status: 'passed', category: 'implementation', summary: 'Lifecycle traced' }],
+      checks: [{
+        checkId: 'trace', status: 'passed', category: 'implementation', summary: 'Lifecycle traced',
+        details: ['trace.json is valid'], artifacts: ['trace.json'],
+      }],
+    }))
+    await ctx.learner.append(scope, input('learning/activity-advanced', {
+      unitId, from: 'exercise', to: 'feedback', reason: 'checks-completed', attemptId: ExerciseAttemptId('attempt-1'),
     }))
     await ctx.learner.append(scope, input('learning/hint-used', { attemptId: ExerciseAttemptId('attempt-1'), level: 1 }))
     await ctx.learner.append(scope, input('learning/misconception-recorded', {
@@ -94,8 +103,21 @@ describe('F-010 learner events and pure projection', () => {
     await ctx.learner.append(scope, input('learning/mastery-changed', {
       unitId, level: 'mastered', evidenceIds: [EvidenceId('evidence-1')], reason: 'machine-and-source-evidence',
     }))
-    await ctx.learner.append(scope, input('learning/unit-completed', { unitId, evidenceIds: [EvidenceId('evidence-1')] }))
-    const result = await ctx.learner.append(scope, input('learning/course-completed', { courseId, evidenceIds: [EvidenceId('evidence-1')] }))
+    const beforeRejectedCompletion = await ctx.learnerMemory.read(scope)
+    await expect(ctx.learner.append(scope, input('learning/unit-completed', { unitId, evidenceIds: [EvidenceId('evidence-1')] })))
+      .rejects.toMatchObject({ code: 'illegal-transition' })
+    expect(await ctx.learnerMemory.read(scope)).toEqual(beforeRejectedCompletion)
+
+    await ctx.learner.append(scope, input('learning/evidence-recorded', {
+      evidenceId: EvidenceId('evidence-2'), kind: 'machine', summary: 'Lifecycle check passed', unitId,
+      attemptId: ExerciseAttemptId('attempt-1'),
+    }))
+    await ctx.learner.append(scope, input('learning/mastery-changed', {
+      unitId, level: 'mastered', evidenceIds: [EvidenceId('evidence-1'), EvidenceId('evidence-2')], reason: 'machine-and-source-evidence',
+    }))
+    const completionEvidence = [EvidenceId('evidence-1'), EvidenceId('evidence-2')]
+    await ctx.learner.append(scope, input('learning/unit-completed', { unitId, evidenceIds: completionEvidence }))
+    const result = await ctx.learner.append(scope, input('learning/course-completed', { courseId, evidenceIds: completionEvidence }))
 
     expect(result.state).toMatchObject({
       goal: 'Build a DSH plugin',

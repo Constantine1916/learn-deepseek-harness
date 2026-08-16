@@ -4,7 +4,10 @@
     { "path": "./packages/curriculum" },
     { "path": "./packages/learner-memory" },
     { "path": "./packages/learner" },
+    { "path": "./packages/lab" },
+    { "path": "./packages/teaching" },
     { "path": "./packages/teacher" },
+    { "path": "./packages/tool-learning" },
     { "path": "./packages/bundle" },
     { "path": "./examples/headless" }
   ]

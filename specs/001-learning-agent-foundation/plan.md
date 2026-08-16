@@ -52,12 +52,12 @@
 
 任务：
 
-- P2-01：实现教师 Persona、当前活动上下文和 Session Log 学习状态快照。关联 F-002、F-006、F-011。
-- P2-02：实现活动状态机和最小规划器。关联 F-005、F-006。
-- P2-03：实现 learning_get_state、learning_start_unit 和 learning_complete_activity。关联 F-005、F-010。
-- P2-04：实现单个隔离练习 fixture、工作区创建和重置。关联 F-007。
-- P2-05：实现结构化检查结果和反馈输入。关联 F-008。
-- P2-06：增加首次进入、失败、成功、原 Session 恢复和同 Enrollment 新 Session 延续快照。关联 F-011、Q-006。
+- P2-01（完成）：实现教师 Persona、当前活动上下文和 Session Log 学习状态快照。关联 F-002、F-006、F-011。
+- P2-02（完成）：实现活动状态机和最小规划器。关联 F-005、F-006。
+- P2-03（完成）：实现 learning_get_state、learning_start_unit 和 learning_complete_activity。关联 F-005、F-010。
+- P2-04（完成）：实现单个隔离练习 fixture、工作区创建和重置。关联 F-007。
+- P2-05（完成）：实现结构化检查结果和反馈输入。关联 F-008。
+- P2-06（完成）：增加首次进入、失败、成功、原 Session 恢复和同 Enrollment 新 Session 延续快照。关联 F-011、Q-006。
 
 出口：
 

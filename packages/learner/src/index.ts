@@ -64,6 +64,18 @@ export interface CheckResult {
   readonly status: CheckStatus
   readonly category: CheckCategory
   readonly summary: string
+  readonly details: readonly string[]
+  readonly artifacts: readonly string[]
+}
+
+export type TeachingActivityKind = 'explain' | 'checkpoint' | 'exercise' | 'feedback'
+
+export interface TeachingActivity {
+  readonly kind: TeachingActivityKind
+  readonly unitId: UnitId
+  readonly reason: string
+  readonly checkpointId?: string
+  readonly attemptId?: ExerciseAttemptId
 }
 
 export interface LearnerPlan {
@@ -85,6 +97,7 @@ export interface LearnerEvidence {
   readonly kind: 'authored' | 'machine' | 'observed'
   readonly summary: string
   readonly unitId?: UnitId
+  readonly attemptId?: ExerciseAttemptId
 }
 
 export interface LearnerMisconception {
@@ -106,7 +119,7 @@ export interface LearnerState {
   readonly courseId: CourseId | null
   readonly goal: string | null
   readonly activePlan: LearnerPlan | null
-  readonly currentActivity: JsonValue | null
+  readonly currentActivity: TeachingActivity | Readonly<{ kind: 'diagnostic', diagnosticId: DiagnosticId }> | null
   readonly unitProgress: Readonly<Record<string, 'not-started' | 'in-progress' | 'completed'>>
   readonly attempts: Readonly<Record<string, LearnerAttempt>>
   readonly evidence: Readonly<Record<string, LearnerEvidence>>
@@ -146,7 +159,11 @@ const checkResultSchema = z.object({
   status: z.enum(['passed', 'failed', 'blocked']),
   category: z.enum(['implementation', 'configuration', 'environment', 'safety']),
   summary: nonEmpty,
+  details: z.array(nonEmpty),
+  artifacts: z.array(nonEmpty),
 }).strict()
+
+const activityKindSchema = z.enum(['explain', 'checkpoint', 'exercise', 'feedback'])
 
 const eventDataSchemas = {
   'learning/enrollment-created': z.object({ courseId: courseIdSchema }).strict(),
@@ -157,10 +174,19 @@ const eventDataSchemas = {
     kind: z.enum(['authored', 'machine', 'observed']),
     summary: nonEmpty,
     unitId: unitIdSchema.optional(),
+    attemptId: attemptIdSchema.optional(),
   }).strict(),
   'learning/plan-created': z.object({ unitIds: z.array(unitIdSchema).min(1), reason: nonEmpty }).strict(),
   'learning/plan-adjusted': z.object({ unitIds: z.array(unitIdSchema).min(1), reason: nonEmpty }).strict(),
   'learning/unit-started': z.object({ unitId: unitIdSchema }).strict(),
+  'learning/activity-advanced': z.object({
+    unitId: unitIdSchema,
+    from: activityKindSchema,
+    to: activityKindSchema,
+    reason: nonEmpty,
+    checkpointId: id.optional(),
+    attemptId: attemptIdSchema.optional(),
+  }).strict(),
   'learning/exercise-created': z.object({ attemptId: attemptIdSchema, exerciseId: id, unitId: unitIdSchema }).strict(),
   'learning/checks-completed': z.object({ attemptId: attemptIdSchema, checks: z.array(checkResultSchema).min(1) }).strict(),
   'learning/hint-used': z.object({ attemptId: attemptIdSchema, level: z.union([z.literal(1), z.literal(2), z.literal(3)]) }).strict(),
@@ -231,7 +257,7 @@ interface MutableState {
   courseId: CourseId | null
   goal: string | null
   activePlan: LearnerPlan | null
-  currentActivity: JsonValue | null
+  currentActivity: LearnerState['currentActivity']
   unitProgress: Record<string, 'not-started' | 'in-progress' | 'completed'>
   attempts: Record<string, LearnerAttempt>
   evidence: Record<string, LearnerEvidence>
@@ -284,18 +310,28 @@ function applyEvent(state: MutableState, raw: LearnerEventEnvelope, course: Cour
       state.goal = data.goal as string
       break
     case 'learning/diagnostic-started':
-      state.currentActivity = { kind: 'diagnostic', diagnosticId: data.diagnosticId as string }
+      state.currentActivity = { kind: 'diagnostic', diagnosticId: data.diagnosticId as DiagnosticId }
       break
     case 'learning/evidence-recorded': {
       const evidenceId = data.evidenceId as EvidenceId
       if (state.evidence[evidenceId] !== undefined) throw new LearnerProjectionError('duplicate-domain-id', `EvidenceId "${evidenceId}" already exists`)
       const unitId = data.unitId as UnitId | undefined
       if (unitId !== undefined) assertKnownUnit(course, unitId)
+      const attemptId = data.attemptId as ExerciseAttemptId | undefined
+      if (data.kind === 'machine' && attemptId === undefined) {
+        throw new LearnerProjectionError('illegal-transition', 'machine evidence must reference an exercise attempt')
+      }
+      if (attemptId !== undefined) {
+        const attempt = state.attempts[attemptId]
+        if (attempt === undefined) throw new LearnerProjectionError('illegal-transition', `evidence references missing attempt "${attemptId}"`)
+        if (unitId !== undefined && attempt.unitId !== unitId) throw new LearnerProjectionError('illegal-transition', `evidence attempt "${attemptId}" belongs to another unit`)
+      }
       state.evidence[evidenceId] = Object.freeze({
         evidenceId,
         kind: data.kind as LearnerEvidence['kind'],
         summary: data.summary as string,
         ...(unitId === undefined ? {} : { unitId }),
+        ...(attemptId === undefined ? {} : { attemptId }),
       })
       break
     }
@@ -318,7 +354,51 @@ function applyEvent(state: MutableState, raw: LearnerEventEnvelope, course: Cour
       }
       if (state.unitProgress[unitId] === 'completed') throw new LearnerProjectionError('illegal-transition', `unit "${unitId}" is already completed`)
       state.unitProgress[unitId] = 'in-progress'
-      state.currentActivity = { kind: 'unit', unitId }
+      state.currentActivity = { kind: 'explain', unitId, reason: 'unit-started' }
+      break
+    }
+    case 'learning/activity-advanced': {
+      const unitId = data.unitId as UnitId
+      const from = data.from as TeachingActivityKind
+      const to = data.to as TeachingActivityKind
+      const current = state.currentActivity
+      if (current === null || current.kind === 'diagnostic' || current.unitId !== unitId || current.kind !== from) {
+        throw new LearnerProjectionError('illegal-transition', `activity transition expected active ${from} for unit "${unitId}"`)
+      }
+      const transition = `${from}->${to}`
+      if (transition !== 'explain->checkpoint' && transition !== 'exercise->feedback' && transition !== 'feedback->exercise') {
+        throw new LearnerProjectionError('illegal-transition', `unsupported activity transition "${transition}"`)
+      }
+      const checkpointId = data.checkpointId as string | undefined
+      const attemptId = data.attemptId as ExerciseAttemptId | undefined
+      if (to === 'checkpoint') {
+        const unit = course.units.find(candidate => candidate.id === unitId)
+        if (checkpointId === undefined || !unit?.checkpoints.some(checkpoint => checkpoint.id === checkpointId)) {
+          throw new LearnerProjectionError('illegal-transition', `checkpoint activity requires a known checkpoint for unit "${unitId}"`)
+        }
+      }
+      if (to === 'exercise' || to === 'feedback') {
+        const attempt = attemptId === undefined ? undefined : state.attempts[attemptId]
+        if (attempt === undefined || attempt.unitId !== unitId) {
+          throw new LearnerProjectionError('illegal-transition', `${to} activity requires an attempt for unit "${unitId}"`)
+        }
+        if ((from === 'exercise' || from === 'feedback') && current.attemptId !== attemptId) {
+          throw new LearnerProjectionError('illegal-transition', `activity transition must retain attempt "${String(current.attemptId)}"`)
+        }
+        if (to === 'feedback' && attempt.checks.length === 0) {
+          throw new LearnerProjectionError('illegal-transition', 'feedback activity requires completed checks')
+        }
+        if (from === 'feedback' && to === 'exercise' && attempt.checks.every(check => check.status === 'passed')) {
+          throw new LearnerProjectionError('illegal-transition', 'passed feedback cannot return to the exercise')
+        }
+      }
+      state.currentActivity = Object.freeze({
+        kind: to,
+        unitId,
+        reason: data.reason as string,
+        ...(checkpointId === undefined ? {} : { checkpointId }),
+        ...(attemptId === undefined ? {} : { attemptId }),
+      })
       break
     }
     case 'learning/exercise-created': {
@@ -326,6 +406,9 @@ function applyEvent(state: MutableState, raw: LearnerEventEnvelope, course: Cour
       const unitId = data.unitId as UnitId
       assertKnownUnit(course, unitId)
       if (state.unitProgress[unitId] !== 'in-progress') throw new LearnerProjectionError('illegal-transition', `exercise unit "${unitId}" is not active`)
+      if (state.currentActivity?.kind !== 'checkpoint' || state.currentActivity.unitId !== unitId) {
+        throw new LearnerProjectionError('illegal-transition', `exercise unit "${unitId}" has no active checkpoint`)
+      }
       if (state.attempts[attemptId] !== undefined) throw new LearnerProjectionError('duplicate-domain-id', `ExerciseAttemptId "${attemptId}" already exists`)
       state.attempts[attemptId] = Object.freeze({
         attemptId,
@@ -334,13 +417,16 @@ function applyEvent(state: MutableState, raw: LearnerEventEnvelope, course: Cour
         checks: Object.freeze([]),
         hintLevels: Object.freeze([]),
       })
-      state.currentActivity = { kind: 'exercise', unitId, attemptId }
+      state.currentActivity = { kind: 'exercise', unitId, attemptId, reason: 'exercise-created' }
       break
     }
     case 'learning/checks-completed': {
       const attemptId = data.attemptId as ExerciseAttemptId
       const attempt = state.attempts[attemptId]
       if (attempt === undefined) throw new LearnerProjectionError('illegal-transition', `checks reference missing attempt "${attemptId}"`)
+      if (state.currentActivity?.kind !== 'exercise' || state.currentActivity.attemptId !== attemptId) {
+        throw new LearnerProjectionError('illegal-transition', `checks require active exercise attempt "${attemptId}"`)
+      }
       state.attempts[attemptId] = Object.freeze({ ...attempt, checks: Object.freeze(data.checks as CheckResult[]) })
       break
     }
@@ -375,7 +461,21 @@ function applyEvent(state: MutableState, raw: LearnerEventEnvelope, course: Cour
     case 'learning/unit-completed': {
       const unitId = data.unitId as UnitId
       if (state.unitProgress[unitId] !== 'in-progress') throw new LearnerProjectionError('illegal-transition', `unit "${unitId}" is not in progress`)
-      assertEvidence(state, data.evidenceIds as EvidenceId[], 'unit completion evidenceIds')
+      if (state.currentActivity?.kind !== 'feedback' || state.currentActivity.unitId !== unitId || state.currentActivity.attemptId === undefined) {
+        throw new LearnerProjectionError('illegal-transition', `unit "${unitId}" completion requires active exercise feedback`)
+      }
+      const evidenceIds = data.evidenceIds as EvidenceId[]
+      assertEvidence(state, evidenceIds, 'unit completion evidenceIds')
+      const attempt = state.attempts[state.currentActivity.attemptId]
+      if (attempt === undefined || attempt.checks.length === 0 || attempt.checks.some(check => check.status !== 'passed')) {
+        throw new LearnerProjectionError('illegal-transition', `unit "${unitId}" completion requires passed machine checks`)
+      }
+      const hasMachineEvidence = evidenceIds.some(evidenceId => {
+        const evidence = state.evidence[evidenceId]
+        return evidence?.kind === 'machine' && evidence.unitId === unitId && evidence.attemptId === attempt.attemptId
+      })
+      if (!hasMachineEvidence) throw new LearnerProjectionError('illegal-transition', `unit "${unitId}" completion requires machine evidence for the active attempt`)
+      if (state.mastery[unitId]?.level !== 'mastered') throw new LearnerProjectionError('illegal-transition', `unit "${unitId}" completion requires mastered evidence state`)
       state.unitProgress[unitId] = 'completed'
       state.currentActivity = null
       const next = nextPlanUnit(state)
