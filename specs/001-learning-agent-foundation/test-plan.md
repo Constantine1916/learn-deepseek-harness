@@ -177,15 +177,16 @@ Phase 0 的可复现入口：
 - `pnpm typecheck`：strict 检查可发布源码、example、测试和 Vitest 配置。
 - `pnpm test:unit`：验证 bundle patch 组合和教师插件 dispose。
 - `pnpm test:snapshot`：通过真实 DSH app boot 与 Cordis Loader 固定教师 prompt。
-- `pnpm build`：构建两个公开包和 headless example。
+- `pnpm build`：构建全部公开包和 headless example。
 - `pnpm docs:check`：检查仓库 Markdown 相对链接。
 - `pnpm compat`：检查 DSH 版本、checkout commit、Node 范围和 peer 声明。
 - `pnpm test:profile`：在临时 `DSH_HOME` 中安装 bundle、检查 `dump-config`，再移除并检查无残留配置行。
 
-## 8. Phase 1 课程基础证据
+## 8. Phase 1 课程与长期学习状态证据
 
 - `pnpm test:unit`：验证课程 schema、SemVer、重复 ID、缺失先修、循环、completion 引用、路径安全、四类来源 anchor、symlink 逃逸和 curriculum Service dispose/reload。
-- `pnpm test:snapshot`：通过真实 DSH app boot 与 Cordis Loader 加载 curriculum Service，并固定课程 ID、单元、内容入口和已解析来源 anchor。
-- `pnpm test:profile`：安装后的 profile 同时出现 curriculum 与 teacher 行，移除 bundle 后两者均无残留。
+- `pnpm test:unit`：验证全部学习事件分支、非法转换不落盘、EventId/CommandId 幂等、flush、真实子进程重启、跨 Session 延续、Learner/Enrollment 隔离，以及 JSON、torn record、序号、版本和身份损坏诊断。
+- `pnpm test:snapshot`：通过真实 DSH app boot 与 Cordis Loader 固定课程来源、四个已提交 learner event 和重放后的 LearnerState。
+- `pnpm test:profile`：安装后的 profile 同时出现 curriculum、learner-memory、learner 与 teacher 行，移除 bundle 后均无残留。
 
-P1-03 至 P1-06 的 learner-memory、重放、幂等、跨 Session 延续与隔离证据尚未建立；仅内存 reducer 测试不替代持久 Provider 和进程重启验收。
+模型实际收到的 LearnerState 快照进入 DSH Session Log 属于 Phase 2；Phase 1 不把 headless 状态输出误记为 Session 请求审计证据。

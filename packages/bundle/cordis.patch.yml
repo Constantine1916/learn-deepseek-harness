@@ -1,6 +1,15 @@
 - insert:
     - id: learn-dsh-curriculum
       name: '@learn-dsh/curriculum'
+
+    - id: learn-dsh-learner-memory
+      name: '@learn-dsh/learner-memory/local'
+      config:
+        root: !!js dshHomePath('learn-dsh/learner-memory')
+
+    - id: learn-dsh-learner
+      name: '@learn-dsh/learner'
+
     - id: learn-dsh-teacher
       name: '@learn-dsh/teacher'
       inject: [systemPrompt]

@@ -33,10 +33,10 @@
 
 - P1-01（完成）：实现课程类型、schema、加载和课程图验证。关联 F-003。
 - P1-02（完成）：提交第一个 foundations 课程单元和来源锚点。关联 F-003、F-012。
-- P1-03：定义 LearnerId、EnrollmentId、EventId 等 branded IDs、学习事件和纯投影。关联 F-010、F-011。
-- P1-04：实现 learner-memory Service Definition、持久 envelope 和本地追加式 Provider。关联 F-010、F-011、Q-002。
-- P1-05：实现 learner 查询 Service、领域事件追加、持久化确认和幂等接口。关联 F-010、F-011。
-- P1-06：验证原 Session 恢复、同 Enrollment 跨 Session 延续、不同 Enrollment 隔离和损坏诊断。关联 F-011、Q-002。
+- P1-03（完成）：定义 LearnerId、EnrollmentId、EventId 等 branded IDs、学习事件和纯投影。关联 F-010、F-011。
+- P1-04（完成）：实现 learner-memory Service Definition、持久 envelope 和本地追加式 Provider。关联 F-010、F-011、Q-002。
+- P1-05（完成）：实现 learner 查询 Service、领域事件追加、持久化确认和幂等接口。关联 F-010、F-011。
+- P1-06（完成）：验证原 Session 恢复、同 Enrollment 跨 Session 延续、不同 Enrollment 隔离和损坏诊断。关联 F-011、Q-002。
 
 架构约束：`learning/*` 写入独立 Learner Event Store，不注册为 DSH Session event。模型实际收到的 LearnerState 快照在 Phase 2 通过 DSH 请求上下文进入对应 Session Log。
 

@@ -1,9 +1,8 @@
 import { readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { load } from 'js-yaml'
 import { describe, expect, it } from 'vitest'
-import { composeEntries, type ProfileManifest } from '@deepseek-ai/dsh-app-boot'
+import { composeEntries, loadOverlayPatches, type ProfileManifest } from '@deepseek-ai/dsh-app-boot'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 
@@ -12,11 +11,20 @@ describe('F-001 external Learn DSH bundle', () => {
     const manifest = JSON.parse(readFileSync(resolve(root, 'package.json'), 'utf8')) as ProfileManifest
     expect(manifest.dsh?.bundle?.patch).toBe('./cordis.patch.yml')
 
-    const patches = load(readFileSync(resolve(root, 'cordis.patch.yml'), 'utf8')) as Parameters<typeof composeEntries>[0][number]
-    expect(composeEntries([patches])).toEqual([
+    const patches = loadOverlayPatches('learn-dsh-bundle-test', resolve(root, 'cordis.patch.yml'))
+    const entries = composeEntries([patches])
+    expect(entries.map(({ id, name, inject }) => ({ id, name, ...(inject === undefined ? {} : { inject }) }))).toEqual([
       {
         id: 'learn-dsh-curriculum',
         name: '@learn-dsh/curriculum',
+      },
+      {
+        id: 'learn-dsh-learner-memory',
+        name: '@learn-dsh/learner-memory/local',
+      },
+      {
+        id: 'learn-dsh-learner',
+        name: '@learn-dsh/learner',
       },
       {
         id: 'learn-dsh-teacher',

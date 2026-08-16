@@ -49,5 +49,47 @@
         "version": "0cf6f648c80de1b0572057cd746a20863e39d606"
       }
     ]
+  },
+  "learnerMemory": {
+    "eventCount": 4,
+    "state": {
+      "learnerId": "snapshot-learner",
+      "enrollmentId": "snapshot-enrollment",
+      "courseId": "dsh-foundations",
+      "goal": "Understand DSH plugin composition",
+      "activePlan": {
+        "unitIds": [
+          "plugin-context-service-effect"
+        ],
+        "reason": "first-foundations-unit",
+        "revision": 1
+      },
+      "currentActivity": {
+        "kind": "unit",
+        "unitId": "plugin-context-service-effect"
+      },
+      "unitProgress": {
+        "plugin-context-service-effect": "in-progress"
+      },
+      "attempts": {},
+      "evidence": {},
+      "misconceptions": {},
+      "mastery": {},
+      "nextRecommendation": {
+        "unitId": "plugin-context-service-effect",
+        "reason": "first-foundations-unit"
+      },
+      "courseCompleted": false,
+      "sourceSessionIds": [
+        "snapshot-session"
+      ],
+      "appliedEventIds": [
+        "snapshot-event-1",
+        "snapshot-event-2",
+        "snapshot-event-3",
+        "snapshot-event-4"
+      ],
+      "lastSeq": 3
+    }
   }
 }

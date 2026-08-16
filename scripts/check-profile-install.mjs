@@ -27,6 +27,8 @@ try {
   const installed = dsh(['--profile', 'learn-dsh', '--dump-config'])
   const expectedRows = [
     ['learn-dsh-curriculum', '@learn-dsh/curriculum'],
+    ['learn-dsh-learner-memory', '@learn-dsh/learner-memory/local'],
+    ['learn-dsh-learner', '@learn-dsh/learner'],
     ['learn-dsh-teacher', '@learn-dsh/teacher'],
   ]
   for (const [id, name] of expectedRows) {

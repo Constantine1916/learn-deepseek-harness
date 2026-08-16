@@ -2,7 +2,7 @@
 
 一个基于 DeepSeek Harness 插件生态构建的自适应教学 Agent，帮助开发者通过讲解、源码探索、实践任务和反馈循环，系统掌握 DSH。
 
-> 项目状态：Phase 0 工程与兼容性基线，以及 Phase 1 的课程基础切片已实现。当前版本提供最小教师插件、版本化 foundations 课程、课程图与来源 anchor 校验、可安装 bundle、真实 Loader headless example 和基础门禁；诊断、持久 learner state、练习与 Web UI 尚未实现。
+> 项目状态：Phase 0 工程基线和 Phase 1 课程/长期学习状态基础已实现。当前版本提供最小教师插件、版本化 foundations 课程、独立追加式 Learner Event Store、确定性 LearnerState 投影、可安装 bundle、真实 Loader headless example 和基础门禁；诊断、模型请求状态快照、练习与 Web UI 尚未实现。
 
 ## 项目定位
 
@@ -51,12 +51,13 @@ MVP 覆盖以下学习路径：
 - 完成一个最小工具插件和一个最小 Provider。
 - 将教学插件组合成可安装的 Learn DSH bundle。
 
-## 计划中的插件
+## 插件与计划组件
 
 | 组件 | 职责 |
 |---|---|
 | curriculum | 课程图、概念、前置关系、源码锚点和练习目录 |
-| learner-model | 从持久学习事件投影学习者状态和掌握证据 |
+| learner-memory | 持久化按 LearnerId/EnrollmentId 隔离的追加式学习事件 |
+| learner | 从持久学习事件投影状态，并提供查询、追加、幂等和 flush 接口 |
 | teacher-persona | 教师身份、教学原则和分层提示策略 |
 | diagnostic | 根据目标与回答选择诊断任务并记录证据 |
 | lesson-planner | 根据课程依赖和学习者状态选择下一教学活动 |
@@ -125,6 +126,8 @@ pnpm dsh plugin --profile learn-dsh remove @learn-dsh/bundle
 
 ~~~text
 packages/curriculum/  课程 schema、图验证、内容入口和 DSH 来源 anchor
+packages/learner-memory/ 追加式 Learner Event Store Service 与本地 Provider
+packages/learner/     学习事件、纯投影和 learner 查询/追加 Service
 packages/teacher/     最小教师 system-prompt 插件
 packages/bundle/      可安装的 DSH profile patch layer
 examples/headless/    真实 Loader keyless runnable example
@@ -169,7 +172,8 @@ pnpm check
 - 课程目前只有第一个 foundations 单元；完整八项学习成果和连续课程在 Phase 4 完成。
 - 教师插件只注册稳定 Persona section；没有诊断、教学工具或练习执行。
 - `learn-dsh` profile 尚不是完整 headless Agent surface；真实 prompt 组装由 `examples/headless` 证明。
-- DSH `0.1.0-rc.5` 和已核对的 `0.1.0-rc.6` 都没有树外必需 Session event 的公开持久化注册入口。长期学习状态将由独立、追加式 learner-memory plugin 保存；DSH Session Log 只记录单次会话和模型实际收到的学习状态快照。该能力尚未实现。
+- 长期学习状态已由独立 learner-memory 保存，不依赖树外 DSH Session event。模型实际收到的 LearnerState 精确快照将在 Phase 2 接入 DSH Session Log；当前 headless snapshot 只证明长期状态提交、重放与真实 Loader 组合。
+- 本地 learner-memory Provider 面向单 host 进程；多个独立进程不能同时写同一存储根。团队或多进程共享需要后续远程 Provider。
 
 本项目是独立社区项目，不代表 DeepSeek 官方产品。
 

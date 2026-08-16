@@ -100,13 +100,15 @@ Phase 0 不代表规格 001 整体验收完成。当前纵向切片提供以下�
 | Q-006、F-AC-003 | `pnpm test:snapshot` 通过真实 Loader 组装 keyless 教师 prompt |
 | F-AC-001、F-AC-006 | `pnpm check` 汇总 lint、strict typecheck、unit、snapshot、build、docs、compatibility 和 profile checks |
 
-## Phase 1 课程基础证据
+## Phase 1 课程与长期学习状态证据
 
-Phase 1 当前只完成课程切片；独立 learner-memory、跨 Session 连续性和 C 类恢复验收仍未实现。
+Phase 1 已完成课程、独立 learner-memory、纯投影、跨 Session 连续性和持久故障诊断。C-004 中“模型实际看到的快照进入 Session Log”的后半项仍由 Phase 2 完成。
 
 | 需求或验收项 | 当前证据入口 |
 |---|---|
 | F-003、D-002、D-003 | `pnpm test:unit` 验证首个完整单元的 schema、SemVer、图、completion 引用和负向加载 |
 | F-012、D-004 | `pnpm test:unit` 验证安全路径、四类 stable anchor、缺失 anchor 和 symlink 逃逸；`pnpm test:snapshot` 固定真实上游解析结果 |
-| F-001、A-002、A-005 | `pnpm test:profile` 验证 curriculum/teacher bundle 行安装与移除；curriculum 单测验证 Service dispose 后可无残留重载 |
-| Q-006、F-AC-003 | `pnpm test:snapshot` 通过真实 Loader 同时组装教师 prompt 与不可变课程读取结果 |
+| F-010、C-003、C-005 | `pnpm test:unit` 验证 typed learning events、全部 reducer 分支、Evidence 引用、非法转换不落盘和 EventId/CommandId 幂等 |
+| F-011、Q-002、C-001、C-002、C-006 | `pnpm test:unit` 验证 fsync 后成功、flush、真实子进程重启、同 Enrollment 跨 Session 延续、不同 scope 隔离和损坏诊断 |
+| F-001、A-002、A-005 | `pnpm test:profile` 验证 curriculum/learner-memory/learner/teacher bundle 行安装与移除；Service lifecycle 单测验证 dispose/reload |
+| Q-006、F-AC-003 | `pnpm test:snapshot` 通过真实 Loader 同时组装教师 prompt、课程读取结果和已提交 LearnerState；Session 请求快照证据留给 Phase 2 |

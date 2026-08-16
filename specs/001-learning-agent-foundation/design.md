@@ -27,6 +27,8 @@ DSH host composition
 ~~~text
 packages/
   curriculum/       课程 schema、图验证、内容入口和来源 anchor
+  learner-memory/   追加式学习事件持久化 Service 与本地 Provider
+  learner/          学习事件、纯投影和查询/追加 Service
   teacher/          最小教师 system-prompt 插件
   bundle/           可安装 profile patch layer
 examples/

@@ -41,12 +41,21 @@ importers:
       '@deepseek-ai/dsh-app-boot':
         specifier: link:../../../deepseek-harness/packages/boot/app-boot
         version: link:../../../deepseek-harness/packages/boot/app-boot
+      '@deepseek-ai/dsh-session':
+        specifier: link:../../../deepseek-harness/packages/core/session
+        version: link:../../../deepseek-harness/packages/core/session
       '@deepseek-ai/dsh-system-prompt':
         specifier: link:../../../deepseek-harness/packages/core/system-prompt
         version: link:../../../deepseek-harness/packages/core/system-prompt
       '@learn-dsh/curriculum':
         specifier: workspace:*
         version: link:../../packages/curriculum
+      '@learn-dsh/learner':
+        specifier: workspace:*
+        version: link:../../packages/learner
+      '@learn-dsh/learner-memory':
+        specifier: workspace:*
+        version: link:../../packages/learner-memory
       '@learn-dsh/teacher':
         specifier: workspace:*
         version: link:../../packages/teacher
@@ -56,6 +65,12 @@ importers:
       '@learn-dsh/curriculum':
         specifier: workspace:^
         version: link:../curriculum
+      '@learn-dsh/learner':
+        specifier: workspace:^
+        version: link:../learner
+      '@learn-dsh/learner-memory':
+        specifier: workspace:^
+        version: link:../learner-memory
       '@learn-dsh/teacher':
         specifier: workspace:^
         version: link:../teacher
@@ -79,6 +94,38 @@ importers:
       '@deepseek-ai/cordis':
         specifier: link:../../../deepseek-harness/vendor/cordis
         version: link:../../../deepseek-harness/vendor/cordis
+
+  packages/learner:
+    dependencies:
+      zod:
+        specifier: 4.4.3
+        version: 4.4.3
+    devDependencies:
+      '@deepseek-ai/cordis':
+        specifier: link:../../../deepseek-harness/vendor/cordis
+        version: link:../../../deepseek-harness/vendor/cordis
+      '@deepseek-ai/dsh-session':
+        specifier: link:../../../deepseek-harness/packages/core/session
+        version: link:../../../deepseek-harness/packages/core/session
+      '@learn-dsh/curriculum':
+        specifier: workspace:*
+        version: link:../curriculum
+      '@learn-dsh/learner-memory':
+        specifier: workspace:*
+        version: link:../learner-memory
+
+  packages/learner-memory:
+    dependencies:
+      '@deepseek-ai/schemastery':
+        specifier: 3.18.1
+        version: 3.18.1
+    devDependencies:
+      '@deepseek-ai/cordis':
+        specifier: link:../../../deepseek-harness/vendor/cordis
+        version: link:../../../deepseek-harness/vendor/cordis
+      '@deepseek-ai/dsh-session':
+        specifier: link:../../../deepseek-harness/packages/core/session
+        version: link:../../../deepseek-harness/packages/core/session
 
   packages/teacher:
     devDependencies:
@@ -828,6 +875,9 @@ packages:
     engines: {node: '>=8'}
     hasBin: true
 
+  zod@4.4.3:
+    resolution: {integrity: sha512-ytENFjIJFl2UwYglde2jchW2Hwm4GJFLDiSXWdTrJQBIN9Fcyp7n4DhxJEiWNAJMV1/BqWfW/kkg71UDcHJyTQ==}
+
 snapshots:
 
   '@deepseek-ai/cosmokit@1.8.2': {}
@@ -1324,3 +1374,5 @@ snapshots:
     dependencies:
       siginfo: 2.0.0
       stackback: 0.0.2
+
+  zod@4.4.3: {}
