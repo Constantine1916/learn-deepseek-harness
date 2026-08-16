@@ -7,16 +7,24 @@
       "learn-dsh:learning-tools"
     ],
     "tools": [
+      "learning_adjust_plan",
       "learning_complete_activity",
       "learning_get_state",
-      "learning_start_unit"
+      "learning_start_diagnostic",
+      "learning_start_unit",
+      "learning_submit_diagnostic",
+      "learning_waive_unit"
     ],
     "requestHeader": {
       "hasTeacherPersona": true,
       "tools": [
+        "learning_adjust_plan",
         "learning_complete_activity",
         "learning_get_state",
-        "learning_start_unit"
+        "learning_start_diagnostic",
+        "learning_start_unit",
+        "learning_submit_diagnostic",
+        "learning_waive_unit"
       ]
     },
     "firstResponse": "I teach DSH through source-backed explanation, learner checkpoints, sandboxed exercises, and machine evidence. I only use capabilities allowed by this profile, and I will not claim completion without persisted evidence.",
@@ -63,6 +71,22 @@
     {
       "label": "state-read",
       "activity": null,
+      "completedUnits": [],
+      "checks": [],
+      "exactSnapshotInSessionLog": true
+    },
+    {
+      "label": "novice-diagnostic-start",
+      "activity": null,
+      "completedUnits": [],
+      "checks": [],
+      "exactSnapshotInSessionLog": true
+    },
+    {
+      "label": "novice-diagnostic-submit",
+      "activity": {
+        "kind": "diagnostic"
+      },
       "completedUnits": [],
       "checks": [],
       "exactSnapshotInSessionLog": true
@@ -227,26 +251,89 @@
         }
       ],
       "exactSnapshotInSessionLog": true
+    },
+    {
+      "label": "experienced-diagnostic-start",
+      "activity": null,
+      "completedUnits": [],
+      "checks": [],
+      "exactSnapshotInSessionLog": true
+    },
+    {
+      "label": "experienced-diagnostic-submit",
+      "activity": {
+        "kind": "diagnostic"
+      },
+      "completedUnits": [],
+      "checks": [],
+      "exactSnapshotInSessionLog": true
+    },
+    {
+      "label": "experienced-waiver",
+      "activity": null,
+      "completedUnits": [],
+      "checks": [],
+      "exactSnapshotInSessionLog": true
+    },
+    {
+      "label": "experienced-recommendation",
+      "activity": null,
+      "completedUnits": [],
+      "checks": [],
+      "exactSnapshotInSessionLog": true
     }
   ],
   "sessionLog": {
     "originalSessionId": "phase-2-original-session",
-    "originalRuntimeSnapshotCount": 8,
+    "originalRuntimeSnapshotCount": 10,
     "continuedSessionId": "phase-2-continued-session",
-    "continuedRuntimeSnapshotCount": 1
+    "continuedRuntimeSnapshotCount": 1,
+    "experiencedSessionId": "phase-3-experienced-session",
+    "experiencedRuntimeSnapshotCount": 4
   },
   "learnerMemory": {
-    "eventCount": 15,
+    "eventCount": 20,
     "finalState": {
       "learnerId": "local-learner",
       "enrollmentId": "dsh-foundations-local",
       "courseId": "dsh-foundations",
       "goal": "Understand DSH plugin composition through real source and machine evidence",
+      "diagnostic": {
+        "diagnosticId": "diagnostic-b4f0997c9c1810edde86aec89c60bc9e",
+        "background": "TypeScript developer new to DSH and Cordis",
+        "targetOutcomeIds": [
+          "plugin-context-service-effect"
+        ],
+        "candidateIds": [
+          "diagnostic-plugin-context-service-effect-names-roles",
+          "diagnostic-plugin-context-service-effect-traces-disposal"
+        ],
+        "assessments": {
+          "diagnostic-plugin-context-service-effect-names-roles": {
+            "candidateId": "diagnostic-plugin-context-service-effect-names-roles",
+            "unitId": "plugin-context-service-effect",
+            "rubricId": "names-roles",
+            "status": "gap",
+            "summary": "The learner does not yet distinguish Service Definitions from Providers."
+          },
+          "diagnostic-plugin-context-service-effect-traces-disposal": {
+            "candidateId": "diagnostic-plugin-context-service-effect-traces-disposal",
+            "unitId": "plugin-context-service-effect",
+            "rubricId": "traces-disposal",
+            "status": "uncertain",
+            "summary": "The learner has not yet traced plugin disposal in the locked DSH source."
+          }
+        },
+        "completed": true,
+        "recommendedUnitId": "plugin-context-service-effect",
+        "reason": "first-evidence-gap:plugin-context-service-effect"
+      },
       "activePlan": {
         "unitIds": [
           "plugin-context-service-effect"
         ],
-        "reason": "phase-2-deterministic-prerequisite-plan",
+        "reason": "diagnostic-target-path-with-misconception-priority",
+        "evidenceIds": [],
         "revision": 1
       },
       "currentActivity": null,
@@ -305,7 +392,83 @@
       "sourceSessionIds": [
         "phase-2-original-session"
       ],
-      "lastSeq": 14
+      "lastSeq": 19
+    },
+    "experiencedState": {
+      "learnerId": "experienced-learner",
+      "enrollmentId": "dsh-foundations-experienced",
+      "courseId": "dsh-foundations",
+      "goal": "Contribute a DSH bundle while skipping concepts already demonstrated",
+      "diagnostic": {
+        "diagnosticId": "diagnostic-6fabc813ac4c698b6323927fe81110af",
+        "background": "Experienced Cordis plugin developer who has shipped scoped services",
+        "targetOutcomeIds": [
+          "plugin-context-service-effect"
+        ],
+        "candidateIds": [
+          "diagnostic-plugin-context-service-effect-names-roles",
+          "diagnostic-plugin-context-service-effect-traces-disposal"
+        ],
+        "assessments": {
+          "diagnostic-plugin-context-service-effect-names-roles": {
+            "candidateId": "diagnostic-plugin-context-service-effect-names-roles",
+            "unitId": "plugin-context-service-effect",
+            "rubricId": "names-roles",
+            "status": "meets",
+            "summary": "The learner accurately distinguishes Plugin, Context, Service, Effect, and typed events.",
+            "evidenceId": "evidence-27a9f55ce8a418a205b27979399ba6c760c2fc677224568c4f73703556af63f4"
+          },
+          "diagnostic-plugin-context-service-effect-traces-disposal": {
+            "candidateId": "diagnostic-plugin-context-service-effect-traces-disposal",
+            "unitId": "plugin-context-service-effect",
+            "rubricId": "traces-disposal",
+            "status": "meets",
+            "summary": "The learner traced Context registration and fiber-owned disposal in the locked source.",
+            "evidenceId": "evidence-d0b28bb345e436dea0612235a573a2bea267b7424b589c34e9319f1bf91dd42c"
+          }
+        },
+        "completed": true,
+        "recommendedUnitId": null,
+        "reason": "all-target-units-eligible-for-user-requested-waiver"
+      },
+      "activePlan": {
+        "unitIds": [
+          "plugin-context-service-effect"
+        ],
+        "reason": "diagnostic-target-path-with-misconception-priority",
+        "evidenceIds": [
+          "evidence-27a9f55ce8a418a205b27979399ba6c760c2fc677224568c4f73703556af63f4",
+          "evidence-d0b28bb345e436dea0612235a573a2bea267b7424b589c34e9319f1bf91dd42c"
+        ],
+        "revision": 1
+      },
+      "currentActivity": null,
+      "unitProgress": {
+        "plugin-context-service-effect": "waived"
+      },
+      "attempts": [],
+      "evidence": [
+        {
+          "kind": "authored",
+          "summary": "The learner accurately distinguishes Plugin, Context, Service, Effect, and typed events.",
+          "unitId": "plugin-context-service-effect"
+        },
+        {
+          "kind": "observed",
+          "summary": "The learner traced Context registration and fiber-owned disposal in the locked source.",
+          "unitId": "plugin-context-service-effect"
+        }
+      ],
+      "mastery": {},
+      "nextRecommendation": {
+        "unitId": null,
+        "reason": "plan-complete-after-waiver"
+      },
+      "courseCompleted": false,
+      "sourceSessionIds": [
+        "phase-3-experienced-session"
+      ],
+      "lastSeq": 9
     }
   }
 }

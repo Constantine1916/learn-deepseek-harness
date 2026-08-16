@@ -199,3 +199,12 @@ Phase 0 的可复现入口：
 - `pnpm test:snapshot`：通过真实 Loader、Agent Loop、脚本 LLM adapter 和 JSONL Session persistence 固定首次进入、失败检查、成功检查、原 Session 恢复和同 Enrollment 新 Session 延续。每个模型请求中的 `learn-dsh:learner-state` 文本必须逐字存在于对应 Session Log。
 - `pnpm test:profile`：安装后的 profile 出现 curriculum、learner-memory、learner、lab、teaching、teacher 和 tool-learning 行，移除 bundle 后无残留。
 - `pnpm check`：汇总 lint、strict typecheck、unit、snapshot、build、docs、compatibility 和 profile 门禁。
+
+## 10. Phase 3 诊断与自适应计划证据
+
+- `pnpm test:unit`：验证诊断候选由目标路径的 objectives、required rubric 和 evidenceKinds 动态生成，不依赖固定题目列表。
+- `pnpm test:unit`：验证 `meets | gap | uncertain`、observed source 引用、machine evidence 引用和缺失 required rubric 的拒绝结果。
+- `pnpm test:unit`：验证只有全部 required rubric 匹配且至少存在一条 observed 或 machine 证据时才产生跳过资格。
+- `pnpm test:unit`：验证跳过必须由学习者显式命令触发，写入引用 EvidenceId 的 `learning/unit-waived`，且 waived 与 completed 保持可区分。
+- `pnpm test:unit`：验证 gap/uncertain 阻止跳过、误区优先补课、计划遵守先修关系，以及每次计划变化保存原因和 evidence 引用。
+- `pnpm test:snapshot`：通过真实 Loader、Agent Loop 和 Session persistence 固定初学者与有经验开发者的不同诊断结果、计划、显式跳过和推荐起点。

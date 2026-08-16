@@ -7,6 +7,7 @@ import { describe, expect, it } from 'vitest'
 import CurriculumService, { CourseId, UnitId } from '@learn-dsh/curriculum'
 import LearnerService, {
   CommandId,
+  DiagnosticCandidateId,
   DiagnosticId,
   EnrollmentId,
   EventId,
@@ -73,8 +74,39 @@ describe('F-010 learner events and pure projection', () => {
   it('projects every Phase 1 learning event branch into deterministic immutable state', () => withContext(async ctx => {
     await createEnrollment(ctx)
     await ctx.learner.append(scope, input('learning/goal-set', { goal: 'Build a DSH plugin' }))
-    await ctx.learner.append(scope, input('learning/diagnostic-started', { diagnosticId: DiagnosticId('diagnostic-1') }))
-    await ctx.learner.append(scope, input('learning/plan-created', { unitIds: [unitId], reason: 'foundation-first' }))
+    const namesCandidate = DiagnosticCandidateId('diagnostic-plugin-context-service-effect-names-roles')
+    const disposalCandidate = DiagnosticCandidateId('diagnostic-plugin-context-service-effect-traces-disposal')
+    await ctx.learner.append(scope, input('learning/diagnostic-started', {
+      diagnosticId: DiagnosticId('diagnostic-1'),
+      background: 'TypeScript developer new to DSH',
+      targetOutcomeIds: ['plugin-context-service-effect'],
+      candidateIds: [namesCandidate, disposalCandidate],
+    }))
+    await ctx.learner.append(scope, input('learning/evidence-recorded', {
+      evidenceId: EvidenceId('diagnostic-evidence-1'), kind: 'authored', summary: 'Explained the five roles', unitId,
+      diagnosticCandidateId: namesCandidate, rubricId: 'names-roles',
+    }))
+    await ctx.learner.append(scope, input('learning/diagnostic-assessed', {
+      diagnosticId: DiagnosticId('diagnostic-1'), candidateId: namesCandidate, unitId, rubricId: 'names-roles',
+      status: 'meets', summary: 'Roles are accurate', evidenceId: EvidenceId('diagnostic-evidence-1'),
+    }))
+    await ctx.learner.append(scope, input('learning/evidence-recorded', {
+      evidenceId: EvidenceId('diagnostic-evidence-2'), kind: 'observed', summary: 'Located disposal ownership', unitId,
+      diagnosticCandidateId: disposalCandidate, rubricId: 'traces-disposal',
+      source: { path: 'vendor/cordis/src/context.ts', anchorKind: 'export', anchor: 'Context' },
+    }))
+    await ctx.learner.append(scope, input('learning/diagnostic-assessed', {
+      diagnosticId: DiagnosticId('diagnostic-1'), candidateId: disposalCandidate, unitId, rubricId: 'traces-disposal',
+      status: 'meets', summary: 'Source trace is valid', evidenceId: EvidenceId('diagnostic-evidence-2'),
+    }))
+    await ctx.learner.append(scope, input('learning/diagnostic-completed', {
+      diagnosticId: DiagnosticId('diagnostic-1'), recommendedUnitId: null,
+      evidenceIds: [EvidenceId('diagnostic-evidence-1'), EvidenceId('diagnostic-evidence-2')], reason: 'all-rubric-met',
+    }))
+    await ctx.learner.append(scope, input('learning/plan-created', {
+      unitIds: [unitId], reason: 'foundation-first',
+      evidenceIds: [EvidenceId('diagnostic-evidence-1'), EvidenceId('diagnostic-evidence-2')],
+    }))
     await ctx.learner.append(scope, input('learning/plan-adjusted', { unitIds: [unitId], reason: 'keep-current-plan' }))
     await ctx.learner.append(scope, input('learning/unit-started', { unitId }))
     await ctx.learner.append(scope, input('learning/activity-advanced', {

@@ -19,7 +19,7 @@ import {
 import { SessionId, type SessionEvent } from '@deepseek-ai/dsh-session'
 import type {} from '@deepseek-ai/dsh-session-persistence'
 import type {} from '@deepseek-ai/dsh-sandbox-policy'
-import type { LearnerState } from '@learn-dsh/learner'
+import { EnrollmentId, LearnerId, type LearnerState } from '@learn-dsh/learner'
 import type {} from '@learn-dsh/lab/local'
 import type {} from '@learn-dsh/teacher'
 import type {} from '@learn-dsh/teaching'
@@ -154,6 +154,7 @@ function summarizeState(state: LearnerState) {
     enrollmentId: state.enrollmentId,
     courseId: state.courseId,
     goal: state.goal,
+    diagnostic: state.diagnostic,
     activePlan: state.activePlan,
     currentActivity: state.currentActivity,
     unitProgress: state.unitProgress,
@@ -191,6 +192,33 @@ const script: ScriptEntry[] = [
     chunks: textResponse('I teach DSH through source-backed explanation, learner checkpoints, sandboxed exercises, and machine evidence. I only use capabilities allowed by this profile, and I will not claim completion without persisted evidence.'),
   },
   { label: 'state-read', chunks: toolCallResponse('state-1', 'learning_get_state', {}) },
+  {
+    label: 'novice-diagnostic-start',
+    chunks: toolCallResponse('diagnostic-start-1', 'learning_start_diagnostic', {
+      command_id: 'phase-3-novice-diagnostic-start',
+      goal: 'Understand DSH plugin composition through real source and machine evidence',
+      background: 'TypeScript developer new to DSH and Cordis',
+      target_outcome_ids: ['plugin-context-service-effect'],
+    }),
+  },
+  {
+    label: 'novice-diagnostic-submit',
+    chunks: toolCallResponse('diagnostic-submit-1', 'learning_submit_diagnostic', {
+      command_id: 'phase-3-novice-diagnostic-submit',
+      assessments: [
+        {
+          candidate_id: 'diagnostic-plugin-context-service-effect-names-roles',
+          status: 'gap',
+          summary: 'The learner does not yet distinguish Service Definitions from Providers.',
+        },
+        {
+          candidate_id: 'diagnostic-plugin-context-service-effect-traces-disposal',
+          status: 'uncertain',
+          summary: 'The learner has not yet traced plugin disposal in the locked DSH source.',
+        },
+      ],
+    }),
+  },
   {
     label: 'start-unit',
     chunks: toolCallResponse('start-1', 'learning_start_unit', {
@@ -249,6 +277,50 @@ const script: ScriptEntry[] = [
   { label: 'unit-completed', chunks: textResponse('The unit is complete with persisted machine evidence.') },
   { label: 'original-session-resume', chunks: textResponse('The original Session resumed from the committed state.') },
   { label: 'new-session-continuity', chunks: textResponse('A new Session continued the same Enrollment state.') },
+  {
+    label: 'experienced-diagnostic-start',
+    chunks: toolCallResponse('experienced-diagnostic-start-1', 'learning_start_diagnostic', {
+      command_id: 'phase-3-experienced-diagnostic-start',
+      goal: 'Contribute a DSH bundle while skipping concepts already demonstrated',
+      background: 'Experienced Cordis plugin developer who has shipped scoped services',
+      target_outcome_ids: ['plugin-context-service-effect'],
+    }),
+  },
+  {
+    label: 'experienced-diagnostic-submit',
+    chunks: toolCallResponse('experienced-diagnostic-submit-1', 'learning_submit_diagnostic', {
+      command_id: 'phase-3-experienced-diagnostic-submit',
+      assessments: [
+        {
+          candidate_id: 'diagnostic-plugin-context-service-effect-names-roles',
+          status: 'meets',
+          summary: 'The learner accurately distinguishes Plugin, Context, Service, Effect, and typed events.',
+          evidence_kind: 'authored',
+        },
+        {
+          candidate_id: 'diagnostic-plugin-context-service-effect-traces-disposal',
+          status: 'meets',
+          summary: 'The learner traced Context registration and fiber-owned disposal in the locked source.',
+          evidence_kind: 'observed',
+          source_path: 'vendor/cordis/src/context.ts',
+          source_anchor_kind: 'export',
+          source_anchor: 'Context',
+        },
+      ],
+    }),
+  },
+  {
+    label: 'experienced-waiver',
+    chunks: toolCallResponse('experienced-waiver-1', 'learning_waive_unit', {
+      command_id: 'phase-3-experienced-waiver',
+      unit_id: 'plugin-context-service-effect',
+      reason: 'The learner explicitly requested the evidence-backed waiver.',
+    }),
+  },
+  {
+    label: 'experienced-recommendation',
+    chunks: textResponse('Your authored role explanation and verified source trace satisfy every required rubric. At your explicit request, the foundation unit is recorded as waived rather than exercise-completed; no unverified completion was granted.'),
+  },
 ]
 
 const directory = resolve(dirname(fileURLToPath(import.meta.url)), '..')
@@ -270,9 +342,15 @@ ctx.llm.registerAdapter(['snapshot'], adapter)
 
 const originalSessionId = SessionId('phase-2-original-session')
 const continuedSessionId = SessionId('phase-2-continued-session')
+const experiencedSessionId = SessionId('phase-3-experienced-session')
+const experiencedScope = Object.freeze({
+  learnerId: LearnerId('experienced-learner'),
+  enrollmentId: EnrollmentId('dsh-foundations-experienced'),
+})
 let original: AgentHandle | undefined
 let resumed: AgentHandle | undefined
 let continued: AgentHandle | undefined
+let experienced: AgentHandle | undefined
 
 try {
   original = await ctx.agents.create({
@@ -320,17 +398,31 @@ try {
   await continued.dispose()
   continued = undefined
 
+  experienced = await ctx.agents.create({
+    sessionId: experiencedSessionId,
+    meta: { cwd: workspace },
+    agentOptions: { provider: 'snapshot', model: 'phase-3-script' },
+  })
+  await ctx.teaching.bindSession(experiencedSessionId, experiencedScope)
+  await followup(experienced, 'Diagnose my existing DSH knowledge and skip the foundation unit only if I explicitly request it and the evidence is sufficient. I request the skip if eligible.')
+  await experienced.dispose()
+  experienced = undefined
+
   if (adapter.requests.length !== script.length) {
     throw new Error(`expected ${script.length} scripted model requests, received ${adapter.requests.length}`)
   }
 
   const originalLog = await ctx.sessionPersistence.inspect(originalSessionId)
   const continuedLog = await ctx.sessionPersistence.inspect(continuedSessionId)
+  const experiencedLog = await ctx.sessionPersistence.inspect(experiencedSessionId)
   const originalSnapshots = snapshotSections(originalLog.events)
   const continuedSnapshots = snapshotSections(continuedLog.events)
+  const experiencedSnapshots = snapshotSections(experiencedLog.events)
   const journey = adapter.requests.map(request => summarizeRequest(
     request,
-    request.label === 'new-session-continuity' ? continuedSnapshots : originalSnapshots,
+    request.label.startsWith('experienced-')
+      ? experiencedSnapshots
+      : request.label === 'new-session-continuity' ? continuedSnapshots : originalSnapshots,
   ))
   if (journey.some(entry => !entry.exactSnapshotInSessionLog)) {
     throw new Error('a model-visible LearnerState snapshot was not found exactly in its Session Log')
@@ -350,6 +442,7 @@ try {
     throw new Error('original Session Log is missing a Phase 2 teaching response')
   }
   const finalState = await ctx.teaching.stateFor(continuedSessionId)
+  const experiencedState = await ctx.learner.getState(experiencedScope)
   const memoryEvents = await ctx.learnerMemory.read(ctx.teaching.scopeFor(continuedSessionId))
   const assembly = await ctx.systemPrompt.assemble()
 
@@ -378,16 +471,20 @@ try {
       originalRuntimeSnapshotCount: originalSnapshots.length,
       continuedSessionId,
       continuedRuntimeSnapshotCount: continuedSnapshots.length,
+      experiencedSessionId,
+      experiencedRuntimeSnapshotCount: experiencedSnapshots.length,
     },
     learnerMemory: {
       eventCount: memoryEvents.length,
       finalState: summarizeState(finalState),
+      experiencedState: summarizeState(experiencedState),
     },
   }, undefined, 2)}\n`)
 } finally {
   await original?.dispose()
   await resumed?.dispose()
   await continued?.dispose()
+  await experienced?.dispose()
   await ctx.fiber.dispose()
   if (previousWorkspaceRoot === undefined) delete process.env.LEARN_DSH_WORKSPACE_ROOT
   else process.env.LEARN_DSH_WORKSPACE_ROOT = previousWorkspaceRoot

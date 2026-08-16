@@ -84,4 +84,87 @@ describe('F-005 F-010 P2-03 learning tools', () => {
       await rm(root, { recursive: true, force: true })
     }
   })
+
+  it('runs curriculum-derived diagnosis and requires an explicit eligible waiver tool call', async () => {
+    const root = await mkdtemp(resolve(tmpdir(), 'learn-dsh-diagnostic-tools-'))
+    const ctx = new Context()
+    try {
+      await ctx.plugin(SystemPrompt)
+      await ctx.plugin(ToolRuntime)
+      await ctx.plugin(CurriculumService, { dshVersion: '0.1.0-rc.5' })
+      await ctx.plugin(LocalLearnerMemory, { root })
+      await ctx.plugin(LearnerService)
+      await ctx.plugin(FakeLab)
+      await ctx.plugin(TeachingService, { learnerId: 'learner-1', enrollmentId: 'enrollment-1' })
+      await ctx.plugin(ToolLearning)
+      const owner = agent()
+      const signal = new AbortController().signal
+
+      const started = await ctx.tools.execute({
+        signal,
+        callId: CallId('diagnostic-start'),
+        name: 'learning_start_diagnostic',
+        arguments: {
+          command_id: 'diagnostic-start-command',
+          goal: 'Contribute a bundle',
+          background: 'Experienced Cordis plugin developer',
+          target_outcome_ids: ['plugin-context-service-effect'],
+        },
+        agent: owner,
+      })
+      expect(started.isError).toBe(false)
+      if (started.isError) throw new Error(started.error.message)
+      const candidates = (started.value as { candidates: Array<{ candidate_id: string }> }).candidates
+      expect(candidates).toHaveLength(2)
+
+      const submitted = await ctx.tools.execute({
+        signal,
+        callId: CallId('diagnostic-submit'),
+        name: 'learning_submit_diagnostic',
+        arguments: {
+          command_id: 'diagnostic-submit-command',
+          assessments: [
+            {
+              candidate_id: candidates[0]!.candidate_id,
+              status: 'meets',
+              summary: 'Accurately distinguished the five lifecycle concepts.',
+              evidence_kind: 'authored',
+            },
+            {
+              candidate_id: candidates[1]!.candidate_id,
+              status: 'meets',
+              summary: 'Traced the scoped Context in the locked source.',
+              evidence_kind: 'observed',
+              source_path: 'vendor/cordis/src/context.ts',
+              source_anchor_kind: 'export',
+              source_anchor: 'Context',
+            },
+          ],
+        },
+        agent: owner,
+      })
+      expect(submitted.isError).toBe(false)
+      if (submitted.isError) throw new Error(submitted.error.message)
+      expect((submitted.value as { waiver_eligibility: Array<{ eligible: boolean }> }).waiver_eligibility[0]?.eligible).toBe(true)
+      expect(JSON.parse((submitted.value as { state_snapshot: string }).state_snapshot).unitProgress['plugin-context-service-effect']).toBe('not-started')
+
+      const waived = await ctx.tools.execute({
+        signal,
+        callId: CallId('diagnostic-waive'),
+        name: 'learning_waive_unit',
+        arguments: {
+          command_id: 'diagnostic-waive-command',
+          unit_id: 'plugin-context-service-effect',
+          reason: 'The learner explicitly requested the evidence-backed waiver',
+        },
+        agent: owner,
+      })
+      expect(waived.isError).toBe(false)
+      if (waived.isError) throw new Error(waived.error.message)
+      expect(JSON.parse((waived.value as { state_snapshot: string }).state_snapshot).unitProgress['plugin-context-service-effect']).toBe('waived')
+    } finally {
+      await ctx.fiber.dispose()
+      await rm(root, { recursive: true, force: true })
+    }
+  })
 })

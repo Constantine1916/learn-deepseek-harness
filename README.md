@@ -2,7 +2,7 @@
 
 一个基于 DeepSeek Harness 插件生态构建的自适应教学 Agent，帮助开发者通过讲解、源码探索、实践任务和反馈循环，系统掌握 DSH。
 
-> 项目状态：Phase 0、Phase 1 和 Phase 2 已实现。当前版本已经具备版本化 foundations 单元、独立追加式 Learner Event Store、确定性教学状态机、三个学习工具、sandboxed 练习与机器检查、精确 Session Log 状态快照，以及真实 Agent Loop keyless 教学闭环；诊断、自适应路径调整、三级提示执行、完整课程和交互式 UI 尚未实现。
+> 项目状态：Phase 0–3 已实现。当前版本已经具备版本化 foundations 单元、独立追加式 Learner Event Store、课程派生诊断、证据驱动计划、用户显式跳课、确定性教学状态机、sandboxed 练习与机器检查、精确 Session Log 状态快照，以及真实 Agent Loop keyless 教学闭环；三级提示执行、完整课程和交互式 UI 尚未实现。
 
 ## 项目定位
 
@@ -60,11 +60,11 @@ MVP 覆盖以下学习路径：
 | learner | 从持久学习事件投影状态，并提供查询、追加、幂等和 flush 接口 |
 | teaching | 绑定 Session 与 Enrollment，执行确定性计划和教学活动状态机 |
 | teacher | 注入教师 Persona 和模型实际看到的已提交 LearnerState |
-| tool-learning | 提供查询状态、开始单元和完成活动三个模型工具 |
+| tool-learning | 提供状态、诊断、显式跳课、计划调整、开始单元和完成活动工具 |
 | lab | 通过 DSH sandboxed FS/Shell 创建、重置练习并运行确定性检查 |
 | learn-dsh-bundle | 将教学插件和 DSH 基础能力组合成 profile patch layer |
 
-诊断、自适应调课、三级提示和学习报告属于后续 Phase，当前还没有对应的可用组件。
+三级提示执行和学习报告属于后续 Phase；诊断、自适应计划和显式跳课已经通过现有 teaching/learner/tool seam 提供。
 
 插件边界和事件模型在 [技术设计](specs/001-learning-agent-foundation/design.md) 中定义。
 
@@ -105,7 +105,7 @@ pnpm build
 pnpm example:headless
 ~~~
 
-输出固定真实 Loader/Agent Loop 看到的教师 prompt 和三个学习工具，并覆盖首次进入、单元开始、讲解、检查点、隔离练习、失败检查、同 attempt 重试、成功 machine evidence、单元完成、原 Session 恢复和同 Enrollment 新 Session 延续。场景会逐次断言模型收到的 LearnerState 与对应 DSH Session Log 快照完全一致。
+输出固定真实 Loader/Agent Loop 看到的教师 prompt 和学习工具，并覆盖初学者诊断、有经验开发者诊断与显式跳课、单元开始、讲解、检查点、隔离练习、失败检查、同 attempt 重试、成功 machine evidence、单元完成、原 Session 恢复和同 Enrollment 新 Session 延续。场景会逐次断言模型收到的 LearnerState 与对应 DSH Session Log 快照完全一致。
 
 验证标准外部 profile 安装、`dump-config` 和移除，不会写入真实 `~/.dsh`：
 
@@ -132,7 +132,7 @@ packages/learner/     学习事件、纯投影和 learner 查询/追加 Service
 packages/lab/         练习工作区/check Service Definition 与 sandboxed 本地 Provider
 packages/teaching/    确定性规划、Session 绑定和教学活动状态机
 packages/teacher/     教师 Persona 与 LearnerState 动态上下文
-packages/tool-learning/ 三个模型可调用的学习领域工具
+packages/tool-learning/ 模型可调用的诊断、计划与教学领域工具
 packages/bundle/      可安装的 DSH profile patch layer
 examples/headless/    真实 Loader、Agent Loop 与 Session Log keyless 教学闭环
 scripts/              兼容性、文档和 profile 安装检查
@@ -174,7 +174,7 @@ pnpm check
 
 - DSH `0.1.0-rc.5` 依赖通过相邻 checkout 的本地 `link:` 解析；当前不能从 npm 完成同版本干净安装。
 - 课程目前只有第一个 foundations 单元；完整八项学习成果和连续课程在 Phase 4 完成。
-- 当前规划器只执行确定性先修顺序；目标诊断、按证据跳课、学习者调课和难度适配在 Phase 3 完成。
+- 当前诊断由课程 objectives 和 required rubric 派生；跳课要求用户显式请求、全部 rubric 匹配证据以及至少一条 observed 或 machine 证据。更细粒度的难度适配不属于 Phase 3 MVP。
 - 课程 manifest 已包含三级提示，但提示调用、提示使用事件和前两级泄露门禁在 Phase 4 完成。
 - `examples/headless` 使用脚本 LLM adapter 提供稳定 keyless 证据；可交互 CLI、真实模型 adapter 配置和 agent preset 尚未发布。
 - bundle patch 只挂载 Learn DSH 插件，要求 host profile 提供 Agent/System Prompt/Tools、sandboxed FS/Shell 和 Session 能力；当前 profile gate 验证安装、配置和移除，不代表完整交互部署。

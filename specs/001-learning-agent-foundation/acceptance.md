@@ -126,3 +126,14 @@ Phase 2 已完成一个可运行的纵向切片。它不代表诊断、三级提
 | F-008、P2-05、B-005 | `pnpm test:unit` 和 `pnpm test:snapshot` 验证 implementation 失败、结构化 details/artifacts、成功 machine evidence 和无证据不完成；四类失败的完整覆盖仍属于后续验收 |
 | F-011、Q-006、P2-06、C-001、C-002、C-004、F-AC-003 | `pnpm test:snapshot` 通过真实 Loader、Agent Loop 和 JSONL Session persistence 验证首次进入、失败、成功、原 Session 恢复、同 Enrollment 新 Session 延续，以及模型 LearnerState 与 Session Log 快照逐字一致 |
 | F-001、A-002、A-005 | `pnpm test:profile` 验证七个 Learn DSH bundle 行的安装、dump-config 和无残留移除 |
+
+## Phase 3 诊断与自适应计划证据
+
+Phase 3 已完成课程派生诊断、证据类型校验、误区优先计划、学习者显式跳课和计划调整。跳课使用独立 waived 状态，不作为练习完成证据。
+
+| 需求或验收项 | 当前证据入口 |
+|---|---|
+| F-004、B-002、P3-01、P3-02 | `pnpm test:unit` 验证候选由目标路径的 objectives、required rubric 和 evidenceKinds 构造；`pnpm test:snapshot` 固定初学者与有经验开发者诊断 |
+| F-005、B-003、C-005、P3-03、P3-04 | `pnpm test:unit` 验证 gap/uncertain 阻止跳课、误区优先、先修顺序、计划 adjustment reason 和 evidenceIds |
+| F-005、Q-004、P3-04 | `pnpm test:unit` 和真实 ToolRuntime 验证诊断资格不自动改变状态，只有学习者显式 `learning_waive_unit` 才追加引用证据的 `learning/unit-waived` |
+| Q-006、F-AC-003、P3-05 | `pnpm test:snapshot` 通过真实 Loader、Agent Loop 和 Session persistence 固定初学者保留基础单元、有经验开发者提交 authored + locked-source observed 证据后显式 waived 的不同路径 |

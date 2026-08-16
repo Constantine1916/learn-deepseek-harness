@@ -37,6 +37,7 @@ declare module '@deepseek-ai/cordis' {
 export type ExerciseAttemptId = string & { readonly __exerciseAttemptId: unique symbol }
 export type EvidenceId = string & { readonly __evidenceId: unique symbol }
 export type DiagnosticId = string & { readonly __diagnosticId: unique symbol }
+export type DiagnosticCandidateId = string & { readonly __diagnosticCandidateId: unique symbol }
 export type MisconceptionId = string & { readonly __misconceptionId: unique symbol }
 
 const DOMAIN_ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/
@@ -49,6 +50,7 @@ function domainId<T extends string>(value: string, label: string): T {
 export function ExerciseAttemptId(value: string): ExerciseAttemptId { return domainId<ExerciseAttemptId>(value, 'exercise attempt') }
 export function EvidenceId(value: string): EvidenceId { return domainId<EvidenceId>(value, 'evidence') }
 export function DiagnosticId(value: string): DiagnosticId { return domainId<DiagnosticId>(value, 'diagnostic') }
+export function DiagnosticCandidateId(value: string): DiagnosticCandidateId { return domainId<DiagnosticCandidateId>(value, 'diagnostic candidate') }
 export function MisconceptionId(value: string): MisconceptionId { return domainId<MisconceptionId>(value, 'misconception') }
 
 export function newEnrollmentId(): EnrollmentId { return EnrollmentId(randomUUID()) }
@@ -81,7 +83,30 @@ export interface TeachingActivity {
 export interface LearnerPlan {
   readonly unitIds: readonly UnitId[]
   readonly reason: string
+  readonly evidenceIds: readonly EvidenceId[]
   readonly revision: number
+}
+
+export type DiagnosticAssessmentStatus = 'meets' | 'gap' | 'uncertain'
+
+export interface LearnerDiagnosticAssessment {
+  readonly candidateId: DiagnosticCandidateId
+  readonly unitId: UnitId
+  readonly rubricId: string
+  readonly status: DiagnosticAssessmentStatus
+  readonly summary: string
+  readonly evidenceId?: EvidenceId
+}
+
+export interface LearnerDiagnostic {
+  readonly diagnosticId: DiagnosticId
+  readonly background: string
+  readonly targetOutcomeIds: readonly string[]
+  readonly candidateIds: readonly DiagnosticCandidateId[]
+  readonly assessments: Readonly<Record<string, LearnerDiagnosticAssessment>>
+  readonly completed: boolean
+  readonly recommendedUnitId: UnitId | null
+  readonly reason: string | null
 }
 
 export interface LearnerAttempt {
@@ -98,6 +123,9 @@ export interface LearnerEvidence {
   readonly summary: string
   readonly unitId?: UnitId
   readonly attemptId?: ExerciseAttemptId
+  readonly diagnosticCandidateId?: DiagnosticCandidateId
+  readonly rubricId?: string
+  readonly source?: Readonly<{ path: string, anchorKind: string, anchor: string }>
 }
 
 export interface LearnerMisconception {
@@ -118,9 +146,10 @@ export interface LearnerState {
   readonly enrollmentId: EnrollmentId
   readonly courseId: CourseId | null
   readonly goal: string | null
+  readonly diagnostic: LearnerDiagnostic | null
   readonly activePlan: LearnerPlan | null
   readonly currentActivity: TeachingActivity | Readonly<{ kind: 'diagnostic', diagnosticId: DiagnosticId }> | null
-  readonly unitProgress: Readonly<Record<string, 'not-started' | 'in-progress' | 'completed'>>
+  readonly unitProgress: Readonly<Record<string, 'not-started' | 'in-progress' | 'completed' | 'waived'>>
   readonly attempts: Readonly<Record<string, LearnerAttempt>>
   readonly evidence: Readonly<Record<string, LearnerEvidence>>
   readonly misconceptions: Readonly<Record<string, LearnerMisconception>>
@@ -153,6 +182,7 @@ const unitIdSchema = id.transform(UnitId)
 const courseIdSchema = id.transform(CourseId)
 const attemptIdSchema = id.transform(ExerciseAttemptId)
 const evidenceIdSchema = id.transform(EvidenceId)
+const diagnosticCandidateIdSchema = id.transform(DiagnosticCandidateId)
 
 const checkResultSchema = z.object({
   checkId: nonEmpty,
@@ -168,16 +198,40 @@ const activityKindSchema = z.enum(['explain', 'checkpoint', 'exercise', 'feedbac
 const eventDataSchemas = {
   'learning/enrollment-created': z.object({ courseId: courseIdSchema }).strict(),
   'learning/goal-set': z.object({ goal: nonEmpty }).strict(),
-  'learning/diagnostic-started': z.object({ diagnosticId: id.transform(DiagnosticId) }).strict(),
+  'learning/diagnostic-started': z.object({
+    diagnosticId: id.transform(DiagnosticId),
+    background: nonEmpty.optional(),
+    targetOutcomeIds: z.array(id).min(1).optional(),
+    candidateIds: z.array(diagnosticCandidateIdSchema).min(1).optional(),
+  }).strict(),
   'learning/evidence-recorded': z.object({
     evidenceId: evidenceIdSchema,
     kind: z.enum(['authored', 'machine', 'observed']),
     summary: nonEmpty,
     unitId: unitIdSchema.optional(),
     attemptId: attemptIdSchema.optional(),
+    diagnosticCandidateId: diagnosticCandidateIdSchema.optional(),
+    rubricId: id.optional(),
+    source: z.object({ path: nonEmpty, anchorKind: nonEmpty, anchor: nonEmpty }).strict().optional(),
   }).strict(),
-  'learning/plan-created': z.object({ unitIds: z.array(unitIdSchema).min(1), reason: nonEmpty }).strict(),
-  'learning/plan-adjusted': z.object({ unitIds: z.array(unitIdSchema).min(1), reason: nonEmpty }).strict(),
+  'learning/diagnostic-assessed': z.object({
+    diagnosticId: id.transform(DiagnosticId),
+    candidateId: diagnosticCandidateIdSchema,
+    unitId: unitIdSchema,
+    rubricId: id,
+    status: z.enum(['meets', 'gap', 'uncertain']),
+    summary: nonEmpty,
+    evidenceId: evidenceIdSchema.optional(),
+  }).strict(),
+  'learning/diagnostic-completed': z.object({
+    diagnosticId: id.transform(DiagnosticId),
+    recommendedUnitId: unitIdSchema.nullable(),
+    evidenceIds: z.array(evidenceIdSchema),
+    reason: nonEmpty,
+  }).strict(),
+  'learning/plan-created': z.object({ unitIds: z.array(unitIdSchema).min(1), reason: nonEmpty, evidenceIds: z.array(evidenceIdSchema).optional() }).strict(),
+  'learning/plan-adjusted': z.object({ unitIds: z.array(unitIdSchema).min(1), reason: nonEmpty, evidenceIds: z.array(evidenceIdSchema).optional() }).strict(),
+  'learning/unit-waived': z.object({ unitId: unitIdSchema, evidenceIds: z.array(evidenceIdSchema).min(1), reason: nonEmpty }).strict(),
   'learning/unit-started': z.object({ unitId: unitIdSchema }).strict(),
   'learning/activity-advanced': z.object({
     unitId: unitIdSchema,
@@ -256,9 +310,10 @@ interface MutableState {
   enrollmentId: EnrollmentId
   courseId: CourseId | null
   goal: string | null
+  diagnostic: LearnerDiagnostic | null
   activePlan: LearnerPlan | null
   currentActivity: LearnerState['currentActivity']
-  unitProgress: Record<string, 'not-started' | 'in-progress' | 'completed'>
+  unitProgress: Record<string, 'not-started' | 'in-progress' | 'completed' | 'waived'>
   attempts: Record<string, LearnerAttempt>
   evidence: Record<string, LearnerEvidence>
   misconceptions: Record<string, LearnerMisconception>
@@ -276,6 +331,7 @@ function initialState(scope: LearnerScope, course: CourseManifest): MutableState
     enrollmentId: scope.enrollmentId,
     courseId: null,
     goal: null,
+    diagnostic: null,
     activePlan: null,
     currentActivity: null,
     unitProgress: Object.fromEntries(course.units.map(unit => [unit.id, 'not-started'])),
@@ -292,7 +348,11 @@ function initialState(scope: LearnerScope, course: CourseManifest): MutableState
 }
 
 function nextPlanUnit(state: MutableState): UnitId | null {
-  return state.activePlan?.unitIds.find(unitId => state.unitProgress[unitId] !== 'completed') ?? null
+  return state.activePlan?.unitIds.find(unitId => state.unitProgress[unitId] !== 'completed' && state.unitProgress[unitId] !== 'waived') ?? null
+}
+
+function prerequisiteSatisfied(state: MutableState, unitId: UnitId): boolean {
+  return state.unitProgress[unitId] === 'completed' || state.unitProgress[unitId] === 'waived'
 }
 
 function applyEvent(state: MutableState, raw: LearnerEventEnvelope, course: CourseManifest): void {
@@ -309,17 +369,48 @@ function applyEvent(state: MutableState, raw: LearnerEventEnvelope, course: Cour
     case 'learning/goal-set':
       state.goal = data.goal as string
       break
-    case 'learning/diagnostic-started':
-      state.currentActivity = { kind: 'diagnostic', diagnosticId: data.diagnosticId as DiagnosticId }
+    case 'learning/diagnostic-started': {
+      if (state.diagnostic !== null && !state.diagnostic.completed) throw new LearnerProjectionError('illegal-transition', 'another diagnostic is already active')
+      const diagnosticId = data.diagnosticId as DiagnosticId
+      const targetOutcomeIds = (data.targetOutcomeIds as string[] | undefined)
+        ?? course.learningOutcomes.map(outcome => outcome.id as string)
+      const candidateIds = (data.candidateIds as DiagnosticCandidateId[] | undefined) ?? []
+      assertUnique(targetOutcomeIds, 'diagnostic targetOutcomeIds')
+      assertUnique(candidateIds, 'diagnostic candidateIds')
+      const availableOutcomes = new Set(course.learningOutcomes.map(outcome => outcome.id as string))
+      for (const outcomeId of targetOutcomeIds) {
+        if (!availableOutcomes.has(outcomeId)) throw new LearnerProjectionError('invalid-event', `diagnostic references missing outcome "${outcomeId}"`)
+      }
+      state.diagnostic = Object.freeze({
+        diagnosticId,
+        background: (data.background as string | undefined) ?? 'legacy-unspecified',
+        targetOutcomeIds: Object.freeze([...targetOutcomeIds]),
+        candidateIds: Object.freeze([...candidateIds]),
+        assessments: Object.freeze({}),
+        completed: false,
+        recommendedUnitId: null,
+        reason: null,
+      })
+      state.currentActivity = { kind: 'diagnostic', diagnosticId }
       break
+    }
     case 'learning/evidence-recorded': {
       const evidenceId = data.evidenceId as EvidenceId
       if (state.evidence[evidenceId] !== undefined) throw new LearnerProjectionError('duplicate-domain-id', `EvidenceId "${evidenceId}" already exists`)
       const unitId = data.unitId as UnitId | undefined
       if (unitId !== undefined) assertKnownUnit(course, unitId)
       const attemptId = data.attemptId as ExerciseAttemptId | undefined
+      const diagnosticCandidateId = data.diagnosticCandidateId as DiagnosticCandidateId | undefined
+      const rubricId = data.rubricId as string | undefined
+      const source = data.source as LearnerEvidence['source']
       if (data.kind === 'machine' && attemptId === undefined) {
         throw new LearnerProjectionError('illegal-transition', 'machine evidence must reference an exercise attempt')
+      }
+      if ((diagnosticCandidateId === undefined) !== (rubricId === undefined)) {
+        throw new LearnerProjectionError('invalid-event', 'diagnostic evidence must include both diagnosticCandidateId and rubricId')
+      }
+      if (data.kind === 'observed' && diagnosticCandidateId !== undefined && source === undefined) {
+        throw new LearnerProjectionError('invalid-event', 'observed diagnostic evidence must reference a curriculum source')
       }
       if (attemptId !== undefined) {
         const attempt = state.attempts[attemptId]
@@ -332,7 +423,74 @@ function applyEvent(state: MutableState, raw: LearnerEventEnvelope, course: Cour
         summary: data.summary as string,
         ...(unitId === undefined ? {} : { unitId }),
         ...(attemptId === undefined ? {} : { attemptId }),
+        ...(diagnosticCandidateId === undefined ? {} : { diagnosticCandidateId }),
+        ...(rubricId === undefined ? {} : { rubricId }),
+        ...(source === undefined ? {} : { source: Object.freeze({ ...source }) }),
       })
+      break
+    }
+    case 'learning/diagnostic-assessed': {
+      const diagnostic = state.diagnostic
+      const diagnosticId = data.diagnosticId as DiagnosticId
+      const candidateId = data.candidateId as DiagnosticCandidateId
+      const unitId = data.unitId as UnitId
+      const rubricId = data.rubricId as string
+      const status = data.status as DiagnosticAssessmentStatus
+      const evidenceId = data.evidenceId as EvidenceId | undefined
+      if (diagnostic === null || diagnostic.completed || diagnostic.diagnosticId !== diagnosticId) {
+        throw new LearnerProjectionError('illegal-transition', `diagnostic "${diagnosticId}" is not active`)
+      }
+      if (!diagnostic.candidateIds.includes(candidateId)) throw new LearnerProjectionError('invalid-event', `diagnostic has no candidate "${candidateId}"`)
+      if (diagnostic.assessments[candidateId] !== undefined) throw new LearnerProjectionError('duplicate-domain-id', `diagnostic candidate "${candidateId}" is already assessed`)
+      assertKnownUnit(course, unitId)
+      const rubric = course.units.find(unit => unit.id === unitId)?.rubric.find(item => item.id === rubricId)
+      if (rubric === undefined) throw new LearnerProjectionError('invalid-event', `unit "${unitId}" has no rubric "${rubricId}"`)
+      if (status === 'meets') {
+        if (evidenceId === undefined) throw new LearnerProjectionError('illegal-transition', 'meets assessment requires evidence')
+        const evidence = state.evidence[evidenceId]
+        if (evidence === undefined || evidence.unitId !== unitId || evidence.diagnosticCandidateId !== candidateId || evidence.rubricId !== rubricId) {
+          throw new LearnerProjectionError('illegal-transition', `diagnostic evidence "${evidenceId}" does not match candidate "${candidateId}"`)
+        }
+        if (!rubric.evidenceKinds.includes(evidence.kind)) throw new LearnerProjectionError('illegal-transition', `evidence kind "${evidence.kind}" is not allowed by rubric "${rubricId}"`)
+      } else if (evidenceId !== undefined) {
+        throw new LearnerProjectionError('invalid-event', `${status} assessment cannot grant evidence`)
+      }
+      state.diagnostic = Object.freeze({
+        ...diagnostic,
+        assessments: Object.freeze({
+          ...diagnostic.assessments,
+          [candidateId]: Object.freeze({
+            candidateId,
+            unitId,
+            rubricId,
+            status,
+            summary: data.summary as string,
+            ...(evidenceId === undefined ? {} : { evidenceId }),
+          }),
+        }),
+      })
+      break
+    }
+    case 'learning/diagnostic-completed': {
+      const diagnostic = state.diagnostic
+      const diagnosticId = data.diagnosticId as DiagnosticId
+      if (diagnostic === null || diagnostic.completed || diagnostic.diagnosticId !== diagnosticId) {
+        throw new LearnerProjectionError('illegal-transition', `diagnostic "${diagnosticId}" is not active`)
+      }
+      for (const candidateId of diagnostic.candidateIds) {
+        if (diagnostic.assessments[candidateId] === undefined) throw new LearnerProjectionError('illegal-transition', `diagnostic candidate "${candidateId}" is not assessed`)
+      }
+      const evidenceIds = data.evidenceIds as EvidenceId[]
+      assertEvidence(state, evidenceIds, 'diagnostic evidenceIds')
+      const recommendedUnitId = data.recommendedUnitId as UnitId | null
+      if (recommendedUnitId !== null) assertKnownUnit(course, recommendedUnitId)
+      state.diagnostic = Object.freeze({
+        ...diagnostic,
+        completed: true,
+        recommendedUnitId,
+        reason: data.reason as string,
+      })
+      state.currentActivity = null
       break
     }
     case 'learning/plan-created':
@@ -340,9 +498,51 @@ function applyEvent(state: MutableState, raw: LearnerEventEnvelope, course: Cour
       const unitIds = data.unitIds as UnitId[]
       assertUnique(unitIds, `${event.type} unitIds`)
       for (const unitId of unitIds) assertKnownUnit(course, unitId)
-      state.activePlan = Object.freeze({ unitIds: Object.freeze([...unitIds]), reason: data.reason as string, revision: (state.activePlan?.revision ?? 0) + 1 })
+      const evidenceIds = (data.evidenceIds as EvidenceId[] | undefined) ?? []
+      assertEvidence(state, evidenceIds, `${event.type} evidenceIds`)
+      state.activePlan = Object.freeze({
+        unitIds: Object.freeze([...unitIds]),
+        reason: data.reason as string,
+        evidenceIds: Object.freeze([...evidenceIds]),
+        revision: (state.activePlan?.revision ?? 0) + 1,
+      })
       const unitId = nextPlanUnit(state)
       state.nextRecommendation = { unitId, reason: data.reason as string }
+      break
+    }
+    case 'learning/unit-waived': {
+      const unitId = data.unitId as UnitId
+      const unit = course.units.find(candidate => candidate.id === unitId)
+      if (unit === undefined) throw new LearnerProjectionError('invalid-event', `course "${course.id}" has no unit "${unitId}"`)
+      if (state.diagnostic?.completed !== true) throw new LearnerProjectionError('illegal-transition', 'unit waiver requires a completed diagnostic')
+      if (state.currentActivity !== null) throw new LearnerProjectionError('illegal-transition', 'a unit cannot be waived while another activity is active')
+      if (state.unitProgress[unitId] !== 'not-started') throw new LearnerProjectionError('illegal-transition', `unit "${unitId}" cannot be waived from ${String(state.unitProgress[unitId])}`)
+      for (const prerequisite of unit.prerequisites) {
+        if (!prerequisiteSatisfied(state, prerequisite)) throw new LearnerProjectionError('illegal-transition', `unit "${unitId}" prerequisite "${prerequisite}" is incomplete`)
+      }
+      const evidenceIds = data.evidenceIds as EvidenceId[]
+      assertEvidence(state, evidenceIds, 'unit waiver evidenceIds')
+      const evidence = evidenceIds.map(evidenceId => state.evidence[evidenceId]!)
+      for (const rubricId of unit.completion.requiredRubricIds) {
+        const assessment = Object.values(state.diagnostic.assessments).find(item => item.unitId === unitId && item.rubricId === rubricId)
+        if (assessment?.status !== 'meets' || assessment.evidenceId === undefined || !evidenceIds.includes(assessment.evidenceId)) {
+          throw new LearnerProjectionError('illegal-transition', `unit "${unitId}" waiver lacks meets evidence for rubric "${rubricId}"`)
+        }
+        const match = state.evidence[assessment.evidenceId]
+        const rubric = unit.rubric.find(item => item.id === rubricId)
+        if (match === undefined || rubric === undefined || !rubric.evidenceKinds.includes(match.kind)) {
+          throw new LearnerProjectionError('illegal-transition', `unit "${unitId}" waiver has invalid evidence for rubric "${rubricId}"`)
+        }
+      }
+      if (!evidence.some(item => item.kind === 'observed' || item.kind === 'machine')) {
+        throw new LearnerProjectionError('illegal-transition', `unit "${unitId}" waiver requires observed or machine evidence`)
+      }
+      const blockingAssessment = Object.values(state.diagnostic?.assessments ?? {}).find(assessment =>
+        assessment.unitId === unitId && assessment.status !== 'meets')
+      if (blockingAssessment !== undefined) throw new LearnerProjectionError('illegal-transition', `unit "${unitId}" waiver is blocked by ${blockingAssessment.status} rubric "${blockingAssessment.rubricId}"`)
+      state.unitProgress[unitId] = 'waived'
+      const next = nextPlanUnit(state)
+      state.nextRecommendation = { unitId: next, reason: next === null ? 'plan-complete-after-waiver' : 'next-plan-unit-after-waiver' }
       break
     }
     case 'learning/unit-started': {
@@ -350,9 +550,11 @@ function applyEvent(state: MutableState, raw: LearnerEventEnvelope, course: Cour
       const unit = course.units.find(candidate => candidate.id === unitId)
       if (unit === undefined) throw new LearnerProjectionError('invalid-event', `course "${course.id}" has no unit "${unitId}"`)
       for (const prerequisite of unit.prerequisites) {
-        if (state.unitProgress[prerequisite] !== 'completed') throw new LearnerProjectionError('illegal-transition', `unit "${unitId}" prerequisite "${prerequisite}" is incomplete`)
+        if (!prerequisiteSatisfied(state, prerequisite)) throw new LearnerProjectionError('illegal-transition', `unit "${unitId}" prerequisite "${prerequisite}" is incomplete`)
       }
-      if (state.unitProgress[unitId] === 'completed') throw new LearnerProjectionError('illegal-transition', `unit "${unitId}" is already completed`)
+      if (state.unitProgress[unitId] === 'completed' || state.unitProgress[unitId] === 'waived') {
+        throw new LearnerProjectionError('illegal-transition', `unit "${unitId}" is already ${state.unitProgress[unitId]}`)
+      }
       state.unitProgress[unitId] = 'in-progress'
       state.currentActivity = { kind: 'explain', unitId, reason: 'unit-started' }
       break
@@ -486,7 +688,7 @@ function applyEvent(state: MutableState, raw: LearnerEventEnvelope, course: Cour
       const courseId = data.courseId as CourseId
       if (courseId !== course.id || state.courseId !== courseId) throw new LearnerProjectionError('illegal-transition', `course completion does not match enrollment course "${String(state.courseId)}"`)
       assertEvidence(state, data.evidenceIds as EvidenceId[], 'course completion evidenceIds')
-      const incomplete = course.units.find(unit => state.unitProgress[unit.id] !== 'completed')
+      const incomplete = course.units.find(unit => state.unitProgress[unit.id] !== 'completed' && state.unitProgress[unit.id] !== 'waived')
       if (incomplete !== undefined) throw new LearnerProjectionError('illegal-transition', `course cannot complete while unit "${incomplete.id}" is incomplete`)
       state.courseCompleted = true
       state.currentActivity = null

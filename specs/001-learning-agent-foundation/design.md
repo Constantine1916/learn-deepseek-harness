@@ -277,6 +277,20 @@ MVP 使用确定性的候选筛选：
 
 模型可以在候选活动内生成解释或问题，但不能绕过候选筛选和完成规则。
 
+### 6.1 Phase 3 诊断与显式跳过
+
+诊断候选不是固定题单。`teaching` 从目标路径中每个单元的 `objectives`、`completion.requiredRubricIds` 和对应 rubric 动态生成候选；每个候选稳定绑定 `DiagnosticCandidateId`、UnitId、RubricId、一个 objective、允许的 EvidenceKind，以及适用的课程 source 引用。
+
+诊断提交把每个候选标记为 `meets | gap | uncertain`：
+
+- `meets` 必须提交该 rubric 允许类型的证据；`observed` 证据必须引用当前单元课程中已验证的 source anchor，`machine` 证据必须引用 Learner Event Store 中已经提交的通过检查证据。
+- `gap` 追加误区事件，并使对应单元优先进入补课路径。
+- `uncertain` 保留明确的不确定项，不授予证据或跳课资格。
+
+规划器为每个目标路径单元计算 `waiverEligibility`。只有全部 required rubric 都有 `meets` 证据，且至少一条匹配证据为 `observed` 或 `machine` 时才 eligible。资格只用于展示；学习者显式请求后，`teaching` 必须重新校验并追加 `learning/unit-waived`。事件记录 EvidenceId、reason 和来源 SessionId；投影使用独立 `waived` 进度，允许满足后续先修，但报告不得把它描述为练习完成。
+
+诊断完成后创建包含完整目标路径的计划。确定性排序先满足前置关系，再优先包含 unresolved misconception 的可开始单元，最后按通向目标 outcome 的稳定拓扑顺序选择。每次计划创建或调整都保存 evidence 引用；模型不能自行声明某单元 eligible 或 waived。
+
 ## 7. 评测模型
 
 Evidence 分为：
