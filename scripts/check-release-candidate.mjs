@@ -81,7 +81,9 @@ function verifyDshTree(dependencies) {
   }
 }
 
-const temporaryRoot = await mkdtemp(join(tmpdir(), 'learn-dsh-release-candidate-'))
+// Linux bwrap intentionally masks host /tmp; keep installed read-only helpers visible outside it.
+const temporaryParent = process.env.RUNNER_TEMP ?? (process.platform === 'linux' ? '/var/tmp' : tmpdir())
+const temporaryRoot = await mkdtemp(join(temporaryParent, 'learn-dsh-release-candidate-'))
 try {
   const tarballs = new Map()
   for (const directory of packageDirectories) {
