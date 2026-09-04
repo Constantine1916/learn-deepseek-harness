@@ -15,9 +15,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-latest
+          - os: ubuntu-24.04
             node: 22.19.0
-          - os: ubuntu-latest
+          - os: ubuntu-24.04
             node: 24.x
           - os: macos-latest
             node: 22.19.0
@@ -45,12 +45,15 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
 
-      - name: Install Linux sandbox backend
+      - name: Provision Linux sandbox backend
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install --yes bubblewrap
+          sudo apt-get install --yes apparmor-profiles apparmor-utils bubblewrap
+          test "$(sysctl --values kernel.apparmor_restrict_unprivileged_userns)" = '1'
+          sudo apparmor_parser --replace /usr/share/apparmor/extra-profiles/bwrap-userns-restrict
           bwrap --version
+          bwrap --ro-bind / / --dev /dev --proc /proc --die-with-parent -- true
 
       - name: Install and build supported DSH baseline
         working-directory: deepseek-harness

@@ -18,7 +18,7 @@ pnpm check
 6. 从安装后的 bundle 路径执行 preset install/check/remove，以及 web profile add、dump、app-owned `--help`、remove、reinstall 和第二次 remove。
 7. 清理临时 consumer、profile 和打包产物。
 
-`pnpm security:check` 另外扫描 Git 跟踪文件和未忽略的新文件；`pnpm test:coverage` 生成 `coverage/coverage-summary.json` 与 LCOV 报告，并强制规格声明的总体覆盖率防回退下限。`pnpm eval:teaching:keyless` 对真实组装 snapshot 执行结构化教学 rubric。CI 在 Linux 的最低/最新 Node 和 macOS 最低 Node 上运行同一聚合门禁；Linux runner 显式安装 bubblewrap，不降低 DSH `workspace-write` sandbox。
+`pnpm security:check` 另外扫描 Git 跟踪文件和未忽略的新文件；`pnpm test:coverage` 生成 `coverage/coverage-summary.json` 与 LCOV 报告，并强制规格声明的总体覆盖率防回退下限。`pnpm eval:teaching:keyless` 对真实组装 snapshot 执行结构化教学 rubric。CI 在 Ubuntu 24.04 的最低/最新 Node 和 macOS 最低 Node 上运行同一聚合门禁；Linux job 从 Ubuntu 官方包安装 bubblewrap、AppArmor profile 和 profile loader，在保持全局 user-namespace 限制启用的前提下加载 `bwrap-userns-restrict`，并先执行 DSH 同形 bwrap probe，不降低 `workspace-write` sandbox。
 
 ## Registry publication boundary
 
