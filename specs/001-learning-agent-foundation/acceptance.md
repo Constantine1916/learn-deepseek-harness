@@ -151,16 +151,16 @@ Phase 4 已完成覆盖八项成果的四个连续单元、两个代码练习、
 | F-013、B-008、P4-05 | `pnpm test:unit` 和 `learning_get_report` snapshot 区分 read/started、user-skipped、exercise-completed 和 comprehensive-validated；skipped 不进入 verified capabilities，并继续列出证据与未解决误区 |
 | Q-006、F-AC-003 | `pnpm test:snapshot` 逐请求验证模型 LearnerState 与 Session Log 快照一致，并固定四单元、三级提示、blocked 重试、course-completed 和最终报告 |
 
-## Phase 5 本地发布候选证据
+## Phase 5 发布候选证据
 
-Phase 5 已在本地形成 DSH `0.1.2-rc.1` registry-only 可复现 release candidate，但新基线远程 matrix、用户计时演练和真人参与者教学 rubric 仍是开放项，因此规格尚未 Accepted；真实模型评估是可选项。
+Phase 5 已形成 DSH `0.1.2-rc.1` registry-only 可复现 release candidate，并通过本地门禁和远程 matrix；用户计时演练和真人参与者教学 rubric 仍是开放项，因此规格尚未 Accepted；真实模型评估是可选项。
 
 | 需求或验收项 | 当前证据入口 |
 |---|---|
 | F-001、A-001、A-002、A-004 | `pnpm release:check` 从 registry 安装精确 DSH `0.1.2-rc.1`，只从八个公开 tarball 安装 Learn DSH，拒绝 link/workspace、checkout 路径和混合 DSH 版本，导入公开入口，验证 packed setup CLI/preset，并从安装后的 bundle 执行 profile add、app-owned CLI surface、remove、reinstall 和第二次 remove |
 | A-003、A-005 | `pnpm test:snapshot` 通过 registry DSH 的官方 profile bundle 启动真实 Agent Loop；`pnpm release:check` 在干净 consumer 中复用同一完整旅程；`pnpm test:unit` 验证插件 dispose；`pnpm test:profile` 证明 profile 安装生命周期无残留 |
 | E-005 | `pnpm security:check` 扫描 Git 跟踪文件；`pnpm release:check` 扫描 tarball 并拒绝凭据、环境文件、Session、attempt、learner-memory 和 coverage 产物 |
-| F-AC-001、F-AC-004、F-AC-006 | `pnpm check` 汇总本地工程、文档、兼容性、安全、profile 和 release candidate 门禁；[CI run 33854561645](https://github.com/Constantine1916/learn-deepseek-harness/actions/runs/33854561645) 在 commit `f000ce3` 上通过 Ubuntu 24.04 Node 22.19、Ubuntu 24.04 Node 24 与 macOS Node 22.19 matrix |
+| F-AC-001、F-AC-004、F-AC-006、P5-07 | `pnpm check` 汇总本地工程、文档、兼容性、安全、profile 和 registry-only release candidate 门禁；[CI run 33912049312](https://github.com/Constantine1916/learn-deepseek-harness/actions/runs/33912049312) 在 commit `cdd4c20` 上通过 Ubuntu 24.04 Node 22.19、Ubuntu 24.04 Node 24 与 macOS Node 22.19 matrix，包括 Linux bwrap/AppArmor 隔离下的完整安装后 keyless 教学旅程 |
 | F-AC-002 | `pnpm test:coverage` 强制 84% statements、72% branches、90% functions、90% lines 防回退门禁；当前总体为 84.98%、73.20%、90.35%、90.84%，本地和远程 matrix 门禁均已通过 |
 | F-AC-005 | README 已提供 registry runtime 安装、只读来源 checkout、preset setup、web profile bundle 安装、真实 app surface、keyless Session 和卸载命令；仍需新用户计时演练 |
 | Q-006、P5-04 | `pnpm eval:teaching:keyless` 已验证来源准确性、证据纪律、自适应路径、提示顺序、blocked 重试、审计快照和报告语义；当前无真实模型 key，真人参与者 rubric 尚未执行 |
@@ -168,6 +168,5 @@ Phase 5 已在本地形成 DSH `0.1.2-rc.1` registry-only 可复现 release cand
 
 当前发布阻塞：
 
-- DSH `0.1.2-rc.1` 新基线的远程 CI matrix 尚未完成。
 - P5-04 真人参与者教学 rubric 未执行；真实模型评估因当前无 key 跳过，且为可选项。
 - F-AC-005 新用户十分钟启动计时演练尚未执行。
