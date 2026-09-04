@@ -1,14 +1,14 @@
 # 001 — Learning Agent Foundation
 
-状态：Validating
+状态：Implementing
 
 目标版本：0.1.0
 
-DSH 设计基线：0.1.0-rc.5
+DSH 设计基线：0.1.2-rc.1
 
-Phase 0 支持基线由仓库根目录的 [`compatibility.json`](../../compatibility.json) 锁定：DSH `0.1.0-rc.5`、commit `0cf6f648c80de1b0572057cd746a20863e39d606`、Node.js `^22.19.0 || >=24.0.0`。该 DSH 版本尚未发布完整 npm 包集，因此 Phase 0 开发通过相邻上游 checkout 的本地链接获取依赖；这不修改或 fork 上游 Runtime。
+支持基线由仓库根目录的 [`compatibility.json`](../../compatibility.json) 锁定：DSH `0.1.2-rc.1`、tag `dsh-v0.1.2-rc.1`、commit `a66e4702047846cdaa10c66c9d3df3951f5ea70d`、Node.js `^22.19.0 || >=24.0.0`。开发与发布候选都从 npm registry 安装精确版本的 DSH 运行时包；相邻上游 checkout 只用于课程来源锚点验证，不参与运行时依赖解析，也不被修改或 fork。
 
-Phase 1 持久化决策：截至 DSH `0.1.0-rc.6`，第一方 Session persistence 不支持树外 bundle 注册必需事件词汇表。Learn DSH 不把 `learning/*` 事件伪装成 DSH 事件，也不修改上游静态词汇表；长期学习状态由独立、追加式 Learner Event Store 持久化，DSH Session Log 继续记录单次会话和模型实际收到的学习状态快照。
+持久化决策：DSH `0.1.2-rc.1` 仍不把树外 bundle 的必需领域事件作为 Session persistence 扩展点。Learn DSH 不把 `learning/*` 事件伪装成 DSH 事件，也不修改上游静态词汇表；长期学习状态由独立、追加式 Learner Event Store 持久化，DSH Session Log 继续记录单次会话和模型实际收到的学习状态快照。
 
 ## 1. 问题
 

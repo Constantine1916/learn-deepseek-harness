@@ -79,7 +79,7 @@ MVP 不为每个概念建立一个 package。只有独立生命周期、稳定�
 
 声明学习事件并把 Learner Event Store 的事件前缀投影成 LearnerState。提供只读查询和追加领域事件的窄接口，不提供任意覆盖整份状态的 update 方法。学习事件通过 LearnerId 和 EnrollmentId 形成长期学习范围，并记录触发该事件的 SessionId。
 
-`learning/*` 是 Learn DSH 领域事件，不声明为 DSH `SessionEventMap` 成员。DSH `0.1.0-rc.5` 与已核对的 `0.1.0-rc.6` 没有树外必需 Session event 的公开持久化注册入口；项目不得修改 `KNOWN_SESSION_EVENT_TYPES`、使用其他 DSH 事件名承载学习语义或把必需学习事件标记为 `ignorable`。
+`learning/*` 是 Learn DSH 领域事件，不声明为 DSH `SessionEventMap` 成员。DSH `0.1.2-rc.1` 没有树外必需 Session event 的公开持久化注册入口；项目不得修改 `KNOWN_SESSION_EVENT_TYPES`、使用其他 DSH 事件名承载学习语义或把必需学习事件标记为 `ignorable`。
 
 ### learner-memory
 
@@ -383,10 +383,10 @@ preset 只携带单 Agent 的 Persona、教学工具和必要的 agent-side shel
 - DSH 仍为预发布时，不使用宽泛的无上限兼容范围。
 - CI 验证支持范围内的最低和最高版本。
 - 不兼容升级通过新规格记录接口、课程和迁移变化。
-- Phase 0 精确支持 DSH `0.1.0-rc.5` 与 checkout commit `0cf6f648c80de1b0572057cd746a20863e39d606`。
-- 由于该版本未发布完整 npm 包集，开发依赖使用相邻 `../deepseek-harness` checkout 的 `link:`；发布前必须改为同一受测版本的已发布包或先更新规格与兼容矩阵。
-
-Phase 5 在 registry 条件满足前先生成本地 release candidate。八个公开 package 分别通过 `pnpm pack` 生成 tarball，门禁检查发布元数据、runtime dependency protocol、export 目标、文件白名单和凭据模式，再在临时 consumer 中只通过 tarball 安装 Learn DSH packages。DSH peer dependency 仍来自锁定 checkout，因此该门禁证明 Learn DSH 打包闭包，不声称纯 registry 部署已经成立。
+- 当前精确支持 DSH `0.1.2-rc.1` 与来源 commit `a66e4702047846cdaa10c66c9d3df3951f5ea70d`。
+- 运行时依赖从 npm registry 安装；上游 checkout 只验证版本化课程来源。
+- keyless 教学组合以官方 `dsh-base` 与 `dsh-headless` profile 为底层，通过测试 overlay 禁用 one-shot runner 并挂载 Learn DSH 服务，不复制 Agent Loop。
+Phase 5 分别通过 `pnpm pack` 生成八个公开 package tarball，门禁检查发布元数据、runtime dependency protocol、export 目标、文件白名单和凭据模式，再在临时 consumer 中从 npm registry 安装精确 DSH 版本，并只通过 tarball 安装 Learn DSH packages。来源 checkout 只用于课程锚点验证，不能参与临时 consumer 的模块解析。
 
 安装生命周期从临时 consumer 中的已安装 bundle 路径执行 add、dump-config、remove、reinstall 和第二次 remove。真实 registry publish、tag 和 release 创建属于外部发布动作，必须在 DSH package closure、coverage、人工 rubric 和验收证据满足后显式授权。
 

@@ -153,12 +153,12 @@ Phase 4 已完成覆盖八项成果的四个连续单元、两个代码练习、
 
 ## Phase 5 本地发布候选证据
 
-Phase 5 当前形成通过远程 matrix 的可复现 release candidate，但不代表规格已 Accepted。纯 registry 发布、新用户计时演练和真人参与者教学 rubric 仍是开放项；真实模型评估是可选项。
+Phase 5 先前形成了基于源码 checkout 的可复现 release candidate；当前正在迁移到 DSH `0.1.2-rc.1` 的纯 registry 运行时，因此不代表规格已 Accepted。registry-only 门禁、新用户计时演练和真人参与者教学 rubric 仍是开放项；真实模型评估是可选项。
 
 | 需求或验收项 | 当前证据入口 |
 |---|---|
-| F-001、A-001、A-002、A-004 | `pnpm release:check` 对八个公开 tarball 做临时 consumer 安装和公开入口导入，验证 packed setup CLI/preset，并从安装后的 bundle 执行 preset install/check/remove、web profile add、dump、app-owned `--help`、remove、reinstall 和第二次 remove；由于 DSH peer 来自锁定 checkout，A-001 只获得本地候选证据，不计纯 registry 通过 |
-| A-003、A-005 | `pnpm test:snapshot` 通过未修改的锁定 DSH checkout 启动真实 Agent Loop；`pnpm test:unit` 验证插件 dispose；`pnpm test:profile` 证明 profile 安装生命周期无残留 |
+| F-001、A-001、A-002、A-004 | 待迁移的 `pnpm release:check` 必须从 registry 安装精确 DSH `0.1.2-rc.1`，只从八个公开 tarball 安装 Learn DSH，导入公开入口，验证 packed setup CLI/preset，并从安装后的 bundle 执行 profile add、app-owned CLI surface、remove、reinstall 和第二次 remove；不得注入本地 DSH link |
+| A-003、A-005 | 待迁移的 `pnpm test:snapshot` 通过 registry DSH 的官方 profile bundle 启动真实 Agent Loop；`pnpm test:unit` 验证插件 dispose；`pnpm test:profile` 证明 profile 安装生命周期无残留 |
 | E-005 | `pnpm security:check` 扫描 Git 跟踪文件；`pnpm release:check` 扫描 tarball 并拒绝凭据、环境文件、Session、attempt、learner-memory 和 coverage 产物 |
 | F-AC-001、F-AC-004、F-AC-006 | `pnpm check` 汇总本地工程、文档、兼容性、安全、profile 和 release candidate 门禁；[CI run 33854561645](https://github.com/Constantine1916/learn-deepseek-harness/actions/runs/33854561645) 在 commit `f000ce3` 上通过 Ubuntu 24.04 Node 22.19、Ubuntu 24.04 Node 24 与 macOS Node 22.19 matrix |
 | F-AC-002 | `pnpm test:coverage` 强制 84% statements、72% branches、90% functions、90% lines 防回退门禁；当前总体为 84.98%、73.20%、90.35%、90.84%，本地和远程 matrix 门禁均已通过 |
@@ -168,6 +168,6 @@ Phase 5 当前形成通过远程 matrix 的可复现 release candidate，但不�
 
 当前发布阻塞：
 
-- DSH `0.1.0-rc.5` 完整 npm package closure 未发布。
+- DSH `0.1.2-rc.1` registry-only 迁移与兼容门禁尚未完成。
 - P5-04 真人参与者教学 rubric 未执行；真实模型评估因当前无 key 跳过，且为可选项。
 - F-AC-005 新用户十分钟启动计时演练尚未执行。

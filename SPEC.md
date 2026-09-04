@@ -6,7 +6,7 @@ Learn DeepSeek Harness 使用规格驱动开发。规格不是一次性的规划
 
 | ID | 名称 | 状态 | 目标 |
 |---|---|---|---|
-| 001 | [Learning Agent Foundation](specs/001-learning-agent-foundation/spec.md) | Validating | 建立可运行的 Learn DSH bundle、教学闭环、学习事件模型和 MVP 课程 |
+| 001 | [Learning Agent Foundation](specs/001-learning-agent-foundation/spec.md) | Implementing | 建立可运行的 Learn DSH bundle、教学闭环、学习事件模型和 MVP 课程 |
 
 配套文档：
 

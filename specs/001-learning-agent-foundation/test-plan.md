@@ -223,7 +223,7 @@ Phase 0 的可复现入口：
 - `pnpm security:check`：扫描 Git 跟踪文本和环境文件名，拒绝 private key、OpenAI/DeepSeek 风格 key、GitHub token 和 AWS access key 等高置信度凭据模式。
 - `pnpm eval:teaching:keyless`：对真实组装 snapshot 执行来源准确性、证据边界、自适应路径、提示顺序、blocked 重试、Session Log 审计和报告语义 rubric；它不替代真人参与者验收。
 - `pnpm test:profile`：在临时 `DSH_HOME` 中执行 preset install/check/remove、web profile add、dump-config、app-owned `--help`、remove、reinstall、第二次 remove，并证明独立 headless profile 不变。
-- `pnpm release:check`：打包八个公开 package，检查发布元数据、runtime dependency protocol、tarball 内容、export/bin 目标和凭据模式；在临时 consumer 中通过 tarball 安装全部 Learn DSH package、导入公开入口，并从安装后 bundle 路径复用 preset/profile 重装门禁。
-- `.github/workflows/ci.yml`：在 Linux Node 22.19、Linux Node 24 和 macOS Node 22.19 上 checkout 锁定 DSH commit，构建 host packages 并运行 `pnpm check`。
+- `pnpm release:check`：打包八个公开 package，检查发布元数据、runtime dependency protocol、tarball 内容、export/bin 目标和凭据模式；在临时 consumer 中从 npm registry 安装精确 `@deepseek-ai/dsh@0.1.2-rc.1`，只从 tarball 安装 Learn DSH，拒绝 DSH `link:`、workspace protocol 和混合版本，导入公开入口，并从安装后 bundle 路径复用 preset/profile 重装与 keyless 教学门禁。
+- `.github/workflows/ci.yml`：在 Linux Node 22.19、Linux Node 24 和 macOS Node 22.19 上安装 registry DSH `0.1.2-rc.1` 并运行 `pnpm check`；锁定来源 checkout 只供课程 source-anchor gate 使用。
 
-受支持的 DSH `0.1.0-rc.5` 包集尚未完整发布，因此当前 release candidate 的 DSH peer dependency 来自锁定 checkout，不把该结果记为纯 registry 安装。真实模型和真人参与者 rubric 也不由 deterministic CI 替代。
+DSH `0.1.2-rc.1` 的发布包闭包必须成为运行时唯一来源；来源 checkout 不得通过 `link:`、workspace protocol 或模块回退进入临时 consumer。真实模型和真人参与者 rubric 不由 deterministic CI 替代。
