@@ -1,23 +1,27 @@
 import { access, mkdtemp, readFile, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
+import { createRequire } from 'node:module'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { spawnSync } from 'node:child_process'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
-const checkout = resolve(root, process.env.DSH_CHECKOUT ?? '../deepseek-harness')
+const cliRoot = resolve(process.env.DSH_CLI_ROOT ?? resolve(root, 'examples/headless'))
 const bundle = resolve(process.env.LEARN_DSH_BUNDLE_PATH ?? resolve(root, 'packages/bundle'))
 const setupBin = resolve(bundle, 'lib/setup-bin.js')
 const home = await mkdtemp(join(tmpdir(), 'learn-dsh-profile-'))
+const requireFromCli = createRequire(resolve(cliRoot, 'package.json'))
+const dshManifestPath = requireFromCli.resolve('@deepseek-ai/dsh/package.json')
+const requireFromDsh = createRequire(dshManifestPath)
 
 function dsh(args) {
-  const result = spawnSync('pnpm', ['dsh', ...args], {
-    cwd: checkout,
+  const result = spawnSync('pnpm', ['exec', 'dsh', ...args], {
+    cwd: cliRoot,
     env: { ...process.env, DSH_HOME: home },
     encoding: 'utf8',
   })
   if (result.status !== 0) {
-    throw new Error(`pnpm dsh ${args.join(' ')} failed (${String(result.status)}).\nstdout:\n${result.stdout}\nstderr:\n${result.stderr}`)
+    throw new Error(`pnpm exec dsh ${args.join(' ')} failed (${String(result.status)}).\nstdout:\n${result.stdout}\nstderr:\n${result.stderr}`)
   }
   return result.stdout
 }
@@ -48,8 +52,11 @@ try {
       throw new Error(`Installed preset did not contain ${name}.\n${presetComposition}`)
     }
   }
-  const agentPresetsModule = await import(pathToFileURL(resolve(checkout, 'packages/preset/agent-presets/lib/index.js')).href)
-  const discovered = await agentPresetsModule.discoverPresets([{ path: resolve(home, '.agent-presets'), trust: 'user' }])
+  const agentPresetsModule = await import(pathToFileURL(requireFromDsh.resolve('@deepseek-ai/dsh-agent-presets')).href)
+  const discovered = await agentPresetsModule.discoverPresets(
+    [{ path: resolve(home, '.agent-presets'), trust: 'user' }],
+    pathToFileURL(dirname(dshManifestPath)).href,
+  )
   const learnPreset = discovered.find(preset => preset.id === 'learn-dsh')
   if (learnPreset === undefined || learnPreset.broken !== undefined || learnPreset.name !== 'Learn DSH') {
     throw new Error(`DSH agent-preset roster did not discover a healthy Learn DSH preset.\n${JSON.stringify(discovered, null, 2)}`)

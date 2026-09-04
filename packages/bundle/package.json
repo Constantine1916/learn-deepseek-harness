@@ -56,7 +56,7 @@
     "@learn-dsh/tool-learning": "workspace:^"
   },
   "devDependencies": {
-    "@deepseek-ai/cordis-plugin-include": "link:../../../deepseek-harness/vendor/include",
-    "@deepseek-ai/dsh-app-boot": "link:../../../deepseek-harness/packages/boot/app-boot"
+    "@deepseek-ai/cordis-plugin-include": "1.0.7",
+    "@deepseek-ai/dsh-app-boot": "0.1.2-rc.1"
   }
 }

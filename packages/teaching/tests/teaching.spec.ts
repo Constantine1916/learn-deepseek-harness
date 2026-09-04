@@ -42,12 +42,18 @@ class FakeLab extends Lab {
 
 function session(id: string): Session {
   const sessionId = SessionId(id)
-  return Session.create(sessionId, undefined, { version: 0, id: sessionId, createdAt: 0, cwd: '/tmp/learn-dsh' })
+  return Session.create(sessionId, undefined, {
+    version: 0,
+    id: sessionId,
+    createdAt: 0,
+    isSeeded: false,
+    cwd: '/tmp/learn-dsh',
+  })
 }
 
 async function setup(root: string): Promise<{ ctx: Context, lab: FakeLab }> {
   const ctx = new Context()
-  await ctx.plugin(CurriculumService, { dshVersion: '0.1.0-rc.5' })
+  await ctx.plugin(CurriculumService, { dshVersion: '0.1.2-rc.1' })
   await ctx.plugin(LocalLearnerMemory, { root })
   await ctx.plugin(LearnerService)
   await ctx.plugin(FakeLab)

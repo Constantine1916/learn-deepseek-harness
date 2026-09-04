@@ -3,7 +3,7 @@ id: dsh-foundations
 version: 0.1.0
 title: DeepSeek Harness Foundations
 locale: zh-CN
-dshVersionRange: 0.1.0-rc.5
+dshVersionRange: 0.1.2-rc.1
 learningOutcomes:
   - id: plugin-context-service-effect
     description: 解释 Plugin、Context、Service、Effect 和 typed event 的关系。
@@ -30,21 +30,21 @@ units:
       - 区分 Service 能力注册与 typed event 协作。
       - 解释 Effect 如何把注册生命周期绑定到 plugin fiber。
     prerequisites: []
-    dshVersionRange: 0.1.0-rc.5
+    dshVersionRange: 0.1.2-rc.1
     contentEntry: lessons/plugin-context-service-effect.md
     sources:
       - repository: deepseek-harness
-        version: 0cf6f648c80de1b0572057cd746a20863e39d606
+        version: a66e4702047846cdaa10c66c9d3df3951f5ea70d
         path: docs/architecture.md
         anchor: { kind: heading, value: Cordis }
         purpose: 建立 DSH 以 Cordis 插件树组合能力的整体模型。
       - repository: deepseek-harness
-        version: 0cf6f648c80de1b0572057cd746a20863e39d606
+        version: a66e4702047846cdaa10c66c9d3df3951f5ea70d
         path: vendor/cordis/src/context.ts
         anchor: { kind: export, value: Context }
         purpose: 观察插件获得的组合与作用域入口。
       - repository: deepseek-harness
-        version: 0cf6f648c80de1b0572057cd746a20863e39d606
+        version: a66e4702047846cdaa10c66c9d3df3951f5ea70d
         path: vendor/cordis/src/service.ts
         anchor: { kind: export, value: Service }
         purpose: 观察能力如何以 Service Definition 挂到 Context。
@@ -85,21 +85,21 @@ units:
       - 识别 Consumer 只依赖 Service Definition 的原因。
       - 实现一个可替换的最小 Provider 并证明生命周期正确。
     prerequisites: [plugin-context-service-effect]
-    dshVersionRange: 0.1.0-rc.5
+    dshVersionRange: 0.1.2-rc.1
     contentEntry: lessons/capability-seam.md
     sources:
       - repository: deepseek-harness
-        version: 0cf6f648c80de1b0572057cd746a20863e39d606
+        version: a66e4702047846cdaa10c66c9d3df3951f5ea70d
         path: docs/architecture.md
         anchor: { kind: heading, value: Capability seams }
         purpose: 建立 capability seam 的三角色定义和依赖方向。
       - repository: deepseek-harness
-        version: 0cf6f648c80de1b0572057cd746a20863e39d606
+        version: a66e4702047846cdaa10c66c9d3df3951f5ea70d
         path: packages/subprocess/subprocess/src/index.ts
         anchor: { kind: export, value: SubprocessRuntime }
         purpose: 观察 Service Definition 如何声明抽象能力。
       - repository: deepseek-harness
-        version: 0cf6f648c80de1b0572057cd746a20863e39d606
+        version: a66e4702047846cdaa10c66c9d3df3951f5ea70d
         path: packages/subprocess/subprocess-local/src/index.ts
         anchor: { kind: export, value: LocalSubprocessRuntime }
         purpose: 观察本地 Service Provider 如何实现 Definition。
@@ -140,21 +140,21 @@ units:
       - 区分工具规范值、Native render 和 Session Log 中的持久结果。
       - 创建一个参数受 schema 验证且可测试的模型工具。
     prerequisites: [capability-seam]
-    dshVersionRange: 0.1.0-rc.5
+    dshVersionRange: 0.1.2-rc.1
     contentEntry: lessons/model-callable-tool.md
     sources:
       - repository: deepseek-harness
-        version: 0cf6f648c80de1b0572057cd746a20863e39d606
+        version: a66e4702047846cdaa10c66c9d3df3951f5ea70d
         path: docs/cordis-tutorial/07-into-the-harness.md
         anchor: { kind: heading, value: A tool plugin }
         purpose: 阅读真实 DSH Tool 插件的最小注册模式。
       - repository: deepseek-harness
-        version: 0cf6f648c80de1b0572057cd746a20863e39d606
+        version: a66e4702047846cdaa10c66c9d3df3951f5ea70d
         path: packages/core/tools/src/schema.ts
         anchor: { kind: export, value: defineTool }
         purpose: 观察 Tool schema 到运行时规范的公共入口。
       - repository: deepseek-harness
-        version: 0cf6f648c80de1b0572057cd746a20863e39d606
+        version: a66e4702047846cdaa10c66c9d3df3951f5ea70d
         path: docs/architecture.md
         anchor: { kind: heading, value: Turn flow }
         purpose: 跟踪模型请求、tool call、执行和持久结果的 Agent Loop 路径。
@@ -195,21 +195,21 @@ units:
       - 解释 patch layer 的顺序和可覆盖性。
       - 把前述 Provider 与 Tool 组合成可安装、可卸载的 Bundle patch。
     prerequisites: [model-callable-tool]
-    dshVersionRange: 0.1.0-rc.5
+    dshVersionRange: 0.1.2-rc.1
     contentEntry: lessons/bundle-profile-composition.md
     sources:
       - repository: deepseek-harness
-        version: 0cf6f648c80de1b0572057cd746a20863e39d606
+        version: a66e4702047846cdaa10c66c9d3df3951f5ea70d
         path: docs/architecture.md
         anchor: { kind: heading, value: Profiles and bundles }
         purpose: 理解 profile、bundle 和 patch layer 的组合关系。
       - repository: deepseek-harness
-        version: 0cf6f648c80de1b0572057cd746a20863e39d606
+        version: a66e4702047846cdaa10c66c9d3df3951f5ea70d
         path: packages/bundle/base/cordis.patch.yml
         anchor: { kind: text, value: ONE insert over the empty profile root }
         purpose: 观察真实 bundle 如何提供可被上层覆盖的配置行。
       - repository: deepseek-harness
-        version: 0cf6f648c80de1b0572057cd746a20863e39d606
+        version: a66e4702047846cdaa10c66c9d3df3951f5ea70d
         path: docs/architecture.md
         anchor: { kind: heading, value: Session log }
         purpose: 确认综合 Tool 的模型可见输入和结果仍由 Session Log 审计。

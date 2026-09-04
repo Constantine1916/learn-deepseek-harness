@@ -3,6 +3,7 @@ import { tmpdir } from 'node:os'
 import { resolve } from 'node:path'
 import { Context } from '@deepseek-ai/cordis'
 import SessionStore, { Session, SessionId } from '@deepseek-ai/dsh-session'
+import SessionProjection from '@deepseek-ai/dsh-session-projection'
 import SystemPrompt from '@deepseek-ai/dsh-system-prompt'
 import SandboxedFileSystem from '@deepseek-ai/dsh-fs-sandbox'
 import LocalSubprocess from '@deepseek-ai/dsh-subprocess-local'
@@ -18,19 +19,20 @@ async function setup(cwd: string, workspaceRoot = '.learn-dsh/attempts') {
   const ctx = new Context()
   await ctx.plugin(SystemPrompt)
   await ctx.plugin(SessionStore)
+  await ctx.plugin(SessionProjection)
   await ctx.plugin(LocalSubprocess)
   await ctx.plugin(Sandbox)
   await ctx.plugin(SandboxPolicy, { mode: 'workspace-write', workspaceRoot: cwd })
   await ctx.plugin(SandboxBash, { timeoutMs: 30_000 })
   await ctx.plugin(SandboxedFileSystem, { cwd })
-  await ctx.plugin(CurriculumService, { dshVersion: '0.1.0-rc.5' })
+  await ctx.plugin(CurriculumService, { dshVersion: '0.1.2-rc.1' })
   await ctx.plugin(LocalLab, { workspaceRoot })
   return ctx
 }
 
 function session(cwd: string): Session {
   const id = SessionId('lab-session')
-  return Session.create(id, undefined, { version: 0, id, createdAt: 0, cwd })
+  return Session.create(id, undefined, { version: 0, id, createdAt: 0, isSeeded: false, cwd })
 }
 
 describe('F-007 F-008 local lab workspace and checks', () => {

@@ -26,7 +26,13 @@ for (const relative of candidates) {
     failures.push(`${relative}: tracked environment file`)
     continue
   }
-  const content = await readFile(resolve(root, relative), 'utf8')
+  let content
+  try {
+    content = await readFile(resolve(root, relative), 'utf8')
+  } catch (error) {
+    if (error?.code === 'ENOENT') continue
+    throw error
+  }
   for (const [label, pattern] of secretPatterns) {
     if (pattern.test(content)) failures.push(`${relative}: ${label}`)
   }

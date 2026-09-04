@@ -1,0 +1,69 @@
+# Keyless Learn DSH overlay over the published base + headless profile.
+# The example driver owns the sessions and scripted model, so the product
+# one-shot surface and production model adapter stay disabled.
+
+- id: headless-startup
+  disabled: true
+
+- id: headless-runner
+  disabled: true
+
+- id: llm-deepseek
+  disabled: true
+
+- id: session-title-llm
+  disabled: true
+
+- id: agent-loop
+  config:
+    agents: []
+
+- id: sandbox-policy
+  config:
+    mode: workspace-write
+    workspaceRoot: !!js process.env.LEARN_DSH_WORKSPACE_ROOT
+
+- id: bash-sandbox
+  config:
+    timeoutMs: 30000
+
+- id: fs-sandbox
+  config:
+    cwd: !!js process.env.LEARN_DSH_WORKSPACE_ROOT
+
+- id: session-persistence-jsonl
+  config:
+    root: !!js dshHomePath('learn-dsh/sessions')
+    compression: none
+
+- insert:
+    - id: learn-dsh-curriculum
+      name: '@learn-dsh/curriculum'
+      config:
+        dshVersion: 0.1.2-rc.1
+        sourceRoot: !!js process.env.LEARN_DSH_SOURCE_ROOT
+
+    - id: learn-dsh-learner-memory
+      name: '@learn-dsh/learner-memory/local'
+      config:
+        root: !!js dshHomePath('learn-dsh/learner-memory')
+
+    - id: learn-dsh-learner
+      name: '@learn-dsh/learner'
+
+    - id: learn-dsh-lab
+      name: '@learn-dsh/lab/local'
+      config:
+        workspaceRoot: .learn-dsh/attempts
+
+    - id: learn-dsh-teaching
+      name: '@learn-dsh/teaching'
+      config:
+        learnerId: local-learner
+        enrollmentId: dsh-foundations-local
+
+    - id: learn-dsh-teacher
+      name: '@learn-dsh/teacher'
+
+    - id: learn-dsh-tool-learning
+      name: '@learn-dsh/tool-learning'

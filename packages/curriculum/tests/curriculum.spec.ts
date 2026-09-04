@@ -67,13 +67,13 @@ function validCourse(): CourseManifest {
 }
 
 describe('F-003 versioned curriculum schema and graph', () => {
-  it('loads the packaged foundations unit as immutable data for DSH rc.5', () => {
-    const course = loadCourseFile(manifestPath, '0.1.0-rc.5')
+  it('loads the packaged foundations unit as immutable data for DSH rc.1', () => {
+    const course = loadCourseFile(manifestPath, '0.1.2-rc.1')
 
     expect(course).toMatchObject({
       id: 'dsh-foundations',
       version: '0.1.0',
-      dshVersionRange: '0.1.0-rc.5',
+      dshVersionRange: '0.1.2-rc.1',
     })
     expect(course.units.map(unit => unit.id)).toEqual([
       'plugin-context-service-effect',
@@ -142,7 +142,7 @@ describe('F-003 versioned curriculum schema and graph', () => {
   })
 
   it('rejects unsupported selected DSH versions and malformed hint levels', () => {
-    expect(() => loadCourseFile(manifestPath, '0.1.0-rc.6')).toThrow(/does not support DSH/)
+    expect(() => loadCourseFile(manifestPath, '0.1.2-rc.2')).toThrow(/does not support DSH/)
     expect(() => loadCourseFile(manifestPath, 'latest')).toThrow(/not exact SemVer/)
 
     const hints = fixture()
@@ -221,7 +221,7 @@ describe('F-012 source anchor resolution', () => {
 describe('F-003 Q-001 curriculum service lifecycle', () => {
   it('registers immutable curriculum data and can be cleanly reloaded after dispose', async () => {
     const ctx = new Context()
-    const config = { dshVersion: '0.1.0-rc.5', sourceRoot: dshRoot }
+    const config = { dshVersion: '0.1.2-rc.1', sourceRoot: dshRoot }
     const first = await ctx.plugin(CurriculumService, config)
 
     expect(ctx.curriculum.course().id).toBe('dsh-foundations')

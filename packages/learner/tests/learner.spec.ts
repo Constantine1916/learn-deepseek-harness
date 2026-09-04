@@ -48,7 +48,7 @@ function input<T extends LearningEventInput['type']>(
 
 async function setup(root: string): Promise<Context> {
   const ctx = new Context()
-  await ctx.plugin(CurriculumService, { dshVersion: '0.1.0-rc.5' })
+  await ctx.plugin(CurriculumService, { dshVersion: '0.1.2-rc.1' })
   await ctx.plugin(LocalLearnerMemory, { root })
   await ctx.plugin(LearnerService)
   return ctx
@@ -269,7 +269,7 @@ describe('F-011 enrollment continuity, isolation, and Provider requirements', ()
 
   it('keeps the learner Service unavailable when the required memory Provider is absent', async () => {
     const ctx = new Context()
-    await ctx.plugin(CurriculumService, { dshVersion: '0.1.0-rc.5' })
+    await ctx.plugin(CurriculumService, { dshVersion: '0.1.2-rc.1' })
     await ctx.plugin(LearnerService)
     expect(ctx.get('learner')).toBeUndefined()
     await ctx.fiber.dispose()

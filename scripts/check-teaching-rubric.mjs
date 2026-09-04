@@ -18,7 +18,7 @@ function journey(label) {
 
 requireFact(snapshot.prompt.firstResponse.includes('source-backed explanation'), 'teacher introduction does not promise source-grounded explanation')
 requireFact(snapshot.prompt.firstResponse.includes('persisted evidence'), 'teacher introduction does not state the persisted-evidence boundary')
-requireFact(snapshot.prompt.lessonResponse.includes('0.1.0-rc.5 / 0cf6f648c80d'), 'lesson is not tied to the supported DSH baseline')
+requireFact(snapshot.prompt.lessonResponse.includes('0.1.2-rc.1 / a66e47020478'), 'lesson is not tied to the supported DSH baseline')
 requireFact(snapshot.prompt.checkpointResponse.includes('in your own words'), 'checkpoint does not preserve learner-authored reasoning')
 requireFact(snapshot.prompt.failureResponse.includes('no mastery or completion has been granted'), 'implementation failure can be mistaken for completion')
 requireFact(snapshot.prompt.blockedResponse.includes('environment timeout, not failed for implementation'), 'environment block is not distinguished from ability failure')

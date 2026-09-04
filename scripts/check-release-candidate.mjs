@@ -5,8 +5,11 @@ import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
-const checkout = resolve(root, process.env.DSH_CHECKOUT ?? '../deepseek-harness')
 const rootManifest = JSON.parse(await readFile(resolve(root, 'package.json'), 'utf8'))
+const compatibility = JSON.parse(await readFile(resolve(root, 'compatibility.json'), 'utf8'))
+const supportedDsh = compatibility.supportedDsh
+const sourceCheckout = resolve(root, process.env.DSH_CHECKOUT ?? supportedDsh.developmentCheckout.relativePath)
+const headlessManifest = JSON.parse(await readFile(resolve(root, 'examples/headless/package.json'), 'utf8'))
 const packageDirectories = [
   'curriculum',
   'learner-memory',
@@ -34,22 +37,12 @@ const secretPatterns = [
   /\b(?:ghp_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{30,})\b/,
   /\bAKIA[A-Z0-9]{16}\b/,
 ]
-const localPeers = {
-  '@deepseek-ai/cordis': resolve(checkout, 'vendor/cordis'),
-  '@deepseek-ai/dsh-agent': resolve(checkout, 'packages/core/agent'),
-  '@deepseek-ai/dsh-fs': resolve(checkout, 'packages/fs/fs'),
-  '@deepseek-ai/dsh-sandbox-policy': resolve(checkout, 'packages/sandbox/sandbox-policy'),
-  '@deepseek-ai/dsh-session': resolve(checkout, 'packages/core/session'),
-  '@deepseek-ai/dsh-shell': resolve(checkout, 'packages/shell/shell'),
-  '@deepseek-ai/dsh-system-prompt': resolve(checkout, 'packages/core/system-prompt'),
-  '@deepseek-ai/dsh-tools': resolve(checkout, 'packages/core/tools'),
-}
-
 function run(command, args, options = {}) {
   const result = spawnSync(command, args, {
     cwd: options.cwd ?? root,
     env: options.env ?? process.env,
     encoding: 'utf8',
+    maxBuffer: 64 * 1024 * 1024,
   })
   if (result.status !== 0) {
     throw new Error(`${command} ${args.join(' ')} failed (${String(result.status)}).\nstdout:\n${result.stdout}\nstderr:\n${result.stderr}`)
@@ -71,6 +64,21 @@ function archiveEntries(tarball) {
 
 function archiveText(tarball, path) {
   return execFileSync('tar', ['-xOzf', tarball, path], { encoding: 'utf8' })
+}
+
+function verifyDshTree(dependencies) {
+  for (const [name, dependency] of Object.entries(dependencies ?? {})) {
+    if (name === '@deepseek-ai/dsh' || name.startsWith('@deepseek-ai/dsh-')) {
+      if (dependency.version !== supportedDsh.version) {
+        throw new Error(`Consumer resolved mixed DSH dependency ${name}@${String(dependency.version)}.`)
+      }
+      if (/^(?:file|link):/.test(dependency.resolved ?? '') || dependency.path?.startsWith(sourceCheckout)) {
+        throw new Error(`Consumer resolved ${name} outside the npm registry installation.`)
+      }
+    }
+    verifyDshTree(dependency.dependencies)
+    verifyDshTree(dependency.optionalDependencies)
+  }
 }
 
 const temporaryRoot = await mkdtemp(join(tmpdir(), 'learn-dsh-release-candidate-'))
@@ -126,29 +134,50 @@ try {
 
   const consumerRoot = resolve(temporaryRoot, 'consumer')
   const dependencies = Object.fromEntries([
+    ...Object.entries(headlessManifest.dependencies)
+      .filter(([name]) => name.startsWith('@deepseek-ai/')),
     ...[...tarballs].map(([name, tarball]) => [name, `file:${tarball}`]),
-    ...Object.entries(localPeers).map(([name, path]) => [name, `link:${path}`]),
   ])
   const overrides = Object.fromEntries(
     [...tarballs]
       .filter(([name]) => name !== '@learn-dsh/bundle')
       .map(([name, tarball]) => [name, `file:${tarball}`]),
   )
-  await writeFile(resolve(temporaryRoot, 'consumer-package.json'), `${JSON.stringify({
+  await mkdir(consumerRoot)
+  await writeFile(resolve(consumerRoot, 'package.json'), `${JSON.stringify({
     name: 'learn-dsh-release-candidate-consumer',
     private: true,
     type: 'module',
     dependencies,
   }, null, 2)}\n`)
-  await mkdir(consumerRoot)
-  await copyFile(resolve(temporaryRoot, 'consumer-package.json'), resolve(consumerRoot, 'package.json'))
   await writeFile(resolve(consumerRoot, 'pnpm-workspace.yaml'), [
     "packages: ['.']",
     'overrides:',
     ...Object.entries(overrides).map(([name, target]) => `  ${JSON.stringify(name)}: ${JSON.stringify(target)}`),
+    'allowBuilds:',
+    "  '@deepseek-ai/dsh-subprocess-local': true",
+    "  '@google/genai': false",
+    '  esbuild: true',
+    '  koffi: true',
+    '  node-pty: true',
+    '  protobufjs: false',
     '',
   ].join('\n'))
-  run('pnpm', ['install', '--ignore-scripts', '--no-frozen-lockfile'], { cwd: consumerRoot })
+  run('pnpm', ['install', '--no-frozen-lockfile'], { cwd: consumerRoot })
+
+  const consumerLock = await readFile(resolve(consumerRoot, 'pnpm-lock.yaml'), 'utf8')
+  if (/(?:^|\s)(?:link|workspace):/m.test(consumerLock)) {
+    throw new Error('Consumer lockfile contains a link: or workspace: dependency.')
+  }
+  if (consumerLock.includes(sourceCheckout)) {
+    throw new Error('Consumer lockfile contains the DSH source-checkout path.')
+  }
+  const installedDsh = JSON.parse(await readFile(resolve(consumerRoot, 'node_modules/@deepseek-ai/dsh/package.json'), 'utf8'))
+  if (installedDsh.version !== supportedDsh.version) {
+    throw new Error(`Consumer installed @deepseek-ai/dsh@${String(installedDsh.version)} instead of ${supportedDsh.version}.`)
+  }
+  const dependencyTree = JSON.parse(run('pnpm', ['list', '--json', '--depth', 'Infinity'], { cwd: consumerRoot }))
+  for (const project of dependencyTree) verifyDshTree(project.dependencies)
 
   for (const name of tarballs.keys()) {
     run('node', ['--input-type=module', '--eval', `await import(${JSON.stringify(name)})`], { cwd: consumerRoot })
@@ -164,11 +193,36 @@ try {
   const installedBundle = resolve(consumerRoot, 'node_modules/@learn-dsh/bundle')
   run('node', ['scripts/check-profile-install.mjs'], {
     cwd: root,
-    env: { ...process.env, LEARN_DSH_BUNDLE_PATH: installedBundle },
+    env: {
+      ...process.env,
+      DSH_CLI_ROOT: consumerRoot,
+      LEARN_DSH_BUNDLE_PATH: installedBundle,
+    },
   })
 
+  const exampleRoot = resolve(consumerRoot, 'keyless-example')
+  const exampleLib = resolve(exampleRoot, 'lib')
+  await mkdir(exampleLib, { recursive: true })
+  await copyFile(resolve(root, 'examples/headless/lib/bin.js'), resolve(exampleLib, 'bin.js'))
+  await copyFile(resolve(root, 'examples/headless/lib/profile.js'), resolve(exampleLib, 'profile.js'))
+  await copyFile(resolve(root, 'examples/headless/headless.patch.yml'), resolve(exampleRoot, 'headless.patch.yml'))
+  const keylessOutput = run(process.execPath, [resolve(exampleLib, 'bin.js')], {
+    cwd: consumerRoot,
+    env: {
+      ...process.env,
+      DSH_CHECKOUT: sourceCheckout,
+      DSH_HOME: resolve(temporaryRoot, 'keyless-home'),
+    },
+  })
+  const expectedKeylessOutput = await readFile(resolve(root, 'examples/headless/tests/snapshots/headless.expected.json'), 'utf8')
+  if (keylessOutput !== expectedKeylessOutput) {
+    throw new Error('Registry-only keyless teaching output differs from the reviewed snapshot.')
+  }
+
   if (rootManifest.version !== '0.1.0') throw new Error('Release candidate expects root version 0.1.0.')
-  process.stdout.write(`Release candidate passed for ${tarballs.size} public tarballs, clean consumer import, and profile reinstall.\n`)
+  process.stdout.write(
+    `Release candidate passed for ${tarballs.size} public tarballs, registry DSH ${supportedDsh.version}, clean imports, profile reinstall, and keyless teaching.\n`,
+  )
 } finally {
   await rm(temporaryRoot, { recursive: true, force: true })
 }

@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os'
 import { resolve } from 'node:path'
 import { Context } from '@deepseek-ai/cordis'
 import type { Agent } from '@deepseek-ai/dsh-agent'
-import { CallId } from '@deepseek-ai/dsh-llm'
+import { ToolCallId } from '@deepseek-ai/dsh-llm'
 import { Session, SessionId } from '@deepseek-ai/dsh-session'
 import SystemPrompt from '@deepseek-ai/dsh-system-prompt'
 import ToolRuntime from '@deepseek-ai/dsh-tools'
@@ -30,7 +30,13 @@ class FakeLab extends Lab {
 
 function agent(): Agent {
   const id = SessionId('tool-session')
-  const session = Session.create(id, undefined, { version: 0, id, createdAt: 0, cwd: '/tmp/learn-dsh' })
+  const session = Session.create(id, undefined, {
+    version: 0,
+    id,
+    createdAt: 0,
+    isSeeded: false,
+    cwd: '/tmp/learn-dsh',
+  })
   return { id, session } as Agent
 }
 
@@ -41,7 +47,7 @@ describe('F-005 F-010 P2-03 learning tools', () => {
     try {
       await ctx.plugin(SystemPrompt)
       await ctx.plugin(ToolRuntime)
-      await ctx.plugin(CurriculumService, { dshVersion: '0.1.0-rc.5' })
+      await ctx.plugin(CurriculumService, { dshVersion: '0.1.2-rc.1' })
       await ctx.plugin(LocalLearnerMemory, { root })
       await ctx.plugin(LearnerService)
       await ctx.plugin(FakeLab)
@@ -50,14 +56,14 @@ describe('F-005 F-010 P2-03 learning tools', () => {
       const owner = agent()
       const signal = new AbortController().signal
 
-      const initial = await ctx.tools.execute({ signal, callId: CallId('get-1'), name: 'learning_get_state', arguments: {}, agent: owner })
+      const initial = await ctx.tools.execute({ signal, callId: ToolCallId('get-1'), name: 'learning_get_state', arguments: {}, agent: owner })
       expect(initial.isError).toBe(false)
       if (initial.isError) throw new Error(initial.error.message)
       expect(JSON.parse((initial.value as { state_snapshot: string }).state_snapshot)).toMatchObject({ lastSeq: -1 })
 
       const started = await ctx.tools.execute({
         signal,
-        callId: CallId('start-1'),
+        callId: ToolCallId('start-1'),
         name: 'learning_start_unit',
         arguments: { command_id: 'start-command', goal: 'Understand DSH lifecycle' },
         agent: owner,
@@ -68,7 +74,7 @@ describe('F-005 F-010 P2-03 learning tools', () => {
 
       const advanced = await ctx.tools.execute({
         signal,
-        callId: CallId('complete-1'),
+        callId: ToolCallId('complete-1'),
         name: 'learning_complete_activity',
         arguments: { command_id: 'explain-command', summary: 'Explained the lifecycle using current sources' },
         agent: owner,
@@ -79,7 +85,7 @@ describe('F-005 F-010 P2-03 learning tools', () => {
 
       const exercise = await ctx.tools.execute({
         signal,
-        callId: CallId('checkpoint-1'),
+        callId: ToolCallId('checkpoint-1'),
         name: 'learning_complete_activity',
         arguments: { command_id: 'checkpoint-command', summary: 'Submitted the authored checkpoint evidence' },
         agent: owner,
@@ -90,7 +96,7 @@ describe('F-005 F-010 P2-03 learning tools', () => {
 
       const hint = await ctx.tools.execute({
         signal,
-        callId: CallId('hint-1'),
+        callId: ToolCallId('hint-1'),
         name: 'learning_request_hint',
         arguments: { command_id: 'hint-command' },
         agent: owner,
@@ -101,7 +107,7 @@ describe('F-005 F-010 P2-03 learning tools', () => {
 
       const report = await ctx.tools.execute({
         signal,
-        callId: CallId('report-1'),
+        callId: ToolCallId('report-1'),
         name: 'learning_get_report',
         arguments: {},
         agent: owner,
@@ -114,7 +120,7 @@ describe('F-005 F-010 P2-03 learning tools', () => {
         skippedUnitIds: [],
       })
 
-      const noOwner = await ctx.tools.execute({ signal, callId: CallId('get-no-owner'), name: 'learning_get_state', arguments: {} })
+      const noOwner = await ctx.tools.execute({ signal, callId: ToolCallId('get-no-owner'), name: 'learning_get_state', arguments: {} })
       expect(noOwner.isError).toBe(true)
     } finally {
       await ctx.fiber.dispose()
@@ -128,7 +134,7 @@ describe('F-005 F-010 P2-03 learning tools', () => {
     try {
       await ctx.plugin(SystemPrompt)
       await ctx.plugin(ToolRuntime)
-      await ctx.plugin(CurriculumService, { dshVersion: '0.1.0-rc.5' })
+      await ctx.plugin(CurriculumService, { dshVersion: '0.1.2-rc.1' })
       await ctx.plugin(LocalLearnerMemory, { root })
       await ctx.plugin(LearnerService)
       await ctx.plugin(FakeLab)
@@ -139,7 +145,7 @@ describe('F-005 F-010 P2-03 learning tools', () => {
 
       const started = await ctx.tools.execute({
         signal,
-        callId: CallId('diagnostic-start'),
+        callId: ToolCallId('diagnostic-start'),
         name: 'learning_start_diagnostic',
         arguments: {
           command_id: 'diagnostic-start-command',
@@ -156,7 +162,7 @@ describe('F-005 F-010 P2-03 learning tools', () => {
 
       const submitted = await ctx.tools.execute({
         signal,
-        callId: CallId('diagnostic-submit'),
+        callId: ToolCallId('diagnostic-submit'),
         name: 'learning_submit_diagnostic',
         arguments: {
           command_id: 'diagnostic-submit-command',
@@ -182,7 +188,7 @@ describe('F-005 F-010 P2-03 learning tools', () => {
 
       const skipped = await ctx.tools.execute({
         signal,
-        callId: CallId('diagnostic-skip'),
+        callId: ToolCallId('diagnostic-skip'),
         name: 'learning_skip_unit',
         arguments: {
           command_id: 'diagnostic-skip-command',

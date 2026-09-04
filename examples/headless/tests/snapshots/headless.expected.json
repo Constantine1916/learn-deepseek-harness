@@ -4,9 +4,34 @@
       "harness:identity",
       "deployment:persona",
       "learn-dsh:teacher",
-      "learn-dsh:learning-tools"
+      "learn-dsh:learning-tools",
+      "plan:policy",
+      "tool:bash",
+      "tool:read",
+      "tool:write",
+      "tool:edit",
+      "tool:glob",
+      "tool:grep",
+      "tool:jobs",
+      "tool:web_search",
+      "tool:web_fetch",
+      "tool:goal",
+      "tool:workflow",
+      "tool:ralph",
+      "tool:subagent"
     ],
     "tools": [
+      "bash",
+      "create_goal",
+      "edit",
+      "exit_plan_mode",
+      "get_goal",
+      "glob",
+      "grep",
+      "interrupt_agent",
+      "job_kill",
+      "job_list",
+      "job_output",
       "learning_adjust_plan",
       "learning_complete_activity",
       "learning_get_report",
@@ -15,11 +40,37 @@
       "learning_skip_unit",
       "learning_start_diagnostic",
       "learning_start_unit",
-      "learning_submit_diagnostic"
+      "learning_submit_diagnostic",
+      "list_agents",
+      "ralph",
+      "read",
+      "read_image",
+      "send_message",
+      "skill",
+      "str_replace_editor",
+      "subagent",
+      "subagent_fork",
+      "todo_write",
+      "update_goal",
+      "web_fetch",
+      "web_search",
+      "workflow",
+      "write"
     ],
     "requestHeader": {
       "hasTeacherPersona": true,
       "tools": [
+        "bash",
+        "create_goal",
+        "edit",
+        "exit_plan_mode",
+        "get_goal",
+        "glob",
+        "grep",
+        "interrupt_agent",
+        "job_kill",
+        "job_list",
+        "job_output",
         "learning_adjust_plan",
         "learning_complete_activity",
         "learning_get_report",
@@ -28,11 +79,26 @@
         "learning_skip_unit",
         "learning_start_diagnostic",
         "learning_start_unit",
-        "learning_submit_diagnostic"
+        "learning_submit_diagnostic",
+        "list_agents",
+        "ralph",
+        "read",
+        "read_image",
+        "send_message",
+        "skill",
+        "str_replace_editor",
+        "subagent",
+        "subagent_fork",
+        "todo_write",
+        "update_goal",
+        "web_fetch",
+        "web_search",
+        "workflow",
+        "write"
       ]
     },
     "firstResponse": "I teach DSH through source-backed explanation, learner checkpoints, sandboxed exercises, and machine evidence. I only use capabilities allowed by this profile, and I will not claim completion without persisted evidence.",
-    "lessonResponse": "Objective: explain how Plugin, Context, Service, typed events, and Effect disposal compose. Completion requires your own lifecycle trace plus a passed machine check. At DSH 0.1.0-rc.5 / 0cf6f648c80d, docs/architecture.md establishes the Cordis plugin tree, vendor/cordis/src/context.ts defines the scoped Context, and vendor/cordis/src/service.ts defines replaceable Service capabilities. A plugin receives its Context, registers services or typed-event coordination through that scope, and binds cleanup to its fiber with Effects/disposers.",
+    "lessonResponse": "Objective: explain how Plugin, Context, Service, typed events, and Effect disposal compose. Completion requires your own lifecycle trace plus a passed machine check. At DSH 0.1.2-rc.1 / a66e47020478, docs/architecture.md establishes the Cordis plugin tree, vendor/cordis/src/context.ts defines the scoped Context, and vendor/cordis/src/service.ts defines replaceable Service capabilities. A plugin receives its Context, registers services or typed-event coordination through that scope, and binds cleanup to its fiber with Effects/disposers.",
     "checkpointResponse": "Checkpoint: in your own words, trace plugin fiber → Context → Service or typed-event registration → Effect/disposer, and explain what disappears when the fiber is disposed.",
     "failureResponse": "Machine check failed in the implementation category: answer.json is incomplete. Revise the missing lifecycle fields and source citations in this same attempt; no mastery or completion has been granted.",
     "successResponse": "Machine check passed: answer.json now contains every required lifecycle field and at least two valid curriculum source citations. This machine evidence can now support mastery together with your authored checkpoint.",
@@ -48,84 +114,84 @@
         "path": "docs/architecture.md",
         "anchorKind": "heading",
         "anchor": "Cordis",
-        "version": "0cf6f648c80de1b0572057cd746a20863e39d606"
+        "version": "a66e4702047846cdaa10c66c9d3df3951f5ea70d"
       },
       {
         "unitId": "plugin-context-service-effect",
         "path": "vendor/cordis/src/context.ts",
         "anchorKind": "export",
         "anchor": "Context",
-        "version": "0cf6f648c80de1b0572057cd746a20863e39d606"
+        "version": "a66e4702047846cdaa10c66c9d3df3951f5ea70d"
       },
       {
         "unitId": "plugin-context-service-effect",
         "path": "vendor/cordis/src/service.ts",
         "anchorKind": "export",
         "anchor": "Service",
-        "version": "0cf6f648c80de1b0572057cd746a20863e39d606"
+        "version": "a66e4702047846cdaa10c66c9d3df3951f5ea70d"
       },
       {
         "unitId": "capability-seam",
         "path": "docs/architecture.md",
         "anchorKind": "heading",
         "anchor": "Capability seams",
-        "version": "0cf6f648c80de1b0572057cd746a20863e39d606"
+        "version": "a66e4702047846cdaa10c66c9d3df3951f5ea70d"
       },
       {
         "unitId": "capability-seam",
         "path": "packages/subprocess/subprocess/src/index.ts",
         "anchorKind": "export",
         "anchor": "SubprocessRuntime",
-        "version": "0cf6f648c80de1b0572057cd746a20863e39d606"
+        "version": "a66e4702047846cdaa10c66c9d3df3951f5ea70d"
       },
       {
         "unitId": "capability-seam",
         "path": "packages/subprocess/subprocess-local/src/index.ts",
         "anchorKind": "export",
         "anchor": "LocalSubprocessRuntime",
-        "version": "0cf6f648c80de1b0572057cd746a20863e39d606"
+        "version": "a66e4702047846cdaa10c66c9d3df3951f5ea70d"
       },
       {
         "unitId": "model-callable-tool",
         "path": "docs/cordis-tutorial/07-into-the-harness.md",
         "anchorKind": "heading",
         "anchor": "A tool plugin",
-        "version": "0cf6f648c80de1b0572057cd746a20863e39d606"
+        "version": "a66e4702047846cdaa10c66c9d3df3951f5ea70d"
       },
       {
         "unitId": "model-callable-tool",
         "path": "packages/core/tools/src/schema.ts",
         "anchorKind": "export",
         "anchor": "defineTool",
-        "version": "0cf6f648c80de1b0572057cd746a20863e39d606"
+        "version": "a66e4702047846cdaa10c66c9d3df3951f5ea70d"
       },
       {
         "unitId": "model-callable-tool",
         "path": "docs/architecture.md",
         "anchorKind": "heading",
         "anchor": "Turn flow",
-        "version": "0cf6f648c80de1b0572057cd746a20863e39d606"
+        "version": "a66e4702047846cdaa10c66c9d3df3951f5ea70d"
       },
       {
         "unitId": "bundle-profile-composition",
         "path": "docs/architecture.md",
         "anchorKind": "heading",
         "anchor": "Profiles and bundles",
-        "version": "0cf6f648c80de1b0572057cd746a20863e39d606"
+        "version": "a66e4702047846cdaa10c66c9d3df3951f5ea70d"
       },
       {
         "unitId": "bundle-profile-composition",
         "path": "packages/bundle/base/cordis.patch.yml",
         "anchorKind": "text",
         "anchor": "ONE insert over the empty profile root",
-        "version": "0cf6f648c80de1b0572057cd746a20863e39d606"
+        "version": "a66e4702047846cdaa10c66c9d3df3951f5ea70d"
       },
       {
         "unitId": "bundle-profile-composition",
         "path": "docs/architecture.md",
         "anchorKind": "heading",
         "anchor": "Session log",
-        "version": "0cf6f648c80de1b0572057cd746a20863e39d606"
+        "version": "a66e4702047846cdaa10c66c9d3df3951f5ea70d"
       }
     ]
   },

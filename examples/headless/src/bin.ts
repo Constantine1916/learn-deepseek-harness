@@ -4,11 +4,10 @@ import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { boot } from '@deepseek-ai/dsh-app-boot'
 import type { AgentHandle } from '@deepseek-ai/dsh-agent'
 import type {} from '@deepseek-ai/dsh-fs'
 import {
-  CallId,
+  ToolCallId,
   LlmAdapter,
   createUserMessage,
   type GenerateOptions,
@@ -24,6 +23,7 @@ import type {} from '@learn-dsh/lab/local'
 import type {} from '@learn-dsh/teacher'
 import type {} from '@learn-dsh/teaching'
 import type {} from '@learn-dsh/tool-learning'
+import { bootHeadlessProfile } from './profile.js'
 
 const LEARNER_CONTEXT_NAME = 'learn-dsh:learner-state'
 const RUNTIME_CONTEXT_PLUGIN = '@deepseek-ai/dsh-system-prompt'
@@ -49,7 +49,7 @@ function textResponse(text: string): StreamChunk[] {
 }
 
 function toolCallResponse(rawCallId: string, name: string, args: object, text?: string): StreamChunk[] {
-  const id = CallId(rawCallId)
+  const id = ToolCallId(rawCallId)
   const argumentsJson = JSON.stringify(args)
   const chunks: StreamChunk[] = []
   let index = 0
@@ -284,7 +284,7 @@ const script: ScriptEntry[] = [
     chunks: toolCallResponse('explain-1', 'learning_complete_activity', {
       command_id: 'phase-2-complete-explain',
       summary: 'The lesson objective and source-backed lifecycle explanation were presented.',
-    }, 'Objective: explain how Plugin, Context, Service, typed events, and Effect disposal compose. Completion requires your own lifecycle trace plus a passed machine check. At DSH 0.1.0-rc.5 / 0cf6f648c80d, docs/architecture.md establishes the Cordis plugin tree, vendor/cordis/src/context.ts defines the scoped Context, and vendor/cordis/src/service.ts defines replaceable Service capabilities. A plugin receives its Context, registers services or typed-event coordination through that scope, and binds cleanup to its fiber with Effects/disposers.'),
+    }, 'Objective: explain how Plugin, Context, Service, typed events, and Effect disposal compose. Completion requires your own lifecycle trace plus a passed machine check. At DSH 0.1.2-rc.1 / a66e47020478, docs/architecture.md establishes the Cordis plugin tree, vendor/cordis/src/context.ts defines the scoped Context, and vendor/cordis/src/service.ts defines replaceable Service capabilities. A plugin receives its Context, registers services or typed-event coordination through that scope, and binds cleanup to its fiber with Effects/disposers.'),
   },
   {
     label: 'checkpoint-prompt',
@@ -533,8 +533,8 @@ const script: ScriptEntry[] = [
 ]
 
 const directory = resolve(dirname(fileURLToPath(import.meta.url)), '..')
-const configPath = resolve(directory, 'cordis.yml')
-const sourceRoot = resolve(directory, '../../../deepseek-harness')
+const configPath = resolve(directory, 'headless.patch.yml')
+const sourceRoot = resolve(process.env.DSH_CHECKOUT ?? resolve(directory, '../../../deepseek-harness'))
 const temporaryHome = process.env.DSH_HOME === undefined
   ? await mkdtemp(resolve(tmpdir(), 'learn-dsh-example-home-'))
   : undefined
@@ -545,7 +545,7 @@ if (temporaryHome !== undefined) process.env.DSH_HOME = temporaryHome
 process.env.LEARN_DSH_WORKSPACE_ROOT = workspace
 process.env.LEARN_DSH_SOURCE_ROOT = sourceRoot
 
-const ctx = await boot('learn-dsh-headless', configPath)
+const ctx = await bootHeadlessProfile('learn-dsh-headless', configPath)
 const adapter = new SnapshotAdapter([...script])
 ctx.llm.registerAdapter(['snapshot'], adapter)
 
@@ -714,7 +714,10 @@ try {
   continued = undefined
 
   if (adapter.requests.length !== script.length) {
-    throw new Error(`expected ${script.length} scripted model requests, received ${adapter.requests.length}`)
+    throw new Error(
+      `expected ${script.length} scripted model requests, received ${adapter.requests.length}: `
+      + adapter.requests.map(request => request.label).join(', '),
+    )
   }
 
   const originalLog = await ctx.sessionPersistence.inspect(originalSessionId)
