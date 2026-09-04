@@ -1,6 +1,6 @@
 # 001 — Learning Agent Foundation
 
-状态：Implementing
+状态：Validating
 
 目标版本：0.1.0
 

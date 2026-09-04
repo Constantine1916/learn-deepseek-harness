@@ -153,15 +153,15 @@ Phase 4 已完成覆盖八项成果的四个连续单元、两个代码练习、
 
 ## Phase 5 本地发布候选证据
 
-Phase 5 当前形成可复现的本地 release candidate，但不代表规格已 Accepted。纯 registry 发布、远程 matrix 结果和真人参与者教学 rubric 仍是开放项；真实模型评估是可选项。
+Phase 5 当前形成通过远程 matrix 的可复现 release candidate，但不代表规格已 Accepted。纯 registry 发布、新用户计时演练和真人参与者教学 rubric 仍是开放项；真实模型评估是可选项。
 
 | 需求或验收项 | 当前证据入口 |
 |---|---|
 | F-001、A-001、A-002、A-004 | `pnpm release:check` 对八个公开 tarball 做临时 consumer 安装和公开入口导入，验证 packed setup CLI/preset，并从安装后的 bundle 执行 preset install/check/remove、web profile add、dump、app-owned `--help`、remove、reinstall 和第二次 remove；由于 DSH peer 来自锁定 checkout，A-001 只获得本地候选证据，不计纯 registry 通过 |
 | A-003、A-005 | `pnpm test:snapshot` 通过未修改的锁定 DSH checkout 启动真实 Agent Loop；`pnpm test:unit` 验证插件 dispose；`pnpm test:profile` 证明 profile 安装生命周期无残留 |
 | E-005 | `pnpm security:check` 扫描 Git 跟踪文件；`pnpm release:check` 扫描 tarball 并拒绝凭据、环境文件、Session、attempt、learner-memory 和 coverage 产物 |
-| F-AC-001、F-AC-004、F-AC-006 | `pnpm check` 汇总本地工程、文档、兼容性、安全、profile 和 release candidate 门禁；`.github/workflows/ci.yml` 定义 Linux Node 22.19、Linux Node 24 与 macOS Node 22.19 matrix，首次远程通过链接待提交后补入 |
-| F-AC-002 | `pnpm test:coverage` 强制 84% statements、72% branches、90% functions、90% lines 防回退门禁；当前总体为 84.98%、73.20%、90.35%、90.84%，本地门禁已通过，远程 matrix 结果待补 |
+| F-AC-001、F-AC-004、F-AC-006 | `pnpm check` 汇总本地工程、文档、兼容性、安全、profile 和 release candidate 门禁；[CI run 33854561645](https://github.com/Constantine1916/learn-deepseek-harness/actions/runs/33854561645) 在 commit `f000ce3` 上通过 Ubuntu 24.04 Node 22.19、Ubuntu 24.04 Node 24 与 macOS Node 22.19 matrix |
+| F-AC-002 | `pnpm test:coverage` 强制 84% statements、72% branches、90% functions、90% lines 防回退门禁；当前总体为 84.98%、73.20%、90.35%、90.84%，本地和远程 matrix 门禁均已通过 |
 | F-AC-005 | README 已提供相邻 DSH checkout、preset setup、web profile bundle 安装、真实 app surface、keyless Session 和卸载命令；仍需新用户计时演练，纯 registry 安装待 DSH package closure |
 | Q-006、P5-04 | `pnpm eval:teaching:keyless` 已验证来源准确性、证据纪律、自适应路径、提示顺序、blocked 重试、审计快照和报告语义；当前无真实模型 key，真人参与者 rubric 尚未执行 |
 | P5-05 | README、`docs/course-authoring.md`、`docs/troubleshooting.md`、`docs/release.md`、`docs/teaching-evaluation.md` 和 `docs/compatibility.md` 覆盖快速开始、课程作者、故障排查、评估协议、发布边界与已知限制 |
@@ -170,3 +170,4 @@ Phase 5 当前形成可复现的本地 release candidate，但不代表规格已
 
 - DSH `0.1.0-rc.5` 完整 npm package closure 未发布。
 - P5-04 真人参与者教学 rubric 未执行；真实模型评估因当前无 key 跳过，且为可选项。
+- F-AC-005 新用户十分钟启动计时演练尚未执行。
