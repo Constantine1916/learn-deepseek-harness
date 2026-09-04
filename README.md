@@ -2,7 +2,7 @@
 
 一个基于 DeepSeek Harness 插件生态构建的自适应教学 Agent，帮助开发者通过讲解、源码探索、实践任务和反馈循环，系统掌握 DSH。
 
-> 项目状态：Phase 0–4 已实现，Phase 5 本地发布准备进行中。当前版本已经具备覆盖八项成果的四个连续 foundations 单元、独立追加式 Learner Event Store、课程派生诊断、用户控制的显式跳课、三级提示、Provider/Tool/Bundle 实践、四类检查结果、学习报告、精确 Session Log 状态快照，以及真实 Agent Loop keyless 教学闭环；registry 发布、真实模型人工验收和交互式 UI 尚未完成。
+> 项目状态：Phase 0–4 已实现，Phase 5 的 registry-only 发布候选门禁已在本地通过。当前版本已经具备覆盖八项成果的四个连续 foundations 单元、独立追加式 Learner Event Store、课程派生诊断、用户控制的显式跳课、三级提示、Provider/Tool/Bundle 实践、四类检查结果、学习报告、精确 Session Log 状态快照，以及真实 Agent Loop keyless 教学闭环；npm 发布、真人教学验收和交互式 UI 尚未完成。
 
 ## 项目定位
 
@@ -82,7 +82,7 @@ MVP 覆盖以下学习路径：
 
 ## 当前快速开始
 
-当前实现精确支持 DSH `0.1.0-rc.5` 和 Node.js `^22.19.0 || >=24.0.0`。由于该 DSH 版本的包未发布到 npm，开发环境要求两个仓库相邻：
+当前实现精确支持 registry 发布的 DSH `0.1.2-rc.1` 和 Node.js `^22.19.0 || >=24.0.0`。运行时包由 `pnpm install` 从 npm registry 安装。课程仍会读取锁定版本的 DSH 文档和源码，因此建议把只读来源 checkout 放在本仓库旁边：
 
 ~~~text
 code/
@@ -90,13 +90,11 @@ code/
 └── learn-deepseek-harness/
 ~~~
 
-首次准备时，先在相邻的 DSH checkout 安装依赖并构建 host packages：
+首次准备时只需取得匹配的 DSH 来源；该 checkout 不参与运行时模块解析，无需安装依赖或构建：
 
 ~~~sh
 cd ../deepseek-harness
-git checkout 0cf6f648c80de1b0572057cd746a20863e39d606
-pnpm install --frozen-lockfile
-pnpm build:lib:host
+git checkout a66e4702047846cdaa10c66c9d3df3951f5ea70d
 ~~~
 
 然后在本仓库安装并验证：
@@ -127,10 +125,9 @@ pnpm preset:check
 然后把 bundle 安装到 DSH 的 `web` profile，并启动真实交互 surface：
 
 ~~~sh
-cd ../deepseek-harness
-pnpm dsh plugin --profile web add /absolute/path/to/learn-deepseek-harness/packages/bundle
-pnpm dsh --profile web --help
-pnpm dsh --profile web
+pnpm --filter @learn-dsh/example-headless exec dsh plugin --profile web add /absolute/path/to/learn-deepseek-harness/packages/bundle
+pnpm --filter @learn-dsh/example-headless exec dsh --profile web --help
+pnpm --filter @learn-dsh/example-headless exec dsh web
 ~~~
 
 浏览器中新建 Session 时选择 `Learn DSH` preset。真实模型对话需要先通过 DSH 的 Models/settings 配置 provider 与凭据；凭据不要写入本仓库。preset 只挂载教师 Persona、学习工具和必要的 agent-side 文件/Shell 工具，课程、长期记忆、Lab 和 teaching 状态机由 profile 中的 bundle host rows 提供。
@@ -138,9 +135,7 @@ pnpm dsh --profile web
 卸载时分别移除 profile bundle 与受管 preset：
 
 ~~~sh
-cd ../deepseek-harness
-pnpm dsh plugin --profile web remove @learn-dsh/bundle
-cd ../learn-deepseek-harness
+pnpm --filter @learn-dsh/example-headless exec dsh plugin --profile web remove @learn-dsh/bundle
 pnpm preset:remove
 ~~~
 
@@ -191,7 +186,7 @@ pnpm release:check
 pnpm check
 ~~~
 
-`pnpm check` 依次运行以上全部门禁。`release:check` 会打包八个公开 tarball，在临时 consumer 中安装并导入它们，再从打包产物验证 profile 安装、卸载和重装。测试和 example 均不使用模型 key，也不硬编码模型输出。
+`pnpm check` 依次运行以上全部门禁。`release:check` 会打包八个公开 tarball，在临时 consumer 中从 registry 安装精确 DSH、仅从 tarball 安装 Learn DSH，拒绝本地链接和混合 DSH 版本，导入公开入口，再从打包产物验证 profile 生命周期与完整 keyless 教学闭环。测试和 example 均不使用模型 key，也不硬编码模型输出。
 
 ## 非目标
 
@@ -203,11 +198,12 @@ pnpm check
 
 ## 上游关系
 
-本项目基于 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) 的公开插件接口构建。精确版本、Node 范围、开发 checkout commit 和依赖方式见 [兼容矩阵](docs/compatibility.md)。DSH 处于预发布阶段，因此扩大版本范围前必须先更新规格并运行兼容性检查。
+本项目基于 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) 的公开插件接口构建。精确版本、Node 范围、来源 checkout commit 和 registry 依赖方式见 [兼容矩阵](docs/compatibility.md)。DSH 处于预发布阶段，因此扩大版本范围前必须先更新规格并运行兼容性检查。
 
 ## 当前已知限制
 
-- DSH `0.1.0-rc.5` 依赖通过相邻 checkout 的本地 `link:` 解析；当前不能从 npm 完成同版本干净安装。
+- 当前只支持 DSH `0.1.2-rc.1`；扩大到后续预发布版本前必须重新验证公开扩展点、课程锚点和 registry-only 门禁。
+- DSH `0.1.2-rc.1` 的完整依赖闭包当前会报告 `react-dom@19.2.8` 与 `react@18.3.1` 的 peer warning；安装、headless 运行和发布门禁不受影响。
 - foundations 课程当前包含四个线性单元并覆盖八项 MVP 学习成果；更多课程、多语言和非线性路径不在 0.1.0 范围。
 - 当前诊断由课程 objectives 和 required rubric 派生并影响推荐顺序；跳课只要求用户显式请求，不受 gap、uncertain 或证据缺失阻止。skipped 单元满足导航先修，但不计为 mastery、练习完成或已验证能力。
 - 三级提示按 attempt 顺序持久化；前两级通过课程加载门禁限制 fenced code、完整答案措辞和长度。该门禁不能替代课程作者人工教学复核。

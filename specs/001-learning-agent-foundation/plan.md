@@ -105,13 +105,13 @@
 
 任务：
 
-- P5-01（待授权）：发布 @learn-dsh/bundle 及其依赖包。关联 F-001。DSH `0.1.2-rc.1` 已发布完整运行时包集；真实 publish 仍需完成本阶段 registry-only 迁移门禁、人工验收并获得明确发布授权。
-- P5-02（迁移中）：打包八个 Learn DSH package，在临时 consumer 中从 npm registry 安装精确 DSH `0.1.2-rc.1`，只从 tarball 安装 Learn DSH，验证公开入口、preset setup、真实 profile 安装/卸载/重装和 keyless 教学组合。关联 F-001、Q-005。
+- P5-01（待授权）：发布 @learn-dsh/bundle 及其依赖包。关联 F-001。DSH `0.1.2-rc.1` 已发布完整运行时包集且本地 registry-only 门禁已通过；真实 publish 仍需新基线远程 matrix、人工验收并获得明确发布授权。
+- P5-02（完成）：打包八个 Learn DSH package，在临时 consumer 中从 npm registry 安装精确 DSH `0.1.2-rc.1`，只从 tarball 安装 Learn DSH，验证公开入口、preset setup、真实 profile 安装/卸载/重装和 keyless 教学组合。关联 F-001、Q-005。
 - P5-03（完成）：本地兼容性、完整 keyless snapshots、coverage、tracked-file/tarball secret scan、发布内容检查，以及 Ubuntu 24.04 Node 22.19/24 和 macOS Node 22.19 matrix 均已通过。关联 Q-003、Q-005、Q-006。Linux matrix 从官方包加载 bwrap 的窄作用域 AppArmor profile，并以 DSH 同形 probe 验证隔离可用。
 - P5-04（部分完成）：keyless teaching rubric 已成为确定性门禁；当前环境没有真实模型 key，真人参与者试用尚未执行。关联 Q-006。
 - P5-05（完成）：完成快速开始、课程作者指南、故障排查、发布检查、教学评估协议和已知限制。
 - P5-06（进行中）：已汇总 Phase 0–4、Phase 5 本地发布候选和远程 matrix 证据；真人参与者 rubric、新用户计时演练和 registry 发布证据待补。
-- P5-07（进行中）：迁移到 DSH `0.1.2-rc.1`，重验公开扩展点、课程来源锚点、Session 恢复与 Learner Event Store 连续性，并移除运行时本地 `link:` 依赖。关联 F-001、F-006、F-011、F-012、Q-005、Q-006。
+- P5-07（本地完成，待 CI）：已迁移到 DSH `0.1.2-rc.1`，重验公开扩展点、12 个课程来源锚点、Session 恢复与 Learner Event Store 连续性，并移除运行时本地 `link:` 依赖；待新基线远程 matrix 确认。关联 F-001、F-006、F-011、F-012、Q-005、Q-006。
 
 出口：
 

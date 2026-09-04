@@ -6,15 +6,15 @@
 
 处理：切换到 Node 22.19 以上的 22.x，或 Node 24 以上版本，再重新运行 `pnpm install --frozen-lockfile`。不要忽略该错误，因为 DSH 与 Learn DSH 使用同一版本边界。
 
-## 找不到 DSH checkout 或 commit 不匹配
+## 找不到 DSH 来源 checkout 或 commit 不匹配
 
-默认布局要求 `deepseek-harness` 与 `learn-deepseek-harness` 相邻。非相邻布局可显式指定：
+运行时 DSH 从 npm registry 安装；来源 checkout 只用于课程文档、源码入口和 anchor 验证。默认布局要求 `deepseek-harness` 与 `learn-deepseek-harness` 相邻，非相邻布局可显式指定：
 
 ~~~sh
 DSH_CHECKOUT=/absolute/path/to/deepseek-harness pnpm compat
 ~~~
 
-checkout 必须位于 commit `0cf6f648c80de1b0572057cd746a20863e39d606`。如果只是源码正确但 `lib` 不存在，在 DSH 仓库运行 `pnpm install --frozen-lockfile && pnpm build:lib:host`。
+checkout 必须位于 commit `a66e4702047846cdaa10c66c9d3df3951f5ea70d`。不需要在 DSH 仓库安装依赖或构建 `lib`；若 `pnpm compat` 报告 registry 版本错误，应在 Learn DSH 仓库重新运行 `pnpm install --frozen-lockfile`。
 
 ## profile 安装失败
 
@@ -45,4 +45,4 @@ payload version 1 不会自动迁移到当前 version 2。本地 Provider 只支
 
 运行 `pnpm release:check` 查看具体包。该门禁会拒绝 tarball 中的 source、tests、coverage、Session、attempt、learner-memory 数据、环境文件、凭据模式、缺失 export，以及 runtime dependency 中残留的 `workspace:` 或 `link:`。
 
-由于受支持的 DSH `0.1.0-rc.5` 包集尚未完整发布，当前 release candidate 使用锁定的相邻 checkout 提供 DSH peer dependencies；这不是纯 registry 安装。
+该门禁必须从 npm registry 安装唯一的 DSH `0.1.2-rc.1` package closure，并只从临时 tarball 安装 Learn DSH。来源 checkout 只允许用于课程 anchor；任何运行时本地链接、checkout 路径或混合 DSH 版本都会失败。
