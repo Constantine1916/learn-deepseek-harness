@@ -686,7 +686,7 @@ try {
   const capabilityWorkspace = await activeAttemptWorkspace(continued)
   const capabilityCheckTarget = await ctx.fs.resolve('check.mjs', { cwd: capabilityWorkspace })
   const capabilityCheck = await ctx.fs.readText(capabilityCheckTarget)
-  await writeAttemptFile(continued, capabilityWorkspace, 'check.mjs', "process.kill(process.pid, 'SIGTERM')\n")
+  await writeAttemptFile(continued, capabilityWorkspace, 'check.mjs', "setTimeout(() => {}, 60_000)\n")
   await followup(continued, 'Run the Provider check. If infrastructure blocks it, classify it without treating it as a learning failure.')
   await writeAttemptFile(continued, capabilityWorkspace, 'check.mjs', capabilityCheck)
   await writeAttemptFile(continued, capabilityWorkspace, 'provider.ts', providerSolution)
